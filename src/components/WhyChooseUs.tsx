@@ -1,0 +1,121 @@
+import React from 'react';
+import { Sparkles, ShieldCheck, Lock, Headphones, Droplet, Heart, Award, CheckCircle2 } from 'lucide-react';
+import { WHY_CHOOSE_US_DATA } from '../data/oilData';
+
+export const WhyChooseUs: React.FC = () => {
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Sparkles':
+        return <Sparkles className="w-6 h-6 text-gold-500" />;
+      case 'ShieldCheck':
+        return <ShieldCheck className="w-6 h-6 text-emerald-600" />;
+      case 'Lock':
+        return <Lock className="w-6 h-6 text-forest-800" />;
+      case 'Headphones':
+        return <Headphones className="w-6 h-6 text-amber-600" />;
+      default:
+        return <Sparkles className="w-6 h-6 text-gold-500" />;
+    }
+  };
+
+  return (
+    <section id="why-us" className="py-16 sm:py-24 bg-cream-100 relative overflow-hidden">
+      {/* Background patterns */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <span className="text-xs font-bold text-gold-700 uppercase tracking-widest bg-gold-100 border border-gold-300 px-3 py-1 rounded-full">
+            Our Commitment to Purity
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-forest-950 mt-3 tracking-tight">
+            Why Choose SS OIL?
+          </h2>
+          <p className="mt-3 text-stone-600 text-base sm:text-lg">
+            We preserve generational oil pressing methods to give your kitchen genuine, nutrient-rich purity.
+          </p>
+          <div className="w-16 h-1 bg-gold-500 mx-auto mt-4 rounded-full" />
+        </div>
+
+        {/* 4 Feature Blocks Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          {WHY_CHOOSE_US_DATA.map((feature, idx) => (
+            <div
+              key={feature.title}
+              className="bg-white rounded-3xl p-7 border border-cream-300/80 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group"
+            >
+              <div>
+                {/* Icon wrapper */}
+                <div className="w-14 h-14 rounded-2xl bg-cream-100 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-forest-900 transition-all duration-300">
+                  <span className="group-hover:text-gold-400 transition-colors">
+                    {getIcon(feature.iconName)}
+                  </span>
+                </div>
+
+                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cream-200 text-stone-700 mb-2">
+                  {feature.badge}
+                </div>
+
+                <h3 className="font-serif text-xl font-bold text-forest-950 mb-2 group-hover:text-forest-700 transition-colors">
+                  {feature.title}
+                </h3>
+
+                <p className="text-stone-600 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+
+              <div className="pt-5 mt-6 border-t border-cream-200 flex items-center gap-1.5 text-xs font-semibold text-forest-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Verified Standard</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Traditional Wood-Pressed Story Card */}
+        <div className="mt-16 bg-forest-900 text-cream-100 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-card border border-forest-800">
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-gold-500/10 to-transparent pointer-events-none" />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-8 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-800 text-gold-300 text-xs font-bold uppercase tracking-wider">
+                <Droplet className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
+                The Mara Chekku Difference
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+                Slow Wood Churning Under 45°C vs Harsh High Heat Refining
+              </h3>
+              <p className="text-cream-200/90 text-sm sm:text-base leading-relaxed">
+                Industrial refined oils are subjected to over 200°C temperatures and hexane chemical solvents that eliminate natural antioxidants. At SS OIL, native wooden mortars rotate leisurely, preserving the natural fragrance, essential fatty acids, and wholesome vitality.
+              </p>
+            </div>
+            
+            <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
+              <div className="bg-forest-800/80 rounded-2xl p-4 border border-forest-700/60 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gold-500 text-forest-950 font-bold">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Zero Hexane Solvents</div>
+                  <div className="text-xs text-cream-300">Pure Physical Extraction</div>
+                </div>
+              </div>
+
+              <div className="bg-forest-800/80 rounded-2xl p-4 border border-forest-700/60 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500 text-white font-bold">
+                  <Heart className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Retains Natural Tocopherols</div>
+                  <div className="text-xs text-cream-300">Antioxidant-Rich Cooking</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+};

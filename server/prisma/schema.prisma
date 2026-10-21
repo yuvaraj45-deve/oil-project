@@ -1,0 +1,131 @@
+// Prisma Schema for SS OIL Fullstack E-Commerce Database
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         String    @default("CUSTOMER") // CUSTOMER | ADMIN
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id               String            @id @default(uuid())
+  name             String
+  slug             String            @unique
+  tagline          String
+  description      String
+  price            Float
+  originalPrice    Float
+  discountPercent  Float
+  defaultPack      String
+  image            String
+  badge            String?
+  smokePoint       String
+  extractionMethod String
+  inStock          Boolean           @default(true)
+  featured         Boolean           @default(false)
+  categoryId       String
+  category         Category          @relation(fields: [categoryId], references: [id])
+  packSizes        ProductPackSize[]
+  reviews          Review[]
+  labReports       LabReport[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model ProductPackSize {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  packSize      String
+  price         Float
+  originalPrice Float
+  inStock       Boolean  @default(true)
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  shippingAddress String
+  totalAmount     Float
+  paymentStatus   String      @default("PENDING") // PENDING | PAID | FAILED
+  orderStatus     String      @default("PROCESSING") // PROCESSING | SHIPPED | DELIVERED | CANCELLED
+  paymentMethod   String      @default("UPI") // UPI | CARD | COD
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  packSize    String
+  quantity    Int
+  unitPrice   Float
+  subtotal    Float
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  author    String
+  location  String?
+  rating    Int
+  comment   String
+  verified  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+  active       Boolean  @default(true)
+}
+
+model LabReport {
+  id                 String   @id @default(uuid())
+  batchNumber        String   @unique
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  testedDate         String
+  acidValue          String
+  peroxideValue      String
+  hexaneResidue      String
+  tocopherolVitaminE String
+  freeFattyAcids     String
+  iodineValue        String
+  certification      String
+  createdAt          DateTime @default(now())
+}
