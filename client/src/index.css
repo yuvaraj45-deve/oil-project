@@ -130,6 +130,30 @@
   animation-play-state: paused;
 }
 
+/* Continuous Non-Stop Right-to-Left Hero Animation */
+@keyframes heroContinuousMove {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-hero-continuous {
+  display: flex;
+  width: max-content;
+  animation: heroContinuousMove 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-hero-continuous-fast {
+  display: flex;
+  width: max-content;
+  animation: heroContinuousMove 20s linear infinite;
+  will-change: transform;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
