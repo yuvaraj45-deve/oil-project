@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeroProps {
@@ -9,6 +10,7 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   const { language } = useLanguage();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Slides matching the exact screenshot from gemedible.com
   const slides = [
@@ -90,114 +92,65 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
     },
   ];
 
-  // Continuous sliding state
-  const [isPaused, setIsPaused] = useState(false);
-  const [speed, setSpeed] = useState<'normal' | 'fast'>('normal');
+  // Static banner - strictly NO auto-movement (hero section move aga vena)
+  const activeSlide = slides[currentSlide];
 
-  // Duplicate slides for seamless 100% infinite continuous loop
-  const continuousSlides = [...slides, ...slides];
+  const handleNext = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
 
   return (
     <section
       id="home"
       className="relative overflow-hidden bg-black text-white select-none w-full"
     >
-      {/* Full-Bleed Hero Banner Viewport */}
+      {/* Full-Bleed Hero Banner Viewport - STATIC */}
       <div className="relative w-full h-[460px] sm:h-[560px] lg:h-[620px] overflow-hidden">
-        
-        {/* Continuous Infinite Horizontal Track (Constant, Non-Stop Right-to-Left Motion) */}
-        <div
-          className={`flex h-full ${
-            speed === 'fast' ? 'animate-hero-continuous-fast' : 'animate-hero-continuous'
-          }`}
-          style={{
-            animationPlayState: isPaused ? 'paused' : 'running',
-          }}
-        >
-          {continuousSlides.map((slide, idx) => (
-            <div
-              key={`${slide.id}-${idx}`}
-              className="w-screen h-full shrink-0 relative flex-none overflow-hidden"
-            >
-              {/* High-Res Banner Background Image */}
-              <img
-                src={slide.bannerImage}
-                alt="Gem Edible Oils Hero Banner"
-                className="w-full h-full object-cover object-center pointer-events-none select-none"
-              />
+        {/* Background Banner Image */}
+        <div className="absolute inset-0">
+          <img
+            src={activeSlide.bannerImage}
+            alt="Gem Edible Oils Hero Banner"
+            className="w-full h-full object-cover object-center pointer-events-none select-none"
+          />
+          {/* Gradient Scrim */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        </div>
 
-              {/* Gradient Scrim for crystal clear typography legibility */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
-
-              {/* Text Overlay - Left Aligned exactly matching gemedible.com screenshot */}
-              <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
-                <div className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5">
-                  
-                  {/* Main Headline (Bold, white, tracking-tight) */}
-                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
-                    {slide.headline}
-                  </h1>
-
-                  {/* Subtitle */}
-                  <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
-                    {slide.subheadline}
-                  </p>
-
-                  {/* Solid Bright Yellow Rectangular "SHOP NOW" Button */}
-                  <div className="pt-2 sm:pt-3">
-                    <button
-                      onClick={() => {
-                        if (onSelectCategory && slide.category !== 'all') {
-                          onSelectCategory(slide.category);
-                        }
-                        onShopNow();
-                      }}
-                      className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
-                    >
-                      {slide.buttonText}
-                    </button>
-                  </div>
-
-                </div>
-              </div>
+        {/* Text Overlay - Left Aligned */}
+        <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+          <div className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
+              {activeSlide.headline}
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
+              {activeSlide.subheadline}
+            </p>
+            <div className="pt-2 sm:pt-3">
+              <button
+                onClick={() => {
+                  if (onSelectCategory && activeSlide.category !== 'all') {
+                    onSelectCategory(activeSlide.category);
+                  }
+                  onShopNow();
+                }}
+                className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+              >
+                {activeSlide.buttonText}
+              </button>
             </div>
-          ))}
-        </div>
-
-        {/* Floating Minimal Controls Badge (Bottom-Right) */}
-        <div className="absolute bottom-5 right-5 sm:right-8 z-30 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-xl">
-          {/* Live pulsing movement indicator */}
-          <div className="flex items-center gap-1.5 pr-2 border-r border-white/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-400 hidden xs:inline">
-              {isPaused ? 'Paused' : 'Moving Live'}
-            </span>
           </div>
-
-          {/* Speed Toggle (1x / 1.5x) */}
-          <button
-            onClick={() => setSpeed(speed === 'normal' ? 'fast' : 'normal')}
-            className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer"
-            title="Toggle Movement Speed"
-          >
-            {speed === 'normal' ? '1x' : '1.5x'}
-          </button>
-
-          {/* Play / Pause Toggle Button */}
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-            title={isPaused ? 'Resume Right-to-Left Motion' : 'Pause Stream'}
-          >
-            {isPaused ? (
-              <span className="text-[11px] font-bold px-1">▶ Play</span>
-            ) : (
-              <span className="text-[11px] font-bold px-1">❚❚ Pause</span>
-            )}
-          </button>
         </div>
 
+        {/* Right Arrow Navigation Chevron (Visible in screenshot) */}
+        <button
+          onClick={handleNext}
+          aria-label="Next Banner Slide"
+          className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-2 transition-all cursor-pointer hover:scale-125 focus:outline-none"
+        >
+          <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 stroke-[2.5]" />
+        </button>
       </div>
     </section>
   );
