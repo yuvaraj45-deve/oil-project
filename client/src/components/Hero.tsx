@@ -114,7 +114,25 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
 
-  const activeSlide = slides[currentSlide];
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (diff > 50) {
+      // Swiped left -> move next (slide from right to left)
+      handleNext();
+    } else if (diff < -50) {
+      // Swiped right -> move prev
+      handlePrev();
+    }
+    setTouchStartX(null);
+  };
 
   return (
     <section
@@ -122,64 +140,68 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       className="relative overflow-hidden bg-black text-white select-none w-full"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Full-Bleed Hero Banner Viewport */}
       <div className="relative w-full h-[460px] sm:h-[560px] lg:h-[620px] overflow-hidden">
         
-        {/* Render Slides with Crossfade */}
-        {slides.map((slide, idx) => {
-          const isActive = idx === currentSlide;
-          return (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
-            >
-              {/* High-Res Banner Background Image */}
-              <img
-                src={slide.bannerImage}
-                alt="Gem Edible Oils Hero Banner"
-                className="w-full h-full object-cover object-center"
-              />
-
-              {/* Gradient Scrim for crystal clear typography legibility */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-            </div>
-          );
-        })}
-
-        {/* Text Overlay - Left Aligned exactly matching gemedible.com screenshot */}
-        <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
-          <div className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn">
-            
-            {/* Main Headline (Bold, white, tracking-tight) */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
-              {activeSlide.headline}
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
-              {activeSlide.subheadline}
-            </p>
-
-            {/* Solid Bright Yellow Rectangular "SHOP NOW" Button */}
-            <div className="pt-2 sm:pt-3">
-              <button
-                onClick={() => {
-                  if (onSelectCategory && activeSlide.category !== 'all') {
-                    onSelectCategory(activeSlide.category);
-                  }
-                  onShopNow();
-                }}
-                className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+        {/* Horizontal Carousel Track - Smooth right-to-left transition */}
+        <div
+          className="flex h-full w-full transition-transform duration-700 ease-in-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide) => {
+            return (
+              <div
+                key={slide.id}
+                className="w-full h-full shrink-0 relative flex-none overflow-hidden"
               >
-                {activeSlide.buttonText}
-              </button>
-            </div>
+                {/* High-Res Banner Background Image */}
+                <img
+                  src={slide.bannerImage}
+                  alt="Gem Edible Oils Hero Banner"
+                  className="w-full h-full object-cover object-center pointer-events-none select-none"
+                />
 
-          </div>
+                {/* Gradient Scrim for crystal clear typography legibility */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+                {/* Text Overlay - Left Aligned exactly matching gemedible.com screenshot */}
+                <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+                  <div className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5">
+                    
+                    {/* Main Headline (Bold, white, tracking-tight) */}
+                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
+                      {slide.headline}
+                    </h1>
+
+                    {/* Subtitle */}
+                    <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
+                      {slide.subheadline}
+                    </p>
+
+                    {/* Solid Bright Yellow Rectangular "SHOP NOW" Button */}
+                    <div className="pt-2 sm:pt-3">
+                      <button
+                        onClick={() => {
+                          if (onSelectCategory && slide.category !== 'all') {
+                            onSelectCategory(slide.category);
+                          }
+                          onShopNow();
+                        }}
+                        className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+                      >
+                        {slide.buttonText}
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Right Arrow Navigation Chevron (Visible in screenshot) */}
