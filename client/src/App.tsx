@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { ShopByCategory } from './components/ShopByCategory';
+import { ValuePillars } from './components/ValuePillars';
+import { OurProductRange } from './components/OurProductRange';
 import { FeaturedProducts } from './components/FeaturedProducts';
-import { WhyChooseUs } from './components/WhyChooseUs';
-import { OilSommelier } from './components/OilSommelier';
-import { PromotionalBanner } from './components/PromotionalBanner';
+import { PureDifference } from './components/PureDifference';
+import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
+import { SmartBottleFeature } from './components/SmartBottleFeature';
+import { CraftsmanshipVisualizer } from './components/CraftsmanshipVisualizer';
 import { PurityComparison } from './components/PurityComparison';
+import { HealthyRecipesSection } from './components/HealthyRecipesSection';
+import { EasyOilGuide } from './components/EasyOilGuide';
+import { WhyChooseUs } from './components/WhyChooseUs';
+import { PromotionalBanner } from './components/PromotionalBanner';
 import { Testimonials } from './components/Testimonials';
-import { FarmOriginsMap } from './components/FarmOriginsMap';
 import { AboutSection } from './components/AboutSection';
 import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
@@ -18,8 +23,26 @@ import { SearchModal } from './components/SearchModal';
 import { LabReportModal } from './components/LabReportModal';
 import { QuickDock } from './components/QuickDock';
 import { Toast } from './components/Toast';
-import { Product, CartItem } from './types';
+import { CheckoutModal } from './components/CheckoutModal';
+import { OrderSuccessModal } from './components/OrderSuccessModal';
+import { AdminDashboardModal } from './components/AdminDashboardModal';
+import { AdminPage } from './components/AdminPage';
+import { AdminLoginGate } from './components/AdminLoginGate';
+import { ProfileModal } from './components/ProfileModal';
+import { FaqModal } from './components/FaqModal';
+import { Product, CartItem, PlacedOrder, UserProfile } from './types';
 import { PRODUCTS_DATA } from './data/oilData';
+
+// Dedicated Page Components for each Navbar route
+import { ShopPage } from './pages/ShopPage';
+import { MillJourneyPage } from './pages/MillJourneyPage';
+import { SommelierPage } from './pages/SommelierPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { WhyUsPage } from './pages/WhyUsPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { LoginPage } from './pages/LoginPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export function App() {
   // Shopping Cart state
@@ -34,10 +57,144 @@ export function App() {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  });
+
+  // Dedicated Admin Unlock State: Requires entering Email ID & Password to access /admin
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('pureva_admin_unlocked') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [selectedLabReportProduct, setSelectedLabReportProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Path-based Router State (/ or /admin)
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Checkout & Admin States
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
+  const [lastPlacedOrder, setLastPlacedOrder] = useState<PlacedOrder | null>(null);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Live Orders List with initial seed data
+  const [orders, setOrders] = useState<PlacedOrder[]>([
+    {
+      id: 'ord_1',
+      orderNumber: 'SSOIL-2026-1042',
+      customerName: 'Ramesh Sundaram',
+      customerEmail: 'ramesh.sundaram@gmail.com',
+      customerPhone: '9842145620',
+      shippingAddress: '42, Meyyanur Main Road, Salem, Tamil Nadu - 636004',
+      city: 'Salem',
+      pincode: '636004',
+      paymentMethod: 'UPI',
+      paymentStatus: 'PAID',
+      orderStatus: 'SHIPPED',
+      subtotal: 680,
+      shippingFee: 0,
+      totalAmount: 680,
+      createdAt: '2026-10-21T14:30:00.000Z',
+      items: [
+        {
+          productId: 'ss-sesame-1000',
+          productName: 'Wood-Pressed Gingelly (Sesame) Oil',
+          packSize: '1 Litre Bottle',
+          quantity: 2,
+          unitPrice: 395,
+          subtotal: 790,
+        },
+      ],
+    },
+    {
+      id: 'ord_2',
+      orderNumber: 'SSOIL-2026-1088',
+      customerName: 'Anitha Vijay',
+      customerEmail: 'anitha.vijay@yahoo.co.in',
+      customerPhone: '9789234110',
+      shippingAddress: '15, 2nd Avenue, Anna Nagar, Chennai, Tamil Nadu - 600040',
+      city: 'Chennai',
+      pincode: '600040',
+      paymentMethod: 'CARD',
+      paymentStatus: 'PAID',
+      orderStatus: 'PACKED',
+      subtotal: 570,
+      shippingFee: 0,
+      totalAmount: 570,
+      createdAt: '2026-10-21T18:15:00.000Z',
+      items: [
+        {
+          productId: 'prod_coconut',
+          productName: 'Pure Cold-Pressed Coconut Oil (Chekku)',
+          packSize: '1 Litre Bottle',
+          quantity: 1,
+          unitPrice: 380,
+          subtotal: 380,
+        },
+        {
+          productId: 'prod_sesame',
+          productName: 'Traditional Mara Chekku Sesame (Gingelly) Oil',
+          packSize: '500ml Bottle',
+          quantity: 1,
+          unitPrice: 190,
+          subtotal: 190,
+        },
+      ],
+    },
+    {
+      id: 'ord_3',
+      orderNumber: 'SSOIL-2026-1120',
+      customerName: 'Karthik Muthusamy',
+      customerEmail: 'karthik.m@outlook.com',
+      customerPhone: '9443219087',
+      shippingAddress: '78, Race Course Road, Coimbatore, Tamil Nadu - 641018',
+      city: 'Coimbatore',
+      pincode: '641018',
+      paymentMethod: 'COD',
+      paymentStatus: 'PENDING',
+      orderStatus: 'PROCESSING',
+      subtotal: 850,
+      shippingFee: 0,
+      totalAmount: 850,
+      createdAt: '2026-10-22T08:45:00.000Z',
+      items: [
+        {
+          productId: 'prod_ghee',
+          productName: 'A2 Desi Cow Bilona Cultured Ghee',
+          packSize: '500ml Glass Jar',
+          quantity: 1,
+          unitPrice: 850,
+          subtotal: 850,
+        },
+      ],
+    },
+  ]);
 
   // Cart helper functions
   const handleAddToCart = (product: Product, packSize: string, quantity = 1) => {
@@ -119,6 +276,71 @@ export function App() {
     setSelectedLabReportProduct(PRODUCTS_DATA[0]);
   };
 
+  const handleOpenAdmin = () => {
+    navigateTo('/admin');
+  };
+
+  const handleProceedToCheckout = () => {
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleOrderSuccess = (newOrder: PlacedOrder) => {
+    setOrders((prev) => [newOrder, ...prev]);
+    setCartItems([]);
+    setLastPlacedOrder(newOrder);
+    setIsCheckoutOpen(false);
+    setIsOrderSuccessOpen(true);
+    setToastMessage(`Order #${newOrder.orderNumber} placed successfully!`);
+  };
+
+  const handleUpdateOrderStatus = (orderId: string, newStatus: PlacedOrder['orderStatus']) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o))
+    );
+    setToastMessage(`Order status updated to ${newStatus}`);
+  };
+
+  // Dedicated Full-Page Route for /admin (PROTECTED: Requires Email ID and Password!)
+  if (currentPath === '/admin' || currentPath === '/admin/') {
+    // If not explicitly unlocked with Email ID and Password, display the AdminLoginGate!
+    if (!isAdminUnlocked || !currentUser || currentUser.role !== 'admin') {
+      return (
+        <AdminLoginGate
+          onLoginSuccess={(adminUser) => {
+            setCurrentUser(adminUser);
+            setIsAdminUnlocked(true);
+            try {
+              sessionStorage.setItem('pureva_admin_unlocked', 'true');
+              localStorage.setItem('ssoil_user', JSON.stringify(adminUser));
+            } catch (e) {}
+            setToastMessage(`Welcome back, ${adminUser.name}! Admin Portal Unlocked 🛡️`);
+          }}
+          onBackToStore={() => navigateTo('/')}
+        />
+      );
+    }
+
+    // Authenticated Admin Access
+    return (
+      <AdminPage
+        orders={orders}
+        onUpdateOrderStatus={handleUpdateOrderStatus}
+        onBackToStore={() => navigateTo('/')}
+        onLogout={() => {
+          setIsAdminUnlocked(false);
+          try {
+            sessionStorage.removeItem('pureva_admin_unlocked');
+            localStorage.removeItem('ssoil_user');
+          } catch (e) {}
+          setCurrentUser(null);
+          setToastMessage('Admin signed out successfully.');
+          navigateTo('/');
+        }}
+      />
+    );
+  }
+
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -126,74 +348,202 @@ export function App() {
       {/* 1. Header & Announcement Bar */}
       <Navbar
         cartCount={totalCartCount}
+        currentPath={currentPath}
+        currentUser={currentUser}
+        onNavigate={navigateTo}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onNavigateCategory={handleCategorySelect}
+        onOpenFaq={() => setIsFaqOpen(true)}
+        onOpenProfile={() => navigateTo('/profile')}
+        onNavigateToLogin={() => navigateTo('/login')}
+        onNavigateCategory={(cat) => {
+          setSelectedCategory(cat);
+          navigateTo('/shop');
+        }}
         onOpenPurityReport={handleOpenPurityReport}
       />
 
-      {/* Main Content Sections */}
+      {/* Main Dedicated Page Renderer */}
       <main className="flex-1">
-        {/* 2. Hero Section */}
-        <Hero
-          onShopNow={handleShopNow}
-          onExploreProducts={handleExploreProducts}
-          onQuickViewSample={() => setQuickViewProduct(PRODUCTS_DATA[0])}
-        />
-
-        {/* 3. Shop by Category */}
-        <ShopByCategory
-          onSelectCategory={handleCategorySelect}
-          selectedCategory={selectedCategory}
-        />
-
-        {/* 4. Featured Products Grid */}
-        <FeaturedProducts
-          onAddToCart={handleAddToCart}
-          onQuickView={(product) => setQuickViewProduct(product)}
-          onViewLabReport={(product) => setSelectedLabReportProduct(product)}
-          selectedCategory={selectedCategory}
-          onSelectCategory={(cat) => setSelectedCategory(cat)}
-        />
-
-        {/* 5. Why Choose SS OIL? */}
-        <WhyChooseUs />
-
-        {/* 6. Chef's Oil Sommelier (Dish-to-oil matchmaker) */}
-        <div id="sommelier">
-          <OilSommelier
+        {/* Route: /shop */}
+        {currentPath === '/shop' && (
+          <ShopPage
+            initialCategory={selectedCategory}
             onAddToCart={handleAddToCart}
             onQuickView={(p) => setQuickViewProduct(p)}
+            onViewLabReport={(p) => setSelectedLabReportProduct(p)}
           />
-        </div>
+        )}
 
-        {/* 7. Promotional Banner ("Bring Quality to Your Kitchen") */}
-        <PromotionalBanner onShopCollection={handleShopNow} />
+        {/* Route: /mill-journey */}
+        {currentPath === '/mill-journey' && (
+          <MillJourneyPage onShopOils={() => navigateTo('/shop')} />
+        )}
 
-        {/* 8. The Purity Truth: Side-by-Side Comparison */}
-        <PurityComparison />
+        {/* Route: /sommelier */}
+        {currentPath === '/sommelier' && (
+          <SommelierPage
+            onAddToCart={handleAddToCart}
+            onQuickView={(p) => setQuickViewProduct(p)}
+            onExploreShop={() => navigateTo('/shop')}
+          />
+        )}
 
-        {/* 9. Single-Origin Farm Origins Map */}
-        <FarmOriginsMap />
+        {/* Route: /categories */}
+        {currentPath === '/categories' && (
+          <CategoriesPage
+            onSelectCategory={(cat) => {
+              setSelectedCategory(cat);
+              navigateTo('/shop');
+            }}
+          />
+        )}
 
-        {/* 10. Customer Testimonials */}
-        <Testimonials />
+        {/* Route: /why-us */}
+        {currentPath === '/why-us' && (
+          <WhyUsPage
+            onShopOils={() => navigateTo('/shop')}
+            onOpenLabModal={handleOpenPurityReport}
+          />
+        )}
 
-        {/* 11. About Us Heritage Section */}
-        <AboutSection />
+        {/* Route: /about */}
+        {currentPath === '/about' && (
+          <AboutPage
+            onAddToCart={handleAddToCart}
+            onQuickView={(p) => setQuickViewProduct(p)}
+            onViewLabReport={(p) => setSelectedLabReportProduct(p)}
+            onViewAllProducts={() => {
+              setSelectedCategory('all');
+              navigateTo('/shop');
+            }}
+          />
+        )}
 
-        {/* 12. Newsletter Section */}
-        <Newsletter />
+        {/* Route: /contact */}
+        {currentPath === '/contact' && <ContactPage />}
+
+        {/* Route: /login */}
+        {currentPath === '/login' && (
+          <LoginPage
+            onLoginSuccess={(user) => {
+              setCurrentUser(user);
+              try {
+                localStorage.setItem('ssoil_user', JSON.stringify(user));
+              } catch (e) {}
+              setToastMessage(`Welcome, ${user.name}! Sign in successful ✨`);
+              if (user.role === 'admin') {
+                navigateTo('/admin');
+              } else {
+                navigateTo('/');
+              }
+            }}
+            onNavigate={navigateTo}
+            onOpenAdmin={() => navigateTo('/admin')}
+          />
+        )}
+
+        {/* Route: /profile (Dedicated Standalone Customer Profile Page) */}
+        {currentPath === '/profile' && (
+          <ProfilePage
+            currentUser={currentUser}
+            orders={orders}
+            onNavigate={navigateTo}
+            onUpdateUser={(updated) => {
+              setCurrentUser(updated);
+              try {
+                localStorage.setItem('ssoil_user', JSON.stringify(updated));
+              } catch (e) {}
+              setToastMessage('Profile details updated successfully ✨');
+            }}
+            onSignOut={() => {
+              setCurrentUser(null);
+              try {
+                localStorage.removeItem('ssoil_user');
+              } catch (e) {}
+              setToastMessage('You have been signed out.');
+              navigateTo('/');
+            }}
+            onShopOils={() => navigateTo('/shop')}
+          />
+        )}
+
+        {/* Route: / (Default Flagship Homepage - Gemedible Inspired Experience) */}
+        {(currentPath === '/' || currentPath === '') && (
+          <>
+            {/* 1. Hero Section: Multi-Slide Animated Gemedible Carousel */}
+            <Hero
+              onShopNow={() => navigateTo('/shop')}
+              onExploreProducts={() => navigateTo('/shop')}
+              onSelectCategory={(category) => {
+                setSelectedCategory(category);
+                navigateTo('/shop');
+              }}
+            />
+
+            {/* 2. 4 Value Pillars: 100% Pure & Natural, Good for Health, Premium Quality, Sustainable */}
+            <ValuePillars />
+
+            {/* 3. Gemedible Signature: Smart Packaging with Built-in Measuring Chamber Simulator */}
+            <SmartBottleFeature onShopOils={() => navigateTo('/shop')} />
+
+            {/* 4. Our Product Range & Categories: Pure Oils for a Healthier You */}
+            <OurProductRange
+              onShopProduct={(slug) => {
+                setSelectedCategory(slug);
+                const prodEl = document.getElementById('products');
+                if (prodEl) {
+                  prodEl.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            />
+
+            {/* 5. Products Showcase: Categories ku kizha ulla products (Top 4 Bestsellers) */}
+            <FeaturedProducts
+              onAddToCart={handleAddToCart}
+              onQuickView={(p) => setQuickViewProduct(p)}
+              onViewLabReport={(p) => setSelectedLabReportProduct(p)}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(c) => setSelectedCategory(c)}
+              maxProducts={4}
+              onViewAllProducts={() => {
+                setSelectedCategory('all');
+                navigateTo('/shop');
+              }}
+            />
+
+            {/* 6. The Mara Chekku Craftsmanship: 5-Stage Interactive Mill Journey */}
+            <CraftsmanshipVisualizer />
+
+            {/* 7. Purity Matrix: Mara Chekku vs Chemical Factory Refined Oils */}
+            <PurityComparison />
+
+            {/* 8. The Pure Difference (4 Quality Features) */}
+            <PureDifference />
+
+            {/* 9. Make the Switch to PureVa Banner */}
+            <MakeTheSwitchBanner onShopNow={() => navigateTo('/shop')} />
+          </>
+        )}
       </main>
 
-      {/* 13. Footer */}
-      <Footer onSelectCategory={handleCategorySelect} />
+      {/* 13. Footer (Rendered ONLY on Home Page as requested) */}
+      {(currentPath === '/' || currentPath === '') && (
+        <Footer
+          onSelectCategory={(cat) => {
+            setSelectedCategory(cat);
+            navigateTo('/shop');
+          }}
+          onNavigate={navigateTo}
+        />
+      )}
 
       {/* Floating Bottom Quick-Order Dock (Desktop & Mobile) */}
       <QuickDock
         items={cartItems}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenLabReport={handleOpenPurityReport}
+        onNavigate={navigateTo}
       />
 
       {/* Interactive Cart Drawer */}
@@ -204,6 +554,30 @@ export function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        onProceedToCheckout={handleProceedToCheckout}
+      />
+
+      {/* Instant Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={cartItems}
+        onOrderSuccess={handleOrderSuccess}
+      />
+
+      {/* Order Confirmation Success Modal */}
+      <OrderSuccessModal
+        order={lastPlacedOrder}
+        onClose={() => setIsOrderSuccessOpen(false)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
+
+      {/* Mill Store Admin Dashboard Modal */}
+      <AdminDashboardModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        orders={orders}
+        onUpdateOrderStatus={handleUpdateOrderStatus}
       />
 
       {/* Product Quick View Modal */}
@@ -217,12 +591,13 @@ export function App() {
         }}
       />
 
-      {/* Instant Search Modal */}
+      {/* Instant Search Modal (Typing 'admin' unlocks Store Admin Portal) */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={(product) => setQuickViewProduct(product)}
         onAddToCart={handleAddToCart}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       {/* Official Laboratory Gas Chromatography Report Modal */}
@@ -230,6 +605,33 @@ export function App() {
         report={selectedLabReportProduct?.labReport || null}
         productName={selectedLabReportProduct?.name || 'SS OIL Mara Chekku'}
         onClose={() => setSelectedLabReportProduct(null)}
+      />
+
+      {/* Customer Profile & Live Order Tracking Modal */}
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        orders={orders}
+        currentUser={currentUser}
+        onSignOut={() => {
+          setCurrentUser(null);
+          try {
+            localStorage.removeItem('ssoil_user');
+          } catch (e) {}
+          setToastMessage('You have been signed out.');
+        }}
+        onNavigateToLogin={() => navigateTo('/login')}
+        onExploreShop={() => navigateTo('/shop')}
+      />
+
+      {/* Frequently Asked Questions (FAQ) Modal */}
+      <FaqModal
+        isOpen={isFaqOpen}
+        onClose={() => setIsFaqOpen(false)}
+        onShopOils={() => {
+          setIsFaqOpen(false);
+          navigateTo('/shop');
+        }}
       />
 
       {/* Notification Toast */}

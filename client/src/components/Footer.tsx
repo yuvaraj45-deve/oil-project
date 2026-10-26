@@ -12,14 +12,26 @@ import {
   Heart,
   Droplet
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FooterProps {
   onSelectCategory: (slug: string) => void;
+  onNavigate?: (path: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) => {
+  const { language, t } = useLanguage();
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLinkClick = (path: string) => {
+    if (onNavigate) {
+      onNavigate(path);
+    } else {
+      window.location.pathname = path;
+    }
   };
 
   return (
@@ -37,22 +49,22 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
               </div>
               <div>
                 <span className="font-serif text-2xl font-bold tracking-tight text-white">
-                  SS OIL
+                  PureVa
                 </span>
                 <span className="text-[10px] block text-gold-400 font-semibold tracking-widest uppercase">
-                  Pure Quality. Every Drop.
+                  {t('nav.tagline')}
                 </span>
               </div>
             </div>
 
             <p className="text-stone-300 text-sm leading-relaxed max-w-sm">
-              SS OIL is dedicated to reviving generational Indian edible oil craftsmanship. From raw village seeds to authentic wood-pressed Vaagai Mara Chekku churns, we bring unadulterated purity to your home.
+              {t('hero.subtitle')}
             </p>
 
             {/* Social Icons */}
             <div className="pt-2">
               <div className="text-xs font-semibold text-cream-200 uppercase tracking-wider mb-2.5">
-                Follow Our Journey
+                {language === 'ta' ? 'எங்களைப் பின்தொடரவும்' : 'Follow Our Journey'}
               </div>
               <div className="flex items-center space-x-3">
                 <a
@@ -83,38 +95,43 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           {/* Quick Links (Col 5-6) */}
           <div className="lg:col-span-2 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
-              Quick Links
+              {language === 'ta' ? 'விரைவு இணைப்புகள்' : 'Quick Links'}
             </h4>
             <ul className="space-y-2 text-sm text-stone-300">
               <li>
-                <a href="#home" className="hover:text-gold-400 transition-colors">
-                  Home
-                </a>
+                <button onClick={() => handleLinkClick('/')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {t('nav.home')}
+                </button>
               </li>
               <li>
-                <a href="#products" className="hover:text-gold-400 transition-colors">
-                  Shop All Oils
-                </a>
+                <button onClick={() => handleLinkClick('/shop')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {t('nav.products')}
+                </button>
               </li>
               <li>
-                <a href="#categories" className="hover:text-gold-400 transition-colors">
-                  Categories
-                </a>
+                <button onClick={() => handleLinkClick('/mill-journey')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {language === 'ta' ? 'மரச்செக்கு பயணம்' : 'Mill Journey'}
+                </button>
               </li>
               <li>
-                <a href="#why-us" className="hover:text-gold-400 transition-colors">
-                  Why SS OIL
-                </a>
+                <button onClick={() => handleLinkClick('/sommelier')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {language === 'ta' ? 'சமையல் வழிகாட்டி' : 'Oil Sommelier'}
+                </button>
               </li>
               <li>
-                <a href="#about" className="hover:text-gold-400 transition-colors">
-                  About Our Mill
-                </a>
+                <button onClick={() => handleLinkClick('/why-us')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {t('nav.health')}
+                </button>
               </li>
               <li>
-                <a href="#testimonials" className="hover:text-gold-400 transition-colors">
-                  Customer Reviews
-                </a>
+                <button onClick={() => handleLinkClick('/about')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {t('nav.about')}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleLinkClick('/contact')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
+                  {t('nav.contact')}
+                </button>
               </li>
             </ul>
           </div>
@@ -122,7 +139,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           {/* Product Categories (Col 7-8) */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
-              Product Categories
+              {language === 'ta' ? 'எண்ணெய் வகைகள்' : 'Product Categories'}
             </h4>
             <ul className="space-y-2 text-sm text-stone-300">
               <li>
@@ -130,7 +147,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                   onClick={() => onSelectCategory('cooking-oil')}
                   className="hover:text-gold-400 transition-colors text-left"
                 >
-                  Cooking Oil (Daily Pure)
+                  {language === 'ta' ? 'தினசரி சமையல் எண்ணெய்' : 'Cooking Oil (Daily Pure)'}
                 </button>
               </li>
               <li>
@@ -138,7 +155,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                   onClick={() => onSelectCategory('sesame-oil')}
                   className="hover:text-gold-400 transition-colors text-left"
                 >
-                  Wood-Pressed Sesame (Gingelly)
+                  {language === 'ta' ? 'மரச்செக்கு நல்லெண்ணெய்' : 'Wood-Pressed Sesame (Gingelly)'}
                 </button>
               </li>
               <li>
@@ -146,7 +163,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                   onClick={() => onSelectCategory('groundnut-oil')}
                   className="hover:text-gold-400 transition-colors text-left"
                 >
-                  Cold-Pressed Groundnut Oil
+                  {language === 'ta' ? 'மரச்செக்கு கடலை எண்ணெய்' : 'Wood-Pressed Groundnut Oil'}
                 </button>
               </li>
               <li>
@@ -154,12 +171,12 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                   onClick={() => onSelectCategory('coconut-oil')}
                   className="hover:text-gold-400 transition-colors text-left"
                 >
-                  Virgin Cold-Pressed Coconut Oil
+                  {language === 'ta' ? 'பாரம்பரிய தேங்காய் எண்ணெய்' : 'Virgin Cold-Pressed Coconut Oil'}
                 </button>
               </li>
               <li>
                 <span className="text-stone-500 text-xs">
-                  • 5L & 15L Bulk Catering Tins
+                  {language === 'ta' ? '• 5லி & 15லி மொத்த கேன்கள்' : '• 5L & 15L Bulk Catering Tins'}
                 </span>
               </li>
             </ul>
@@ -168,13 +185,15 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           {/* Contact Information Placeholders (Col 9-12) */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
-              Contact & Mill Desk
+              {language === 'ta' ? 'தொடர்பு & மில் அலுவலகம்' : 'Contact & Mill Desk'}
             </h4>
             <div className="space-y-3 text-sm text-stone-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 mt-1 shrink-0" />
                 <span>
-                  SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004 (Placeholder)
+                  {language === 'ta'
+                    ? 'SS OIL மில் & பேக்கிங் பிரிவு, எண் 42 செக்கு தெரு, தொழிற்பேட்டை, சேலம், தமிழ்நாடு – 636004'
+                    : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004 (Placeholder)'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
@@ -186,12 +205,16 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-gold-400 shrink-0" />
                 <a href="mailto:care@ssoil.in" className="hover:text-gold-400 transition-colors">
-                  care@ssoil.in (Sample Desk)
+                  care@ssoil.in
                 </a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-stone-400">
                 <Clock className="w-4 h-4 text-gold-400 shrink-0" />
-                <span>Mon – Sat: 9:00 AM – 7:30 PM IST</span>
+                <span>
+                  {language === 'ta'
+                    ? 'திங்கள் – சனி: காலை 9:00 – இரவு 7:30 IST'
+                    : 'Mon – Sat: 9:00 AM – 7:30 PM IST'}
+                </span>
               </div>
             </div>
           </div>
@@ -203,16 +226,16 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           <div className="flex items-center gap-4 flex-wrap">
             <span className="flex items-center gap-1.5 text-cream-200">
               <ShieldCheck className="w-4 h-4 text-gold-400" />
-              <span>FSSAI Lic. No: 1242000000001 (Sample)</span>
+              <span>FSSAI Lic. No: 1242000000001</span>
             </span>
             <span>•</span>
-            <span>ISO 22000:2018 Certified Facility</span>
+            <span>{language === 'ta' ? 'ISO 22000:2018 தரச்சான்றிதழ்' : 'ISO 22000:2018 Certified Facility'}</span>
             <span>•</span>
-            <span>Agmark Grade I Standard</span>
+            <span>{language === 'ta' ? 'Agmark முதல் தரம்' : 'Agmark Grade I Standard'}</span>
           </div>
 
           <div className="flex items-center gap-2 text-stone-400 text-xs">
-            <span>Accepted Payments:</span>
+            <span>{language === 'ta' ? 'ஏற்றுக்கொள்ளப்படும் பேமெண்ட்:' : 'Accepted Payments:'}</span>
             <span className="px-2 py-0.5 rounded bg-forest-900 text-cream-200 font-mono text-[10px]">
               UPI / GPay / PhonePe
             </span>
@@ -228,22 +251,28 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
         {/* Bottom Bar & Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400">
           <div>
-            © {new Date().getFullYear()} SS OIL E-Commerce. All Rights Reserved. Crafted with pure quality.
+            © 2025 PureVa. {t('footer.copyright')}
           </div>
 
           <div className="flex items-center space-x-6">
             <a href="#privacy" className="hover:text-gold-400 transition-colors">
-              Privacy Policy
+              {t('footer.privacy')}
             </a>
             <a href="#terms" className="hover:text-gold-400 transition-colors">
-              Terms of Service
+              {t('footer.terms')}
             </a>
             <a href="#shipping" className="hover:text-gold-400 transition-colors">
-              Shipping & Returns
+              {language === 'ta' ? 'டெலிவரி & திருப்புதல்' : 'Shipping & Returns'}
             </a>
             <button
+              onClick={() => handleLinkClick('/admin')}
+              className="text-stone-400 hover:text-gold-400 transition-colors cursor-pointer text-xs font-medium"
+            >
+              {language === 'ta' ? 'அட்மின் போர்டல்' : 'Admin Portal'}
+            </button>
+            <button
               onClick={scrollToTop}
-              className="p-2 rounded-full bg-forest-900 text-gold-400 hover:bg-gold-500 hover:text-forest-950 transition-colors ml-2"
+              className="p-2 rounded-full bg-forest-900 text-gold-400 hover:bg-gold-500 hover:text-forest-950 transition-colors ml-2 cursor-pointer"
               title="Back to Top"
             >
               <ArrowUp className="w-4 h-4" />

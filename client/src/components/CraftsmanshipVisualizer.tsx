@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Sun, Droplets, Award, Compass } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ShieldCheck, Sun, Droplets, Award, Compass } from 'lucide-react';
 import { CRAFT_STAGES_DATA } from '../data/oilData';
 import { CraftStage } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 export const CraftsmanshipVisualizer: React.FC = () => {
+  const { language } = useLanguage();
   const [activeStep, setActiveStep] = useState(1);
 
   const currentStage: CraftStage =
@@ -21,13 +23,15 @@ export const CraftsmanshipVisualizer: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-bold uppercase tracking-widest mb-3">
             <Compass className="w-3.5 h-3.5 text-gold-400" />
-            <span>The Sacred Mill Journey</span>
+            <span>{language === 'ta' ? 'புனித மரச்செக்கு பயணம்' : 'The Sacred Mill Journey'}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-white tracking-tight">
-            The Mara Chekku Experience
+            {language === 'ta' ? 'பாரம்பரிய மரச்செக்கு அனுபவம்' : 'The Mara Chekku Experience'}
           </h2>
           <p className="mt-3 text-stone-300 text-base sm:text-lg font-light leading-relaxed">
-            Click through our 5 generational milestones to discover how raw village seeds transform into liquid gold without artificial heat or chemicals.
+            {language === 'ta'
+              ? 'விவசாயிகளிடம் இருந்து பெறப்படும் விதைகள் எந்தவித ரசாயனமும் இன்றி தூய திரவத் தங்கமாக மாறும் 5 நிலைகளைக் காணுங்கள்.'
+              : 'Click through our 5 generational milestones to discover how raw village seeds transform into liquid gold without artificial heat or chemicals.'}
           </p>
           <div className="w-16 h-1 bg-gold-500 mx-auto mt-4 rounded-full" />
         </div>
@@ -111,7 +115,7 @@ export const CraftsmanshipVisualizer: React.FC = () => {
             <div className="lg:col-span-7 space-y-5">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-gold-400 bg-forest-950 px-3 py-1 rounded-full border border-forest-800">
-                  Step 0{currentStage.step} of 05
+                  {language === 'ta' ? `நிலை 0${currentStage.step} / 05` : `Step 0${currentStage.step} of 05`}
                 </span>
                 <span className="text-xs text-stone-400 font-serif italic">
                   {currentStage.traditionalName}
@@ -135,9 +139,9 @@ export const CraftsmanshipVisualizer: React.FC = () => {
                 <button
                   disabled={activeStep === 1}
                   onClick={() => setActiveStep(Math.max(1, activeStep - 1))}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-forest-950 hover:bg-forest-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-forest-950 hover:bg-forest-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
-                  ← Previous Step
+                  {language === 'ta' ? '← முந்தைய நிலை' : '← Previous Step'}
                 </button>
 
                 <div className="flex items-center gap-1.5">
@@ -154,9 +158,9 @@ export const CraftsmanshipVisualizer: React.FC = () => {
                 <button
                   disabled={activeStep === CRAFT_STAGES_DATA.length}
                   onClick={() => setActiveStep(Math.min(CRAFT_STAGES_DATA.length, activeStep + 1))}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 text-forest-950 hover:bg-gold-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 text-forest-950 hover:bg-gold-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
                 >
-                  Next Step →
+                  {language === 'ta' ? 'அடுத்த நிலை →' : 'Next Step →'}
                 </button>
               </div>
 

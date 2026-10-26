@@ -2,29 +2,11 @@ import { Product, Category, Testimonial, FeatureBlock, FlagshipHeroOil, CraftSta
 
 export const FLAGSHIP_HERO_OILS: FlagshipHeroOil[] = [
   {
-    id: 'ss-groundnut-1000',
-    name: 'SS Mara Chekku Groundnut Oil',
-    botanicalSource: 'Native Saurashtra & Salem Pods',
-    tagline: 'Deep Golden Wood-Pressed Oil with Unrivalled Nutty Aroma',
-    highlightBadge: 'Signature Vaagai Heritage Press',
-    woodPressTree: 'Vaagai Wood Churner (Albizia Lebbeck)',
-    rpm: '14 RPM Gentle Rotation',
-    temperature: '38°C Natural Cold Extract',
-    smokePoint: '232°C (Deep Frying Master)',
-    flavorNote: 'Rich, roasted nutty aroma with light culinary finish',
-    accentColor: '#D4AF37', // Gold
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=1000&q=85',
-    price: 340,
-    originalPrice: 420,
-    defaultPack: '1 Litre Bottle',
-    batchCode: 'BATCH-GND-2026-H14'
-  },
-  {
     id: 'ss-sesame-1000',
     name: 'SS Wood-Pressed Gingelly (Sesame) Oil',
     botanicalSource: 'Sun-Drenched Black Sesame & Palm Jaggery',
     tagline: 'Authentic Gingelly Infused with Pure Karupatti (Palm Jaggery)',
-    highlightBadge: 'Generational Ancient Formula',
+    highlightBadge: 'Signature Vaagai Heritage Press',
     woodPressTree: 'Traditional Wood Ghani Mortar',
     rpm: '12 RPM Micro-Cold Churn',
     temperature: '36°C Ambient Crushing',
@@ -54,6 +36,24 @@ export const FLAGSHIP_HERO_OILS: FlagshipHeroOil[] = [
     originalPrice: 390,
     defaultPack: '1 Litre Glass Jar',
     batchCode: 'BATCH-COC-2026-V21'
+  },
+  {
+    id: 'ss-cooking-daily-1000',
+    name: 'SS Gold Everyday Pure Cooking Oil',
+    botanicalSource: 'Cold Micro-Filtration Culinary Extract',
+    tagline: 'Light, Balanced & Nutrient-Rich Oil for Modern Kitchens',
+    highlightBadge: 'Multi-Filtration Cold Extract',
+    woodPressTree: 'Cold Micro-Filtration Press',
+    rpm: '16 RPM Gentle Press',
+    temperature: '35°C Room Temperature',
+    smokePoint: '240°C (High Smoke Point Master)',
+    flavorNote: 'Clean, light, neutral aroma that preserves native spice flavors',
+    accentColor: '#D4AF37', // Gold
+    image: 'https://images.unsplash.com/photo-1552592074-ea7a91b851b3?auto=format&fit=crop&w=1000&q=85',
+    price: 210,
+    originalPrice: 260,
+    defaultPack: '1 Litre Bottle',
+    batchCode: 'BATCH-EVR-2026-C03'
   }
 ];
 
@@ -111,18 +111,6 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
 ];
 
 export const CULINARY_PAIRINGS_DATA: CulinaryPairing[] = [
-  {
-    id: 'pair-deep-fry',
-    dishCategory: 'Deep Frying & Crispy Sauté',
-    iconName: 'Flame',
-    dishes: 'Puris, Vada, Murukku, Pakodas, Bajjis & Fish Fry',
-    recommendedOilName: 'SS Mara Chekku Groundnut Oil',
-    productId: 'ss-groundnut-1000',
-    whyItWorks: 'High smoke point (232°C) prevents burning. Food absorbs 20% less oil while locking in authentic golden crunch.',
-    smokePoint: '232°C Smoke Point',
-    flavorAroma: 'Delicate roasted peanut aroma that enhances savory crunch',
-    price: 340
-  },
   {
     id: 'pair-tempering',
     dishCategory: 'Tempering, Tadka & Podi',
@@ -183,16 +171,6 @@ export const CATEGORIES_DATA: Category[] = [
     highlightText: 'Wood-Pressed with Palm Jaggery'
   },
   {
-    id: 'cat-groundnut',
-    slug: 'groundnut-oil',
-    title: 'Groundnut Oil',
-    subtitle: '100% Mara Chekku Peanut Oil',
-    image: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=800&q=80',
-    itemCount: '5 Varieties',
-    badge: 'Top Seller',
-    highlightText: 'Rich Nutty Aroma & Deep Frying Hero'
-  },
-  {
     id: 'cat-coconut',
     slug: 'coconut-oil',
     title: 'Coconut Oil',
@@ -206,46 +184,6 @@ export const CATEGORIES_DATA: Category[] = [
 
 export const PRODUCTS_DATA: Product[] = [
   {
-    id: 'ss-groundnut-1000',
-    name: 'SS Mara Chekku Groundnut Oil',
-    tagline: 'Traditional Wood-Pressed Groundnut Oil with Authentic Aroma',
-    category: 'groundnut-oil',
-    categoryName: 'Groundnut Oil',
-    price: 340,
-    originalPrice: 420,
-    discountPercent: 19,
-    rating: 4.9,
-    reviewsCount: 348,
-    packSizes: ['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Tin'],
-    defaultPack: '1 Litre Bottle',
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
-    badge: 'Bestseller',
-    description: 'Crafted using hand-picked native groundnuts crushed slowly in traditional Vaagai wood presses (Mara Chekku). Retains natural antioxidants, nutty aroma, and heart-healthy monounsaturated fats.',
-    benefits: [
-      'Slow crushed in traditional wood mills below 45°C',
-      'Zero chemicals, zero liquid paraffin, zero hexane',
-      'High smoke point ideal for Indian sautéing and deep frying',
-      'Rich in natural Vitamin E and plant phytosterols'
-    ],
-    smokePoint: '232°C (High Smoke Point)',
-    extractionMethod: 'Traditional Vaagai Mara Chekku (Wood-Pressed)',
-    inStock: true,
-    featured: true,
-    aromaProfile: 'Authentic roasted peanut fragrance with deep golden viscosity',
-    bestForDish: 'Vadas, Puris, Pakodas, and Everyday Deep Frying',
-    labReport: {
-      batchNumber: 'SS-GND-2026-H14',
-      testedDate: '12-Oct-2026',
-      acidValue: '0.34 mg KOH/g (Permissible < 4.0)',
-      peroxideValue: '1.18 meq O2/kg (Permissible < 10.0)',
-      hexaneResidue: '0.00 ppm (Zero Chemical Solvents)',
-      freeFattyAcids: '0.17% (Extra Virgin Grade)',
-      iodineValue: '91.2 g I2/100g',
-      tocopherolVitaminE: '22.8 mg / 100g (Naturally Intact)',
-      certification: 'FSSAI & Agmark Grade I Verified'
-    }
-  },
-  {
     id: 'ss-sesame-1000',
     name: 'SS Premium Wood-Pressed Sesame Oil',
     tagline: 'Gingelly Oil slow-pressed with Natural Palm Jaggery',
@@ -258,7 +196,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 289,
     packSizes: ['500 ml Bottle', '1 Litre Bottle', '2 Litre Bottle', '5 Litre Can'],
     defaultPack: '1 Litre Bottle',
-    image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=800&q=80',
+    image: '/products/sesame_oil.jpg',
     badge: 'Wood-Pressed',
     description: 'Extracted from clean black sesame seeds blended with organic palm jaggery (Karupatti) to tame bitterness. Celebrated for rich sesamol antioxidants, culinary flavour, and holistic wellness.',
     benefits: [
@@ -298,7 +236,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 215,
     packSizes: ['500 ml Bottle', '1 Litre Glass Jar', '2 Litre Can', '5 Litre Can'],
     defaultPack: '1 Litre Glass Jar',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
+    image: '/products/coconut_oil.jpg',
     badge: '100% Pure',
     description: 'Extracted from naturally sun-dried coconut copra sourced directly from coastal farms. Absolutely chemical-free, transparent with a silky texture and heavenly coconut fragrance.',
     benefits: [
@@ -364,6 +302,246 @@ export const PRODUCTS_DATA: Product[] = [
       tocopherolVitaminE: '26.0 mg / 100g (Enriched)',
       certification: 'FSSAI Certified Cooking Grade'
     }
+  },
+  {
+    id: 'ss-groundnut-1000',
+    name: 'SS Mara Chekku Groundnut Oil',
+    tagline: 'Traditional Wood-Pressed Groundnut Oil with Rich Nutty Aroma',
+    category: 'groundnut-oil',
+    categoryName: 'Groundnut Oil',
+    price: 340,
+    originalPrice: 420,
+    discountPercent: 19,
+    rating: 4.9,
+    reviewsCount: 310,
+    packSizes: ['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Tin'],
+    defaultPack: '1 Litre Bottle',
+    image: '/products/groundnut_oil.jpg',
+    badge: 'Wood-Pressed',
+    description: 'Crafted from hand-sorted organic peanuts crushed slowly in Vaagai wood mortars. High smoke point ideal for crispy South Indian frying with zero cholesterol.',
+    benefits: [
+      'Rich in natural Vitamin E & Resveratrol antioxidants',
+      'Extracted at low temperatures without frictional heat',
+      'Unrefined, non-bleached & zero chemical solvents',
+      'Heart-healthy monounsaturated fatty acids (MUFA)'
+    ],
+    smokePoint: '232°C (High Smoke Point)',
+    extractionMethod: 'Traditional Vaagai Mara Chekku (Wood-Pressed)',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Rich, fragrant nutty aroma that enhances every dish',
+    bestForDish: 'Murukku, Dosas, Sautéing, and Traditional Deep Frying',
+    labReport: {
+      batchNumber: 'SS-GND-2026-H14',
+      testedDate: '12-Oct-2026',
+      acidValue: '0.34 mg KOH/g (Permissible < 4.0)',
+      peroxideValue: '1.18 meq O2/kg (Permissible < 10.0)',
+      hexaneResidue: '0.00 ppm (Zero Chemical Solvents)',
+      freeFattyAcids: '0.17% (Extra Virgin Grade)',
+      iodineValue: '91.2 g I2/100g',
+      tocopherolVitaminE: '22.8 mg / 100g (Naturally Intact)',
+      certification: 'FSSAI & Agmark Grade I Verified'
+    }
+  },
+  {
+    id: 'ss-sunflower-1000',
+    name: 'SS Pure Light Sunflower Oil',
+    tagline: 'Light, Pure & Vitamin E Enriched for Modern Health',
+    category: 'cooking-oil',
+    categoryName: 'Cooking Oil',
+    price: 210,
+    originalPrice: 260,
+    discountPercent: 19,
+    rating: 4.7,
+    reviewsCount: 164,
+    packSizes: ['500 ml Bottle', '1 Litre Bottle', '5 Litre Can'],
+    defaultPack: '1 Litre Bottle',
+    image: '/products/sunflower_oil.jpg',
+    badge: 'Light & Pure',
+    description: 'Extracted from premium sunflower seeds. Extremely light and non-greasy, retaining natural vitamins for guilt-free family meals.',
+    benefits: [
+      'High in natural Vitamin E for immune support',
+      'Low absorb technology keeps fried food crispy without excess oil',
+      'Clean neutral aroma that brings out the true flavor of ingredients',
+      'Free from argemone oil and artificial chemicals'
+    ],
+    smokePoint: '225°C (Great for Deep Frying)',
+    extractionMethod: 'Gentle Cold Micro-Filtration',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Subtle, crisp, and completely neutral',
+    bestForDish: 'Poorir, French Fries, Gravies, and Daily Meals',
+    labReport: {
+      batchNumber: 'SS-SUN-2026-S02',
+      testedDate: '16-Oct-2026',
+      acidValue: '0.25 mg KOH/g',
+      peroxideValue: '0.98 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.12%',
+      iodineValue: '128.0 g I2/100g',
+      tocopherolVitaminE: '32.0 mg / 100g',
+      certification: 'FSSAI Certified Cooking Grade'
+    }
+  },
+  {
+    id: 'ss-ricebran-1000',
+    name: 'SS Heart-Care Pure Rice Bran Oil',
+    tagline: 'Physically Refined with 10,000+ ppm Natural Gamma Oryzanol',
+    category: 'cooking-oil',
+    categoryName: 'Cooking Oil',
+    price: 195,
+    originalPrice: 240,
+    discountPercent: 18,
+    rating: 4.8,
+    reviewsCount: 195,
+    packSizes: ['500 ml Bottle', '1 Litre Bottle', '5 Litre Can'],
+    defaultPack: '1 Litre Bottle',
+    image: '/products/rice_bran_oil.jpg',
+    badge: 'Heart Care',
+    description: 'Extracted from the nutrient-rich golden outer layer of brown rice grains. Packed with Gamma Oryzanol clinically known to help maintain healthy cholesterol.',
+    benefits: [
+      '10,000+ ppm natural Gamma Oryzanol for heart wellness',
+      'High smoke point 250°C prevents toxic fume formation',
+      'Balanced fatty acid profile recommended by cardiologists',
+      'Less oil absorption in everyday cooking'
+    ],
+    smokePoint: '250°C (Highest Smoke Point)',
+    extractionMethod: 'Physical Cold Refining & De-waxing',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Gentle, balanced, and clear culinary aroma',
+    bestForDish: 'Biryani, Stir Frying, Sautéing, and Daily Curries',
+    labReport: {
+      batchNumber: 'SS-RBO-2026-R19',
+      testedDate: '17-Oct-2026',
+      acidValue: '0.22 mg KOH/g',
+      peroxideValue: '0.80 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.10%',
+      iodineValue: '102.5 g I2/100g',
+      tocopherolVitaminE: '24.5 mg / 100g',
+      certification: 'FSSAI Heart-Healthy Grade'
+    }
+  },
+  {
+    id: 'ss-deepam-1000',
+    name: 'SS Pancha Deepam Pooja Oil',
+    tagline: 'Sacred 5-Oil Blend Infused with Sugandha Herbs for Divine Peace',
+    category: 'pooja-special',
+    categoryName: 'Pooja Deepam Oil',
+    price: 260,
+    originalPrice: 320,
+    discountPercent: 19,
+    rating: 4.9,
+    reviewsCount: 240,
+    packSizes: ['500 ml Bottle', '1 Litre Bottle'],
+    defaultPack: '1 Litre Bottle',
+    image: 'https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80',
+    badge: 'Temple Pooja',
+    description: 'Blended according to ancient Vedic scriptures combining 5 sacred oils (Gingelly, Mahua, Castor, Neem, and Pure Cow Ghee). Burns brighter with a lingering sacred aroma.',
+    benefits: [
+      'Traditional 5 Sacred Oils formulated as per Agamas',
+      'Soot-free bright golden flame that burns longer',
+      'Natural camphor and divine temple herbal fragrance',
+      'Brings positive energy and spiritual aura to home temples'
+    ],
+    smokePoint: '190°C (Lamp Burning Grade)',
+    extractionMethod: 'Traditional Sacred Cold Herbal Blend',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Calming sacred temple aroma with subtle camphor and herbs',
+    bestForDish: 'Diya Lighting, Daily Pooja, Festivals, and Temples',
+    labReport: {
+      batchNumber: 'SS-DPM-2026-P01',
+      testedDate: '18-Oct-2026',
+      acidValue: '0.45 mg KOH/g',
+      peroxideValue: '1.20 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.22%',
+      iodineValue: '95.0 g I2/100g',
+      tocopherolVitaminE: '20.0 mg / 100g',
+      certification: 'Pure Pooja Grade Certified'
+    }
+  },
+  {
+    id: 'ss-ghee-500',
+    name: 'SS A2 Cultured Desi Cow Ghee',
+    tagline: 'Traditional Bilona Method from Native Bos Indicus Cow Milk',
+    category: 'a2-desi-ghee',
+    categoryName: 'A2 Cow Ghee',
+    price: 450,
+    originalPrice: 520,
+    discountPercent: 13,
+    rating: 5.0,
+    reviewsCount: 380,
+    packSizes: ['250 ml Jar', '500 ml Jar', '1 Litre Jar'],
+    defaultPack: '500 ml Jar',
+    image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80',
+    badge: 'Bilona Pure',
+    description: 'Handcrafted following the traditional 5-step Bilona method: curdling whole A2 cow milk, bi-directional churning, and slow firewood simmering for authentic golden granular Danedaar texture.',
+    benefits: [
+      '100% Pure A2 beta-casein from grass-fed native Indian cows',
+      'Rich in butyric acid and fat-soluble Vitamins A, D, E, and K2',
+      'Golden Danedaar granular texture with irresistible aroma',
+      'Free from artificial colours, hormones, and preservatives'
+    ],
+    smokePoint: '252°C (Extremely High Smoke Point)',
+    extractionMethod: 'Traditional Clay Pot & Wooden Bilona Churn',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Rich, caramelized, sweet nutty golden ghee aroma',
+    bestForDish: 'Hot Steaming Rice, Dosas, Dal Tadka, Sweets, and Ayurvedic Healing',
+    labReport: {
+      batchNumber: 'SS-GHE-2026-B05',
+      testedDate: '19-Oct-2026',
+      acidValue: '0.18 mg KOH/g',
+      peroxideValue: '0.60 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.08%',
+      iodineValue: '34.0 g I2/100g',
+      tocopherolVitaminE: '15.0 mg / 100g',
+      certification: 'FSSAI Certified A2 Desi Cow Grade'
+    }
+  },
+  {
+    id: 'ss-jaggery-500',
+    name: 'SS Pure Udangudi Palm Jaggery (Karupatti)',
+    tagline: 'Traditional Unrefined Palm Nectar Block Packed with Natural Iron',
+    category: 'palm-jaggery-special',
+    categoryName: 'Palm Jaggery',
+    price: 160,
+    originalPrice: 200,
+    discountPercent: 20,
+    rating: 4.9,
+    reviewsCount: 220,
+    packSizes: ['500g Block', '1 kg Block'],
+    defaultPack: '500g Block',
+    image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
+    badge: 'Native Pure',
+    description: 'Sourced from the historic palmyra groves of Udangudi, Tamil Nadu. Extracted from fresh padani (palm nectar) and boiled in copper vats without calcium carbonate or bleach.',
+    benefits: [
+      'Zero refined sugar and zero chemical clarifiers',
+      'Abundant in natural plant iron, potassium, and magnesium',
+      'Low glycemic index healthy sweetener for coffee, tea, and porridge',
+      'Traditional Ayurvedic digestive companion'
+    ],
+    smokePoint: 'N/A (Natural Sweetener)',
+    extractionMethod: 'Traditional Sun-Cured Palmyra Nectar Boil',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Deep earthy, smoky caramel aroma with mineral sweetness',
+    bestForDish: 'Sukku Coffee, Karupatti Halwa, Herbal Teas, and Healthy Sweets',
+    labReport: {
+      batchNumber: 'SS-JAG-2026-U11',
+      testedDate: '20-Oct-2026',
+      acidValue: 'N/A',
+      peroxideValue: 'N/A',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: 'N/A',
+      iodineValue: 'N/A',
+      tocopherolVitaminE: 'Rich in Minerals & Iron',
+      certification: '100% Chemical-Free Organic Verified'
+    }
   }
 ];
 
@@ -401,9 +579,9 @@ export const TESTIMONIALS_DATA: Testimonial[] = [
     role: 'Home Chef & Nutritionist',
     location: 'Chennai, Tamil Nadu',
     rating: 5,
-    comment: 'The aroma of SS Groundnut Oil reminds me of the traditional oils my grandmother pressed in our village. There is zero foam while deep frying and the food feels so light!',
+    comment: 'The aroma of SS Sesame Oil reminds me of the traditional oils my grandmother pressed in our village. The authentic palm jaggery blend gives unsurpassed flavor!',
     verified: true,
-    productPurchased: 'SS Mara Chekku Groundnut Oil (5L Can)',
+    productPurchased: 'SS Wood-Pressed Gingelly (Sesame) Oil (5L Can)',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'
   },
   {

@@ -1,18 +1,22 @@
 import React from 'react';
 import { ShoppingBag, ShieldCheck, ChefHat, MessageCircle, ArrowUp } from 'lucide-react';
 import { CartItem } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface QuickDockProps {
   items: CartItem[];
   onOpenCart: () => void;
   onOpenLabReport: () => void;
+  onNavigate?: (path: string) => void;
 }
 
 export const QuickDock: React.FC<QuickDockProps> = ({
   items,
   onOpenCart,
   onOpenLabReport,
+  onNavigate,
 }) => {
+  const { language } = useLanguage();
   const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -38,8 +42,12 @@ export const QuickDock: React.FC<QuickDockProps> = ({
                 </span>
               )}
             </div>
-            <span className="hidden sm:inline">View Cart:</span>
-            <span>{totalCount} {totalCount === 1 ? 'Item' : 'Items'}</span>
+            <span className="hidden sm:inline">
+              {language === 'ta' ? 'கார்ட்:' : 'View Cart:'}
+            </span>
+            <span>
+              {totalCount} {language === 'ta' ? 'பொருள்' : totalCount === 1 ? 'Item' : 'Items'}
+            </span>
           </div>
 
           <span className="font-serif font-black text-gold-300">
@@ -54,18 +62,22 @@ export const QuickDock: React.FC<QuickDockProps> = ({
           title="Inspect Lab Purity Certificate"
         >
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span className="hidden sm:inline">Lab Report</span>
+          <span className="hidden sm:inline">
+            {language === 'ta' ? 'ஆய்வகம்' : 'Lab Report'}
+          </span>
         </button>
 
-        {/* Sommelier jump */}
-        <a
-          href="#sommelier"
+        {/* Sommelier Page Button */}
+        <button
+          onClick={() => (onNavigate ? onNavigate('/sommelier') : (window.location.pathname = '/sommelier'))}
           className="p-2 sm:px-3 sm:py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-forest-950 text-xs font-bold transition-colors border border-cream-300 flex items-center gap-1.5 cursor-pointer shrink-0"
           title="Oil to Dish Sommelier"
         >
           <ChefHat className="w-4 h-4 text-gold-600" />
-          <span className="hidden sm:inline">Sommelier</span>
-        </a>
+          <span className="hidden sm:inline">
+            {language === 'ta' ? 'வழிகாட்டி' : 'Sommelier'}
+          </span>
+        </button>
 
         {/* WhatsApp Assist */}
         <a

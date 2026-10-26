@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Sparkles, Check, Droplets } from 'lucide-react';
+import { ArrowRight, Check, Droplets } from 'lucide-react';
 
 interface PromotionalBannerProps {
   onShopCollection: () => void;
@@ -27,7 +27,7 @@ export const PromotionalBanner: React.FC<PromotionalBannerProps> = ({ onShopColl
           <div className="relative z-10 px-6 sm:px-12 py-12 sm:py-16 lg:py-20 max-w-3xl">
             {/* Sub-badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/20 border border-gold-400/40 text-gold-300 text-xs font-bold uppercase tracking-wider mb-4">
-              <Sparkles className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
+              <Droplets className="w-3.5 h-3.5 text-gold-400" />
               <span>Experience The Difference</span>
             </div>
 

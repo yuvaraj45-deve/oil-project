@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Eye, Star, Check, Sparkles, Filter, ShieldCheck, Droplets } from 'lucide-react';
+import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FeaturedProductsProps {
   onAddToCart: (product: Product, packSize: string) => void;
@@ -9,6 +10,8 @@ interface FeaturedProductsProps {
   onViewLabReport: (product: Product) => void;
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
+  onViewAllProducts?: () => void;
+  maxProducts?: number;
 }
 
 export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
@@ -17,105 +20,191 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   onViewLabReport,
   selectedCategory,
   onSelectCategory,
+  onViewAllProducts,
+  maxProducts = 4,
 }) => {
-  // Local state to track selected pack size per product card
-  const [selectedPacks, setSelectedPacks] = useState<Record<string, string>>({
-    'ss-groundnut-1000': '1 Litre Bottle',
-    'ss-sesame-1000': '1 Litre Bottle',
-    'ss-coconut-1000': '1 Litre Glass Jar',
-    'ss-cooking-daily-1000': '1 Litre Bottle',
-  });
-
+  const { language, t } = useLanguage();
+  // State to track which product currently has the pack selector overlay open (when buying)
+  const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
-
-  const categories = [
-    { label: 'All Oils', value: 'all' },
-    { label: 'Groundnut Oil', value: 'groundnut-oil' },
-    { label: 'Sesame Oil', value: 'sesame-oil' },
-    { label: 'Coconut Oil', value: 'coconut-oil' },
-    { label: 'Cooking Oil', value: 'cooking-oil' },
-  ];
 
   const filteredProducts =
     selectedCategory === 'all'
       ? PRODUCTS_DATA
       : PRODUCTS_DATA.filter((p) => p.category === selectedCategory);
 
-  const handlePackChange = (productId: string, pack: string) => {
-    setSelectedPacks((prev) => ({ ...prev, [productId]: pack }));
+  const displayedProducts = maxProducts ? filteredProducts.slice(0, maxProducts) : filteredProducts;
+
+  const formatPack = (pack: string, lang: string) => {
+    if (lang !== 'ta') return pack;
+    return pack
+      .replace('500 ml Bottle', '500 மி.லி பாட்டில்')
+      .replace('1 Litre Bottle', '1 லிட்டர் பாட்டில்')
+      .replace('2 Litre Bottle', '2 லிட்டர் பாட்டில்')
+      .replace('5 Litre Can', '5 லிட்டர் கேன்')
+      .replace('1 Litre Glass Jar', '1 லிட்டர் கண்ணாடி பாட்டில்')
+      .replace('2 Litre Can', '2 லிட்டர் கேன்')
+      .replace('5 Litre Tin', '5 லிட்டர் டின்')
+      .replace('15 Litre Tin', '15 லிட்டர் டின்')
+      .replace('1 Litre Pouch', '1 லிட்டர் பாக்கெட்')
+      .replace('250 ml Jar', '250 மி.லி ஜாடி')
+      .replace('500 ml Jar', '500 மி.லி ஜாடி')
+      .replace('1 Litre Jar', '1 லிட்டர் ஜாடி')
+      .replace('500g Block', '500 கிராம் கட்டி')
+      .replace('1 kg Block', '1 கிலோ கட்டி');
   };
 
-  const handleAddToCartClick = (product: Product) => {
-    const pack = selectedPacks[product.id] || product.defaultPack;
+  const getBadgeName = (badge: string, lang: string) => {
+    if (lang !== 'ta') return badge;
+    const badgeMap: Record<string, string> = {
+      'Wood-Pressed': 'மரச்செக்கு',
+      '100% Pure': '100% தூய்மை',
+      'Popular': 'அதிக விருப்பம்',
+      'Light & Pure': 'லேசானது & தூயது',
+      'Heart Care': 'இதய நலம்',
+      'Temple Pooja': 'பூஜை சிறப்பு',
+      'Bilona Pure': 'பிலோனா தூய்மை',
+      'Native Pure': 'இயற்கை தூய்மை',
+    };
+    return badgeMap[badge] || badge;
+  };
+
+  const getPackPrice = (product: Product, pack: string) => {
+    if (pack.includes('500 ml') || pack.includes('500g') || pack.includes('500 ml Bottle') || pack.includes('500ml Glass Jar') || pack.includes('500 ml Jar')) {
+      return Math.round(product.price * 0.55);
+    }
+    if (pack.includes('250 ml') || pack.includes('250g') || pack.includes('250 ml Jar')) {
+      return Math.round(product.price * 0.32);
+    }
+    if (pack.includes('2 Litre') || pack.includes('2L') || pack.includes('2 Litre Can')) {
+      return Math.round(product.price * 1.95);
+    }
+    if (pack.includes('5 Litre') || pack.includes('5L') || pack.includes('5 Litre Can') || pack.includes('5 Litre Tin')) {
+      return Math.round(product.price * 4.8);
+    }
+    if (pack.includes('15 Litre') || pack.includes('15L') || pack.includes('15 Litre Tin')) {
+      return Math.round(product.price * 14);
+    }
+    if (pack.includes('1 kg') || pack.includes('1kg') || pack.includes('1 kg Block')) {
+      return Math.round(product.price * 1.9);
+    }
+    return product.price;
+  };
+
+  const handleSelectLiterAndBuy = (product: Product, pack: string) => {
     onAddToCart(product, pack);
+    setBuyingProductId(null);
     setAddedItemEffect(product.id);
-    setTimeout(() => setAddedItemEffect(null), 1200);
+    setTimeout(() => setAddedItemEffect(null), 1500);
   };
 
   return (
-    <section id="products" className="py-16 sm:py-20 bg-cream-200/50">
+    <section id="products" className="py-14 sm:py-20 bg-[#f7f6f2] border-b border-cream-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/10 text-forest-900 text-xs font-bold uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-gold-500 fill-gold-500" />
-              <span>Premium Edible Oils</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
-              Featured Products
-            </h2>
-            <p className="mt-2 text-stone-600 text-sm sm:text-base max-w-xl">
-              Freshly pressed, unrefined, and chemical-free edible oils packed with culinary goodness.
-            </p>
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/10 text-forest-900 text-xs font-bold uppercase tracking-wider mb-2">
+            <Droplets className="w-3.5 h-3.5 text-forest-800" />
+            <span>{t('prod.badge')}</span>
           </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-xs font-semibold text-stone-500 flex items-center gap-1 mr-1">
-              <Filter className="w-3.5 h-3.5" /> Filter:
-            </span>
-            {categories.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => onSelectCategory(c.value)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
-                  selectedCategory === c.value
-                    ? 'bg-forest-900 text-cream-100 shadow-xs'
-                    : 'bg-white text-stone-700 hover:bg-cream-100 border border-cream-300'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
+            {t('prod.title')}
+          </h2>
+          <p className="mt-2 text-stone-600 text-sm sm:text-base">
+            {t('prod.subtitle')}
+          </p>
         </div>
 
-        {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {filteredProducts.map((product) => {
-            const currentPack = selectedPacks[product.id] || product.defaultPack;
+        {/* 5-Column Grid: 4 Products + View All Card placed right next to the 4th product */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 sm:gap-6 items-stretch">
+          {displayedProducts.map((product) => {
+            const defaultPack = formatPack(product.defaultPack, language);
+            const basePrice = product.price;
+            const baseOriginalPrice = product.originalPrice;
+            const isBuying = buyingProductId === product.id;
             const isJustAdded = addedItemEffect === product.id;
+
+            const productName =
+              language === 'ta' && t(`prod.${product.id}.name`)
+                ? t(`prod.${product.id}.name`)
+                : product.name;
+
+            const productTagline =
+              language === 'ta' && t(`prod.${product.id}.tagline`)
+                ? t(`prod.${product.id}.tagline`)
+                : product.tagline;
 
             return (
               <div
                 key={product.id}
-                className="group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                className="relative group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
+                {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (வாங்கும் போது மட்டும் எத்தனை லிட்டர் வேணும்னு காட்டும்) */}
+                {isBuying && (
+                  <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
+                          {t('prod.selectLiter')}
+                        </span>
+                        <h4 className="font-serif font-bold text-forest-950 text-sm sm:text-base leading-tight">
+                          {t('prod.howManyLiters')}
+                        </h4>
+                      </div>
+                      <button
+                        onClick={() => setBuyingProductId(null)}
+                        className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                        title="Close"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Liter Options with Live Calculated Prices */}
+                    <div className="space-y-2 my-auto py-2">
+                      {product.packSizes.slice(0, 4).map((pack) => {
+                        const packPrice = getPackPrice(product, pack);
+                        const packFormatted = formatPack(pack, language);
+                        return (
+                          <button
+                            key={pack}
+                            onClick={() => handleSelectLiterAndBuy(product, pack)}
+                            className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-900 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
+                          >
+                            <span className="flex items-center gap-1.5 text-stone-800 group-hover/opt:text-white">
+                              <span className="w-2 h-2 rounded-full bg-amber-500" />
+                              {packFormatted}
+                            </span>
+                            <span className="font-bold text-forest-950 group-hover/opt:text-gold-300">
+                              ₹{packPrice}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-2 text-center border-t border-cream-200">
+                      <p className="text-[10px] text-stone-500 font-medium">
+                        {t('prod.clickPreferred')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Product Image & Badges */}
-                <div className="relative h-64 overflow-hidden bg-cream-100 p-4 flex items-center justify-center">
+                <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
                   <img
                     src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                    alt={productName}
+                    className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-105 transition-transform duration-500"
                   />
 
                   {/* Badge */}
                   {product.badge && (
-                    <div className="absolute top-6 left-6">
-                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-forest-900 text-gold-300 shadow-sm">
-                        {product.badge}
+                    <div className="absolute top-4 left-4">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-forest-900 text-gold-300 shadow-sm">
+                        {getBadgeName(product.badge, language)}
                       </span>
                     </div>
                   )}
@@ -124,11 +213,11 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                   {product.labReport && (
                     <button
                       onClick={() => onViewLabReport(product)}
-                      className="absolute top-6 right-6 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/95 text-forest-900 backdrop-blur-xs hover:bg-gold-500 hover:text-forest-950 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
+                      className="absolute top-4 right-4 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-forest-900 backdrop-blur-xs hover:bg-gold-500 hover:text-forest-950 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
                       title="View Lab Analysis Certificate"
                     >
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Lab Tested</span>
+                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                      <span>{t('prod.labTested')}</span>
                     </button>
                   )}
 
@@ -136,149 +225,139 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                   <div className="absolute inset-0 bg-forest-950/20 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <button
                       onClick={() => onQuickView(product)}
-                      className="px-4 py-2 rounded-xl bg-white text-forest-900 font-semibold text-xs shadow-md hover:bg-cream-100 flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl bg-white text-forest-900 font-semibold text-xs shadow-md hover:bg-cream-100 flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all cursor-pointer"
                     >
-                      <Eye className="w-4 h-4 text-forest-700" />
-                      <span>View Product</span>
+                      <Eye className="w-3.5 h-3.5 text-forest-700" />
+                      <span>{t('prod.details')}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Card Details */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
                   <div>
-                    {/* Star Rating */}
-                    <div className="flex items-center gap-1 mb-1.5">
-                      <div className="flex text-amber-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3.5 h-3.5 ${
-                              i < Math.floor(product.rating)
-                                ? 'fill-amber-400'
-                                : 'fill-stone-200 text-stone-200'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs font-bold text-stone-800 ml-1">
-                        {product.rating}
+                    {/* Clean Purity Badge */}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-forest-900 bg-forest-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-forest-900/10">
+                        <Droplets className="w-2.5 h-2.5 text-gold-600" />
+                        {t('prod.pure')}
                       </span>
-                      <span className="text-[11px] text-stone-400">
-                        ({product.reviewsCount} sample reviews)
+                      <span className="text-[10px] text-stone-500 font-medium">
+                        {t('prod.mill')}
                       </span>
                     </div>
 
                     {/* Product Name */}
-                    <h3 className="font-serif text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
-                      {product.name}
+                    <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
+                      {productName}
                     </h3>
                     <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
-                      {product.tagline}
+                      {productTagline}
                     </p>
 
-                    {/* Smoke point & Extraction tag */}
-                    <div className="mt-2 text-[10px] text-forest-800 bg-forest-50 p-1.5 rounded-lg flex items-center gap-1.5 font-medium">
-                      <Droplets className="w-3.5 h-3.5 text-gold-600 shrink-0" />
-                      <span className="truncate">{product.extractionMethod}</span>
-                    </div>
-
-                    {/* Pack Size Selector Dropdown / Pills */}
-                    <div className="mt-3.5">
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
-                        Pack Size:
-                      </label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {product.packSizes.slice(0, 4).map((pack) => (
-                          <button
-                            key={pack}
-                            type="button"
-                            onClick={() => handlePackChange(product.id, pack)}
-                            className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all text-center truncate cursor-pointer ${
-                              currentPack === pack
-                                ? 'bg-forest-900 text-cream-100 font-semibold'
-                                : 'bg-cream-100 text-stone-600 hover:bg-cream-200 border border-cream-300'
-                            }`}
-                            title={pack}
-                          >
-                            {pack}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {/* Available sizes note */}
+                    <p className="text-[11px] text-stone-400 mt-2 flex items-center gap-1">
+                      <span>{t('prod.available')}</span>
+                      <span className="font-medium text-stone-600">
+                        {language === 'ta' ? '500மி.லி, 1லி, 2லி, 5லி' : '500ml, 1L, 2L, 5L'}
+                      </span>
+                    </p>
                   </div>
 
                   {/* Pricing and Action Buttons */}
-                  <div className="pt-3 border-t border-cream-200">
-                    <div className="flex items-baseline justify-between mb-3">
+                  <div className="pt-2.5 border-t border-cream-200">
+                    <div className="flex items-baseline justify-between mb-2.5">
                       <div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-bold font-serif text-forest-950">
-                            ₹{product.price}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-lg font-bold font-serif text-forest-950">
+                            ₹{basePrice}
                           </span>
-                          <span className="text-xs text-stone-400 line-through">
-                            ₹{product.originalPrice}
+                          <span className="text-[11px] text-stone-400 line-through">
+                            ₹{baseOriginalPrice}
                           </span>
-                          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded">
                             {product.discountPercent}% Off
                           </span>
                         </div>
                         <span className="text-[10px] text-stone-400 block -mt-0.5">
-                          Price marked as sample data
+                          {t('prod.base')} {defaultPack}
                         </span>
                       </div>
                     </div>
 
-                    {/* Card CTAs */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => onQuickView(product)}
-                        className="py-2.5 px-3 rounded-xl border border-stone-300 hover:border-forest-800 text-stone-700 hover:text-forest-900 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View Product</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleAddToCartClick(product)}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
-                          isJustAdded
-                            ? 'bg-emerald-700 text-white'
-                            : 'bg-forest-900 hover:bg-forest-800 text-cream-100 shadow-sm'
-                        }`}
-                      >
-                        {isJustAdded ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Added!</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                            <span>Add to Cart</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
+                    {/* Add to Cart CTA (Clicking opens: "How many liters do you need?" / "எத்தனை லிட்டர் வேணும்?") */}
+                    <button
+                      onClick={() => setBuyingProductId(product.id)}
+                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                        isJustAdded
+                          ? 'bg-emerald-700 text-white'
+                          : 'bg-forest-900 hover:bg-forest-800 text-cream-100 shadow-xs hover:shadow-md'
+                      }`}
+                    >
+                      {isJustAdded ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-white" />
+                          <span>{t('prod.added')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-3.5 h-3.5 text-gold-400" />
+                          <span>{t('prod.addToCart')}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
 
-        {/* View All Collection Banner Link */}
-        <div className="mt-12 text-center">
-          <p className="text-xs sm:text-sm text-stone-500">
-            Need customized bulk order tins for restaurants or catering?{' '}
-            <a
-              href="#contact"
-              className="text-forest-800 font-bold underline hover:text-gold-600 transition-colors"
+          {/* 5th Card: View All Products (Clean, Minimal & Neat) */}
+          {onViewAllProducts && (
+            <div
+              onClick={onViewAllProducts}
+              className="group rounded-3xl bg-white border border-cream-300/80 hover:border-forest-900 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
             >
-              Contact our Wholesale Desk
-            </a>
-          </p>
+              {/* Upper Visual Area (Matching exact image container of product cards with rich photo) */}
+              <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
+                <img
+                  src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80"
+                  alt="Explore All Pure Oils"
+                  className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-108 transition-transform duration-500"
+                />
+
+                {/* Subtle soft dark vignette overlay with centered Gold Arrow Circle */}
+                <div className="absolute inset-3 rounded-2xl bg-gradient-to-t from-forest-950/75 via-forest-950/30 to-forest-950/15 flex items-center justify-center transition-all duration-300 group-hover:from-forest-950/85">
+                  <div className="w-14 h-14 rounded-full bg-gold-500 text-forest-950 flex items-center justify-center shadow-xl group-hover:scale-115 group-hover:bg-gold-400 transition-all duration-300">
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Lower Details: Clean, spacious, not crowded */}
+              <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-amber-700 tracking-wider uppercase block mb-1">
+                    {language === 'ta' ? 'முழுமையான பட்டியல்' : 'FULL CATALOG'}
+                  </span>
+                  <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
+                    {t('viewAll.title')}
+                  </h3>
+                  <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
+                    {language === 'ta' ? 'அனைத்து மரச்செக்கு எண்ணெய்கள்' : 'Cold-pressed oils & pure ghee'}
+                  </p>
+                </div>
+
+                {/* Bottom Action Button (matching Add to Cart style) */}
+                <div className="pt-2.5 border-t border-cream-200">
+                  <div className="w-full py-2.5 px-3 rounded-xl bg-forest-900 group-hover:bg-forest-800 text-gold-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors">
+                    <span>{t('viewAll.button')}</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

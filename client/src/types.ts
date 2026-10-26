@@ -115,3 +115,42 @@ export interface FeatureBlock {
   iconName: 'ShieldCheck' | 'Sparkles' | 'Lock' | 'Headphones' | 'Heart' | 'Flame';
   badge: string;
 }
+
+export interface OrderItemRecord {
+  productId: string;
+  productName: string;
+  packSize: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface PlacedOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: string;
+  city?: string;
+  pincode?: string;
+  paymentMethod: 'UPI' | 'CARD' | 'COD';
+  paymentStatus: 'PAID' | 'PENDING' | 'FAILED';
+  orderStatus: 'PROCESSING' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  subtotal: number;
+  shippingFee: number;
+  totalAmount: number;
+  createdAt: string;
+  items: OrderItemRecord[];
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  role: 'customer' | 'admin';
+  memberTier: 'Gold Member' | 'Silver Member' | 'Platinum Member';
+  purityPoints: number;
+}
+
