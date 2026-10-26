@@ -84,8 +84,8 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start Server
-app.listen(Number(PORT), 'localhost', () => {
+// Start Server (Bind to 0.0.0.0 so Render and cloud hosts can detect and route traffic)
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`
   🛢️ ====================================================
      SS OIL E-Commerce Backend Server Ready
