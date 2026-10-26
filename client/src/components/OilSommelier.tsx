@@ -132,12 +132,12 @@ export const OilSommelier: React.FC<OilSommelierProps> = ({
                     {activePairing.smokePoint}
                   </span>
                   <span className="text-xs text-stone-500 font-medium">
-                    {language === 'ta' ? `விலை: ₹${activePairing.price}` : `Sample Starting at ₹${activePairing.price} (${matchedProduct.defaultPack})`}
+                    {language === 'ta' ? `விலை: ₹${activePairing.price}` : `Sample Starting at ₹${activePairing.price} (${matchedProduct?.defaultPack || '1 Litre'})`}
                   </span>
                 </div>
 
                 <h3 className="text-2xl sm:text-3xl font-serif font-black text-forest-950">
-                  {language === 'ta' ? (matchedProduct.tamilName || activePairing.recommendedOilName) : activePairing.recommendedOilName}
+                  {language === 'ta' ? (matchedProduct?.tamilName || activePairing.recommendedOilName) : activePairing.recommendedOilName}
                 </h3>
 
                 <div className="p-3.5 rounded-2xl bg-cream-100 border border-cream-200 text-xs sm:text-sm text-stone-700">
@@ -180,13 +180,13 @@ export const OilSommelier: React.FC<OilSommelierProps> = ({
                     ) : (
                       <>
                         <ShoppingBag className="w-4 h-4" />
-                        <span>{language === 'ta' ? 'கூடையில் சேர்க்க' : `Add ${matchedProduct.name} to Cart`}</span>
+                        <span>{language === 'ta' ? 'கூடையில் சேர்க்க' : `Add ${matchedProduct?.name || ''} to Cart`}</span>
                       </>
                     )}
                   </button>
 
                   <button
-                    onClick={() => onQuickView(matchedProduct)}
+                    onClick={() => matchedProduct && onQuickView(matchedProduct)}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl border border-stone-300 text-stone-700 hover:bg-cream-100 text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <span>{language === 'ta' ? 'முழு விவரங்கள்' : 'View Nutrition & Specs'}</span>

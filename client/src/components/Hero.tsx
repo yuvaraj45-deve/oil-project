@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeroProps {
@@ -11,6 +11,7 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   const { language } = useLanguage();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Slides matching the exact screenshot from gemedible.com
   const slides = [
@@ -92,35 +93,66 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
     },
   ];
 
-  // Static banner - strictly NO auto-movement (hero section move aga vena)
-  const activeSlide = slides[currentSlide];
-
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
+  }, [slides.length]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  // Auto-slide every 5 seconds (5000ms)
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      handleNext();
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [handleNext, isPaused]);
+
+  const activeSlide = slides[currentSlide];
 
   return (
     <section
       id="home"
       className="relative overflow-hidden bg-black text-white select-none w-full"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full-Bleed Hero Banner Viewport - STATIC */}
+      {/* Full-Bleed Hero Banner Viewport */}
       <div className="relative w-full h-[460px] sm:h-[560px] lg:h-[620px] overflow-hidden">
-        {/* Background Banner Image */}
-        <div className="absolute inset-0">
-          <img
-            src={activeSlide.bannerImage}
-            alt="Gem Edible Oils Hero Banner"
-            className="w-full h-full object-cover object-center pointer-events-none select-none"
-          />
-          {/* Gradient Scrim */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
-        </div>
+        {/* Background Banner Images with Smooth Dissolve Transition */}
+        {slides.map((slide, index) => {
+          const isActive = index === currentSlide;
+          return (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <img
+                src={slide.bannerImage}
+                alt={`SS OIL Hero Banner ${index + 1}`}
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
+                loading={index === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
+          );
+        })}
 
-        {/* Text Overlay - Left Aligned */}
+        {/* Gradient Scrim */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+        {/* Text Overlay - Left Aligned with smooth animation */}
         <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
-          <div className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn">
+          <div
+            key={currentSlide}
+            className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn"
+          >
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
               {activeSlide.headline}
             </h1>
@@ -143,15 +175,41 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           </div>
         </div>
 
-        {/* Right Arrow Navigation Chevron (Visible in screenshot) */}
+        {/* Left Arrow Navigation */}
+        <button
+          onClick={handlePrev}
+          aria-label="Previous Banner Slide"
+          className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-125 focus:outline-none"
+        >
+          <ChevronLeft className="w-8 h-8 sm:w-12 sm:h-12 stroke-[2.5]" />
+        </button>
+
+        {/* Right Arrow Navigation */}
         <button
           onClick={handleNext}
           aria-label="Next Banner Slide"
-          className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-2 transition-all cursor-pointer hover:scale-125 focus:outline-none"
+          className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-125 focus:outline-none"
         >
           <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 stroke-[2.5]" />
         </button>
+
+        {/* Bottom Slide Indicators */}
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-2.5">
+          {slides.map((slide, idx) => (
+            <button
+              key={slide.id}
+              onClick={() => setCurrentSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-2 transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
+                idx === currentSlide
+                  ? 'w-8 bg-[#f59e0b]'
+                  : 'w-2.5 bg-white/40 hover:bg-white/80'
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
 };
+

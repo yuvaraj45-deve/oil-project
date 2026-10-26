@@ -13,8 +13,9 @@ export interface LabReport {
 export interface Product {
   id: string;
   name: string;
+  tamilName?: string;
   tagline: string;
-  category: 'cooking-oil' | 'sesame-oil' | 'groundnut-oil' | 'coconut-oil' | 'mustard-oil';
+  category: 'cooking-oil' | 'sesame-oil' | 'groundnut-oil' | 'coconut-oil' | 'mustard-oil' | 'pooja-special' | 'a2-desi-ghee' | 'palm-jaggery-special' | string;
   categoryName: string;
   price: number;
   originalPrice: number;
@@ -24,7 +25,7 @@ export interface Product {
   packSizes: string[];
   defaultPack: string;
   image: string;
-  badge?: 'Bestseller' | 'Cold-Pressed' | 'Wood-Pressed' | 'Popular' | '100% Pure';
+  badge?: 'Bestseller' | 'Cold-Pressed' | 'Wood-Pressed' | 'Popular' | '100% Pure' | 'Light & Pure' | 'Heart Care' | 'Temple Pooja' | 'Bilona Pure' | 'Native Pure' | string;
   description: string;
   benefits: string[];
   smokePoint: string;
