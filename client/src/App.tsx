@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { CategoryCircles } from './components/CategoryCircles';
 import { ValuePillars } from './components/ValuePillars';
 import { OurProductRange } from './components/OurProductRange';
 import { FeaturedProducts } from './components/FeaturedProducts';
@@ -468,10 +469,19 @@ export function App() {
           />
         )}
 
-        {/* Route: / (Default Flagship Homepage - Gemedible Inspired Experience) */}
+        {/* Route: / (Default Flagship Homepage - Gemedible Exact Layout) */}
         {(currentPath === '/' || currentPath === '') && (
           <>
-            {/* 1. Hero Section: Multi-Slide Animated Gemedible Carousel */}
+            {/* 1. Horizontal Standing Bottles Row (Matching gemedible.com screenshot) */}
+            <CategoryCircles
+              onSelectCategory={(slug) => {
+                setSelectedCategory(slug);
+                navigateTo('/shop');
+              }}
+              selectedCategory={selectedCategory}
+            />
+
+            {/* 2. Hero Section: Timeless Purity, Modern Convenience with Yellow SHOP NOW Button */}
             <Hero
               onShopNow={() => navigateTo('/shop')}
               onExploreProducts={() => navigateTo('/shop')}

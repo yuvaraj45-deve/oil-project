@@ -28,13 +28,15 @@ try {
     fs.writeFileSync(path.join(publicDir, 'hero_img_meta.json'), JSON.stringify({ width, height }));
   }
 
-  // Copy 5 high-res artisan product bottle images
+  // Copy high-res artisan product bottle images
   const productImages = {
     'groundnut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/groundnut_oil_hero_1792656372186.jpg',
     'sesame_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/sesame_oil_hero_1792656396143.jpg',
     'coconut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/coconut_oil_hero_1792656427573.jpg',
     'sunflower_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/sunflower_oil_product_1792733088064.jpg',
     'rice_bran_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/rice_bran_oil_product_1792733112941.jpg',
+    'mustard_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/mustard_oil_packshot_1792997950122.jpg',
+    'lamp_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/lamp_oil_packshot_1792997979164.jpg',
   };
   const productsDir = path.join(publicDir, 'products');
   if (!fs.existsSync(productsDir)) {
@@ -52,6 +54,7 @@ try {
     fs.mkdirSync(bannersDir, { recursive: true });
   }
   const bannerImages = {
+    'gemedible_exact_hero_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_bottles_closeup_banner_1792997846092.jpg',
     'groundnut_hero_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_groundnut_banner_1792994963327.jpg',
     'smart_measuring_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_smart_measuring_banner_1792994982125.jpg',
     'sesame_sunflower_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_sesame_sunflower_banner_1792995006397.jpg',
