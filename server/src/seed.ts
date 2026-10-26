@@ -1,9 +1,17 @@
 import { prisma } from './config/db.js';
 
 async function seed() {
-  console.log('🌱 Starting SS OIL database seed...');
+  console.log('🌱 Checking SS OIL database seed status...');
 
-  // 1. Clean existing records
+  const count = await prisma.product.count();
+  if (count > 0) {
+    console.log(`ℹ️ Database already initialized with ${count} products. Skipping seed.`);
+    return;
+  }
+
+  console.log('🌱 Seeding fresh database records...');
+
+  // 1. Clean existing records (if any partial)
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.labReport.deleteMany();
