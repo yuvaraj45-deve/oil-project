@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeroProps {
@@ -10,9 +9,6 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   const { language } = useLanguage();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   // Slides matching the exact screenshot from gemedible.com
   const slides = [
