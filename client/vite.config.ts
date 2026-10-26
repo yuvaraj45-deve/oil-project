@@ -28,15 +28,15 @@ try {
     fs.writeFileSync(path.join(publicDir, 'hero_img_meta.json'), JSON.stringify({ width, height }));
   }
 
-  // Copy high-res artisan product bottle images
+  // Copy high-res artisan product bottle images on pure white isolated background (Zero background scene)
   const productImages = {
-    'groundnut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/groundnut_oil_hero_1792656372186.jpg',
-    'sesame_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/sesame_oil_hero_1792656396143.jpg',
-    'coconut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/coconut_oil_hero_1792656427573.jpg',
-    'sunflower_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/sunflower_oil_product_1792733088064.jpg',
+    'groundnut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/groundnut_oil_packshot_1793002980900.jpg',
+    'sunflower_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/sunflower_oil_packshot_1793003005862.jpg',
+    'sesame_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/sesame_oil_packshot_1793003027235.jpg',
+    'coconut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/coconut_oil_packshot_1793003064012.jpg',
+    'mustard_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/mustard_oil_packshot_1793003085250.jpg',
+    'lamp_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/lamp_oil_packshot_1793003111836.jpg',
     'rice_bran_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/rice_bran_oil_product_1792733112941.jpg',
-    'mustard_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/mustard_oil_packshot_1792997950122.jpg',
-    'lamp_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/lamp_oil_packshot_1792997979164.jpg',
   };
   const productsDir = path.join(publicDir, 'products');
   if (!fs.existsSync(productsDir)) {

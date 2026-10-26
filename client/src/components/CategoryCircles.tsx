@@ -76,16 +76,23 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
               title={cat.name}
               className="group flex flex-col items-center shrink-0 cursor-pointer focus:outline-none transition-transform duration-300 hover:-translate-y-2"
             >
-              {/* Standing Bottle Presentation with Shadow - ONLY BOTTLE */}
-              <div className="relative h-32 sm:h-40 lg:h-48 w-24 sm:w-28 lg:w-32 flex items-end justify-center">
+              {/* Standing Bottle Presentation with Shadow - Pure White Background Packshot */}
+              <div className="relative h-28 sm:h-36 lg:h-44 w-20 sm:w-24 lg:w-28 flex items-end justify-center">
                 <img
                   src={cat.image}
                   alt={cat.name}
-                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_10px_16px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform duration-300 pointer-events-none select-none"
+                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_14px_rgba(0,0,0,0.12)] group-hover:scale-108 transition-transform duration-300 pointer-events-none select-none"
                 />
                 {/* Subtle Floor Shadow */}
-                <div className="absolute -bottom-1 w-16 h-2.5 bg-black/15 blur-xs rounded-full pointer-events-none group-hover:scale-115 transition-transform" />
+                <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none group-hover:scale-110 transition-transform" />
               </div>
+
+              {/* Bottle Title Label - matching exact reddish-brown serif typography from gemedible screenshot */}
+              <span className={`mt-2 text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center transition-colors whitespace-nowrap ${
+                isSelected ? 'text-[#b32d2e] underline font-extrabold' : 'text-[#8b2b2b] group-hover:text-[#b32d2e]'
+              }`}>
+                {cat.name}
+              </span>
             </button>
           );
         })}
