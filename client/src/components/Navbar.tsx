@@ -50,19 +50,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   const accountDropdownRef = useRef<HTMLDivElement | null>(null);
   const shopDropdownRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll detection & Heading Bar state:
-  // Starting-la mattum thaan heading bar irukanum; scroll pannathuku apram maraivil irukum.
-  // Scroll pannathuku apram 3line icon click panna heading bar vara vendum.
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [scrolledHeadingOpen, setScrolledHeadingOpen] = useState(false);
-  const [topHeadingClosed, setTopHeadingClosed] = useState(false);
+  // Heading Bar state:
+  // By default hidden. Clicking the 3-line icon next to search toggles the 'OUR STORY' heading bar.
+  // After scrolling, clicking the 3-line icon toggles the heading bar.
+  const [headingBarOpen, setHeadingBarOpen] = useState(false);
 
+  // Close heading bar automatically when user scrolls so it doesn't obstruct view
   useEffect(() => {
     const handleScroll = () => {
-      const scrolled = window.scrollY > 25;
-      setIsScrolled(scrolled);
-      if (!scrolled) {
-        setScrolledHeadingOpen(false);
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      if (scrollY > 15) {
+        setHeadingBarOpen(false);
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -70,14 +68,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const toggleHeadingBar = () => {
-    if (isScrolled) {
-      setScrolledHeadingOpen((prev) => !prev);
-    } else {
-      setTopHeadingClosed((prev) => !prev);
-    }
+    setHeadingBarOpen((prev) => !prev);
   };
-
-  const showHeadingBar = isScrolled ? scrolledHeadingOpen : !topHeadingClosed;
 
   // Trigger pulse animation when cart count changes
   useEffect(() => {
@@ -130,13 +122,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={toggleHeadingBar}
                 aria-label="Toggle Navigation Bar"
                 className={`p-1.5 sm:p-2 -ml-1 rounded-xl transition-all cursor-pointer ${
-                  showHeadingBar && isScrolled
+                  headingBarOpen
                     ? 'text-[#b32d2e] bg-amber-50 ring-1 ring-amber-200'
                     : 'text-stone-900 hover:text-amber-700 hover:bg-stone-100'
                 }`}
-                title={showHeadingBar && isScrolled ? 'Close Navigation Bar' : 'Open Navigation Bar'}
+                title={headingBarOpen ? 'Close Navigation Bar' : 'Open Navigation Bar'}
               >
-                {showHeadingBar && isScrolled ? (
+                {headingBarOpen ? (
                   <X className="w-6 h-6 stroke-[2.2]" />
                 ) : (
                   <Menu className="w-6 h-6 stroke-[2.2]" />
@@ -300,10 +292,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* SUB-NAV ROW: OUR STORY • SHOP ˅ • CONTACT • FAQs */}
-        {/* Starting-la mattum thaan irukanum, scroll pannathuku apram 3line icon click panna varanum */}
+        {/* By default hidden; 3-line menu click panna varum; link click pannalo scroll pannalo moodikollum */}
         <div
           className={`bg-white overflow-hidden transition-all duration-300 ease-in-out ${
-            showHeadingBar
+            headingBarOpen
               ? 'max-h-24 opacity-100 pb-3 sm:pb-3.5 -mt-1 sm:-mt-2 border-b border-stone-200/80 shadow-xs'
               : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2'
           }`}
@@ -312,7 +304,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* OUR STORY */}
             <button
               onClick={() => {
-                if (isScrolled) setScrolledHeadingOpen(false);
+                setHeadingBarOpen(false);
                 onNavigate('/about');
               }}
               className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
@@ -331,7 +323,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <button
                 onClick={() => {
-                  if (isScrolled) setScrolledHeadingOpen(false);
+                  setHeadingBarOpen(false);
                   onNavigate('/shop');
                 }}
                 className={`flex items-center gap-1 hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
@@ -352,7 +344,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     onClick={() => {
                       setShopDropdownOpen(false);
-                      if (isScrolled) setScrolledHeadingOpen(false);
+                      setHeadingBarOpen(false);
                       onNavigate('/shop');
                       if (onNavigateCategory) onNavigateCategory('all');
                     }}
@@ -365,7 +357,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       key={cat.id}
                       onClick={() => {
                         setShopDropdownOpen(false);
-                        if (isScrolled) setScrolledHeadingOpen(false);
+                        setHeadingBarOpen(false);
                         if (onNavigateCategory) onNavigateCategory(cat.slug);
                         else onNavigate(`/category/${cat.slug}`);
                       }}
@@ -382,7 +374,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* CONTACT */}
             <button
               onClick={() => {
-                if (isScrolled) setScrolledHeadingOpen(false);
+                setHeadingBarOpen(false);
                 onNavigate('/contact');
               }}
               className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
@@ -395,7 +387,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* FAQs */}
             <button
               onClick={() => {
-                if (isScrolled) setScrolledHeadingOpen(false);
+                setHeadingBarOpen(false);
                 if (onOpenFaq) onOpenFaq();
                 else onNavigate('/faq');
               }}
