@@ -39,15 +39,6 @@ export const SmartBottleFeature: React.FC<SmartBottleFeatureProps> = ({ onShopOi
 
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-950 text-xs font-bold uppercase tracking-wider shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-            <span>
-              {language === 'ta'
-                ? '100% இயற்கை மரச்செக்கு பாரம்பரியம்'
-                : '100% Cold-Pressed Organic Heritage'}
-            </span>
-          </div>
-
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#261E16] tracking-tight leading-tight">
             {language === 'ta'
               ? 'மண்ணின் மணத்தோடு வாகை மரச்செக்கு தூய்மை'

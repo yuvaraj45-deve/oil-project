@@ -306,7 +306,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/90 border border-stone-200 text-stone-800 text-xs font-bold shadow-2xs backdrop-blur-xs">
               <span className="text-base">{meta.icon}</span>
               <span>
-                {language === 'ta' ? 'அசல் மரச்செக்கு தயாரிப்பு' : '100% Cold-Pressed Organic Heritage'}
+                {language === 'ta' ? meta.tamilName : meta.name}
               </span>
             </div>
 

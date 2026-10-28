@@ -143,27 +143,76 @@ productRouter.post('/', async (req: Request, res: Response) => {
       inStock,
       featured,
       categoryId,
+      categorySlug,
+      categoryName,
       packSizes,
     } = req.body;
 
-    if (!name || !price || !categoryId) {
+    if (!name || price === undefined || price === null) {
       return res.status(400).json({
         success: false,
-        message: 'Name, price, and categoryId are required',
+        message: 'Name and price are required',
       });
     }
 
-    const generatedSlug = slug || name.toLowerCase().replace(/\s+/g, '-');
+    // 1. Robust Category Resolution: Resolve by UUID, slug, or create if missing
+    let targetCat = null;
+    if (categoryId) {
+      targetCat = await prisma.category.findUnique({ where: { id: categoryId } }).catch(() => null);
+    }
+
+    const candidateSlug = categorySlug || (categoryId && !targetCat ? categoryId : null);
+    if (!targetCat && candidateSlug) {
+      targetCat = await prisma.category.findUnique({ where: { slug: candidateSlug } }).catch(() => null);
+    }
+
+    if (!targetCat) {
+      // Find ANY existing category or auto-create a category matching the request
+      const fallbackSlug = candidateSlug || 'cooking-oil';
+      targetCat = await prisma.category.findUnique({ where: { slug: fallbackSlug } }).catch(() => null);
+
+      if (!targetCat) {
+        const titleCaseName =
+          categoryName ||
+          fallbackSlug
+            .split('-')
+            .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+
+        targetCat = await prisma.category.create({
+          data: {
+            slug: fallbackSlug,
+            name: titleCaseName,
+            description: `${titleCaseName} - 100% Traditional Mara Chekku`,
+            image: image || '/showcase/showcase_groundnut.png',
+          },
+        });
+      }
+    }
+
+    // 2. Safe collision-free slug generation
+    let generatedSlug = (slug || name)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (!generatedSlug) generatedSlug = `oil-product-${Date.now()}`;
+
+    const existingSlug = await prisma.product.findUnique({ where: { slug: generatedSlug } });
+    if (existingSlug) {
+      generatedSlug = `${generatedSlug}-${Date.now().toString().slice(-4)}`;
+    }
+
     const calculatedDiscount =
       discountPercent !== undefined
         ? Number(discountPercent)
-        : originalPrice && originalPrice > price
-        ? Math.round(((originalPrice - price) / originalPrice) * 100)
+        : originalPrice && Number(originalPrice) > Number(price)
+        ? Math.round(((Number(originalPrice) - Number(price)) / Number(originalPrice)) * 100)
         : 0;
 
     const newProduct = await prisma.product.create({
       data: {
-        name,
+        name: name.trim(),
         slug: generatedSlug,
         tagline: tagline || '',
         description: description || '',
@@ -177,17 +226,18 @@ productRouter.post('/', async (req: Request, res: Response) => {
         extractionMethod: extractionMethod || 'Traditional Cold-Pressed Mara Chekku',
         inStock: inStock !== undefined ? Boolean(inStock) : true,
         featured: featured !== undefined ? Boolean(featured) : false,
-        categoryId,
-        packSizes: packSizes && Array.isArray(packSizes) && packSizes.length > 0
-          ? {
-              create: packSizes.map((p: any) => ({
-                packSize: p.packSize || p,
-                price: Number(p.price || price),
-                originalPrice: Number(p.originalPrice || originalPrice || price),
-                inStock: p.inStock !== undefined ? Boolean(p.inStock) : true,
-              })),
-            }
-          : undefined,
+        categoryId: targetCat.id,
+        packSizes:
+          packSizes && Array.isArray(packSizes) && packSizes.length > 0
+            ? {
+                create: packSizes.map((p: any) => ({
+                  packSize: typeof p === 'string' ? p : p.packSize || '1 Litre Bottle',
+                  price: Number(p.price || price),
+                  originalPrice: Number(p.originalPrice || originalPrice || price),
+                  inStock: p.inStock !== undefined ? Boolean(p.inStock) : true,
+                })),
+              }
+            : undefined,
       },
       include: {
         category: true,
@@ -285,10 +335,14 @@ productRouter.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE product
+// DELETE product (Clean cascade delete so it never fails on foreign key relations)
 productRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    await prisma.productPackSize.deleteMany({ where: { productId: id } }).catch(() => null);
+    await prisma.labReport.deleteMany({ where: { productId: id } }).catch(() => null);
+    await prisma.review.deleteMany({ where: { productId: id } }).catch(() => null);
+    await prisma.orderItem.deleteMany({ where: { productId: id } }).catch(() => null);
     await prisma.product.delete({ where: { id } });
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {

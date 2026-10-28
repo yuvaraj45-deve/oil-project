@@ -645,44 +645,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     if (!newProdName.trim()) return;
 
     const matchedCat = categoriesList.find((c) => c.slug === newProdCategory) || categoriesList[0];
-    let createdId = `prod-${Date.now()}`;
-
-    // Sync to TiDB Cloud backend
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newProdName.trim(),
-          tagline: newProdTagline.trim(),
-          description: newProdDescription.trim() || 'Authentic traditional oil freshly pressed at Salem Mill.',
-          price: Number(newProdPrice),
-          originalPrice: Number(newProdOriginalPrice),
-          defaultPack: newProdDefaultPack,
-          image: newProdImage || '/products/groundnut_oil.jpg',
-          badge: newProdBadge || null,
-          smokePoint: newProdSmokePoint || '220°C',
-          extractionMethod: newProdExtraction || 'Traditional Mara Chekku Cold-Pressed',
-          inStock: newProdInStock,
-          featured: newProdFeatured,
-          categoryId: matchedCat?.id || 'f94f271e-f1ad-4af5-8fdd-fa6849c79752',
-          packSizes: newProdPackSizes.map((ps) => ({
-            packSize: ps,
-            price: Number(newProdPrice),
-            originalPrice: Number(newProdOriginalPrice),
-            inStock: newProdInStock,
-          })),
-        }),
-      });
-      if (res.ok) {
-        const resData = await res.json();
-        if (resData.success && resData.data?.id) {
-          createdId = resData.data.id;
-        }
-      }
-    } catch (err) {
-      console.error('Failed to create product in database:', err);
-    }
+    const createdId = `prod-${Date.now()}`;
 
     const newProduct: Product = {
       id: createdId,
@@ -691,7 +654,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       category: matchedCat?.slug || 'groundnut-oil',
       categoryName: matchedCat?.title || 'Groundnut Oil',
       price: Number(newProdPrice),
-      originalPrice: Number(newProdOriginalPrice),
+      originalPrice: Number(newProdOriginalPrice) || Number(newProdPrice),
       discountPercent:
         newProdOriginalPrice > newProdPrice
           ? Math.round(((newProdOriginalPrice - newProdPrice) / newProdOriginalPrice) * 100)
@@ -702,16 +665,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       defaultPack: newProdDefaultPack,
       image: newProdImage || '/products/groundnut_oil.jpg',
       badge: newProdBadge || undefined,
-      description: newProdDescription || 'Authentic cold-pressed oil.',
+      description: newProdDescription || 'Authentic traditional cold-pressed oil.',
       benefits: ['Zero Chemical Solvents', 'Unrefined & Pure', 'Naturally Rich in Vitamin E'],
-      smokePoint: newProdSmokePoint,
-      extractionMethod: newProdExtraction,
+      smokePoint: newProdSmokePoint || '220°C',
+      extractionMethod: newProdExtraction || 'Traditional Vaagai Mara Chekku',
       inStock: newProdInStock,
       featured: newProdFeatured,
     };
 
-    setProductsList((prev) => [newProduct, ...prev]);
-    contextAddProduct(newProduct);
+    setProductsList((prev) => [newProduct, ...prev.filter((p) => p.id !== newProduct.id)]);
+    await contextAddProduct(newProduct);
     setIsAddProductOpen(false);
     setNewProdName('');
     setNewProdTagline('');
@@ -722,16 +685,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const handleDeleteProduct = async (productId: string) => {
     const prodToDelete = productsList.find((p) => p.id === productId);
     setProductsList((prev) => prev.filter((p) => p.id !== productId));
-    contextDeleteProduct(productId);
-
-    try {
-      await fetch(`${API_BASE_URL}/api/products/${productId}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.error('Failed to delete product from database:', err);
-    }
-
+    await contextDeleteProduct(productId);
     showToast(`Product "${prodToDelete?.name || 'Selected'}" deleted.`);
   };
 

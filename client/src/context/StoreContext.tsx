@@ -134,8 +134,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               bestForDish: fallback?.bestForDish,
             };
           });
-          setProducts(mappedProds);
-          localStorage.setItem('ssoil_products', JSON.stringify(mappedProds));
+
+          // Preserve any custom products from localStorage that aren't yet in backend response
+          let finalProds = mappedProds;
+          try {
+            const saved = localStorage.getItem('ssoil_products');
+            if (saved) {
+              const parsedLocal: Product[] = JSON.parse(saved);
+              if (Array.isArray(parsedLocal)) {
+                const uniqueLocal = parsedLocal.filter(
+                  (lp) => !mappedProds.some((mp) => mp.id === lp.id || (mp.name && lp.name && mp.name.toLowerCase().trim() === lp.name.toLowerCase().trim()))
+                );
+                finalProds = [...mappedProds, ...uniqueLocal];
+              }
+            }
+          } catch {}
+
+          setProducts(finalProds);
+          localStorage.setItem('ssoil_products', JSON.stringify(finalProds));
         }
       }
     } catch (e) {
@@ -225,26 +241,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const addProduct = useCallback(async (newProduct: Product) => {
+    // 1. Immediately update state and localStorage
     setProducts((prev) => {
-      const next = [newProduct, ...prev];
+      const next = [newProduct, ...prev.filter((p) => p.id !== newProduct.id)];
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
       } catch (e) {}
       return next;
     });
 
-    // Background API call
+    // 2. Persist to API
     try {
-      await fetch(`${API_BASE_URL}/api/products`, {
+      const res = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newProduct.name,
-          slug: newProduct.name.toLowerCase().replace(/\s+/g, '-'),
+          slug: newProduct.slug || newProduct.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
           tagline: newProduct.tagline,
           description: newProduct.description,
           price: newProduct.price,
           originalPrice: newProduct.originalPrice,
+          discountPercent: newProduct.discountPercent,
           defaultPack: newProduct.defaultPack,
           image: newProduct.image,
           badge: newProduct.badge,
@@ -252,9 +270,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           extractionMethod: newProduct.extractionMethod,
           inStock: newProduct.inStock,
           featured: newProduct.featured,
+          categoryId: newProduct.category,
           categorySlug: newProduct.category,
+          categoryName: newProduct.categoryName,
+          packSizes: newProduct.packSizes?.map((ps) => ({
+            packSize: ps,
+            price: newProduct.price,
+            originalPrice: newProduct.originalPrice,
+            inStock: newProduct.inStock,
+          })),
         }),
       });
+
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData.success && resData.data?.id) {
+          const serverId = resData.data.id;
+          const serverSlug = resData.data.slug;
+          setProducts((prev) => {
+            const updated = prev.map((p) =>
+              p.id === newProduct.id ? { ...p, id: serverId, slug: serverSlug } : p
+            );
+            try {
+              localStorage.setItem('ssoil_products', JSON.stringify(updated));
+            } catch (e) {}
+            return updated;
+          });
+        }
+      }
     } catch (e) {
       console.warn('API add product error:', e);
     }
