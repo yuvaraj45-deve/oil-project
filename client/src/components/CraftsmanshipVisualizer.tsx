@@ -106,15 +106,6 @@ export const CraftsmanshipVisualizer: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-950 text-xs font-bold uppercase tracking-wider mb-3.5 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-            <span>
-              {language === 'ta'
-                ? '58 ஆண்டுகால மரச்செக்கு நெறிமுறை • 1966 முதல்'
-                : 'Authentic Salem Mill Heritage • Since 1966'}
-            </span>
-          </div>
-
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#261E16] tracking-tight">
             {language === 'ta' ? 'பாரம்பரிய மரச்செக்கு பயணம்' : 'The Sacred Mara Chekku Journey'}
           </h2>
