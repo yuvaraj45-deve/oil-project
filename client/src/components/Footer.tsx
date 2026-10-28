@@ -50,7 +50,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
                 {settings.logoUrl ? (
                   <img
                     src={settings.logoUrl}
-                    alt={settings.storeName || "Gem's gold"}
+                    alt={settings.storeName || "ss oil"}
                     className="w-full h-full object-contain p-1 rounded-full"
                   />
                 ) : (
@@ -59,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               </div>
               <div>
                 <span className="font-serif text-2xl font-bold tracking-tight text-white">
-                  {settings.storeName || "Gem's gold"}
+                  {settings.storeName || "ss oil"}
                 </span>
                 <span className="text-[10px] block text-gold-400 font-semibold tracking-widest uppercase">
                   {settings.tagline || 'Pure & Healthy Mara Chekku Heritage'}

@@ -53,7 +53,7 @@ export const GemsGoldQualityBanner: React.FC = () => {
             <div className="rounded-3xl overflow-hidden shadow-sm max-w-[340px] w-full border border-amber-300/40 bg-white/20">
               <img
                 src="/showcase/gems_gold_bottles_hero.png"
-                alt="Gem's gold authentic wood-pressed oils"
+                alt="SS OIL authentic wood-pressed oils"
                 className="w-full h-auto object-cover rounded-3xl hover:scale-102 transition-transform duration-500"
               />
             </div>

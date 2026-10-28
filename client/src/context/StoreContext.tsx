@@ -27,7 +27,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('ssoil_admin_settings');
       if (saved) {
-        return { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (!parsed.storeName || parsed.storeName === "Gem's gold") {
+          parsed.storeName = 'ss oil';
+          try {
+            localStorage.setItem('ssoil_admin_settings', JSON.stringify({ ...DEFAULT_STORE_SETTINGS, ...parsed }));
+          } catch {}
+        }
+        return { ...DEFAULT_STORE_SETTINGS, ...parsed };
       }
     } catch (e) {
       console.error('Error reading saved store settings:', e);
@@ -163,7 +170,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const saved = localStorage.getItem('ssoil_admin_settings');
         if (saved) {
-          setSettings((prev) => ({ ...prev, ...JSON.parse(saved) }));
+          const parsed = JSON.parse(saved);
+          if (!parsed.storeName || parsed.storeName === "Gem's gold") {
+            parsed.storeName = 'ss oil';
+          }
+          setSettings((prev) => ({ ...prev, ...parsed }));
         }
       } catch (e) {
         console.error('Error reloading settings:', e);

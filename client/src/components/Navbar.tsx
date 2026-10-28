@@ -153,16 +153,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => onNavigate('/')}
               className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group text-center focus:outline-none"
-              aria-label={settings.storeName || "Gem's gold"}
+              aria-label={settings.storeName || "ss oil"}
             >
               <img
                 src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
-                alt={settings.storeName || "SS Oil"}
+                alt={settings.storeName || "ss oil"}
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform"
               />
               <div className="flex flex-col items-start justify-center">
                 <span className="font-serif text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight text-[#b32d2e] group-hover:text-[#942021] transition-colors leading-none">
-                  {settings.storeName || "Gem's gold"}
+                  {settings.storeName || "ss oil"}
                 </span>
                 <span className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold text-[#b32d2e] group-hover:text-[#942021] transition-colors mt-0.5">
                   {settings.tagline || 'SINCE 1966'}

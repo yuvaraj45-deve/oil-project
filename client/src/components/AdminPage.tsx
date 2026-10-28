@@ -918,7 +918,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
             <div>
               <h1 className="font-serif text-xl font-black tracking-tight text-white leading-none">
-                {settings.storeName || "Gem's gold"}
+                {settings.storeName || "ss oil"}
               </h1>
               <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">
                 {settings.tagline || 'Pure & Healthy'}
@@ -3256,7 +3256,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="h-14 w-14 object-contain rounded-xl drop-shadow"
                             />
                             <span className="text-[11px] font-serif font-black text-stone-900 mt-1 leading-tight text-center truncate max-w-full">
-                              {settings.storeName || "Gem's gold"}
+                              {settings.storeName || "ss oil"}
                             </span>
                             <span className="text-[7px] text-emerald-700 font-bold uppercase tracking-wider text-center truncate max-w-full">
                               {settings.tagline || 'Pure & Healthy'}
@@ -3296,12 +3296,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 type="button"
                                 onClick={() => {
                                   setSettings((prev) => ({ ...prev, logoUrl: '/admin_assets/ss_gold_drop_logo.png' }));
-                                  showToast("Gem's Gold Drop logo selected! Click 'Save Changes' to apply.");
+                                  showToast("SS Oil Gold Drop logo selected! Click 'Save Changes' to apply.");
                                 }}
                                 className="text-[10px] px-2 py-0.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium cursor-pointer"
                                 title="Default Drop Logo"
                               >
-                                Gem's Gold
+                                SS Oil (Gold Drop)
                               </button>
                               <button
                                 type="button"
@@ -3312,7 +3312,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 className="text-[10px] px-2 py-0.5 rounded-lg border border-stone-200 bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium cursor-pointer"
                                 title="Traditional Emblem"
                               >
-                                SS Oil
+                                SS Oil (Emblem)
                               </button>
                             </div>
                           </div>

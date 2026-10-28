@@ -301,11 +301,11 @@ export const ReelsCarouselSection: React.FC = () => {
                     {/* Gradient Vignette Overlays for Maximum Legibility */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
 
-                    {/* Top Watermark (Gem's Gold SINCE 1966) */}
+                    {/* Top Watermark (SS OIL SINCE 1966) */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-white pointer-events-none">
                       <div className="flex flex-col">
                         <span className="font-serif text-xs font-bold text-white drop-shadow-md leading-none">
-                          Gem's gold
+                          ss oil
                         </span>
                         <span className="text-[7px] font-bold tracking-widest text-amber-300 drop-shadow-sm uppercase mt-0.5">
                           SINCE 1966
@@ -406,7 +406,7 @@ export const ReelsCarouselSection: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="font-serif text-sm font-bold text-amber-400">
-                      Gem's gold
+                      ss oil
                     </span>
                     <span className="text-[10px] text-stone-400 uppercase tracking-widest">
                       SINCE 1966

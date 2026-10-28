@@ -181,7 +181,7 @@ export interface StoreSettings {
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: "Gem's gold",
+  storeName: 'ss oil',
   tagline: 'Pure & Healthy Mara Chekku Heritage',
   description: 'Pure Mara Chekku oil crafted from chemical-free, pesticide-free native seeds crushed in authentic Vaagai wood pestles without artificial heat, refining, or solvents.',
   logoUrl: '/admin_assets/ss_gold_drop_logo.png',
