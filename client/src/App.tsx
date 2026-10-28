@@ -8,6 +8,8 @@ import { FeaturedProducts } from './components/FeaturedProducts';
 import { PureDifference } from './components/PureDifference';
 import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
 import { SmartBottleFeature } from './components/SmartBottleFeature';
+import { GemsGoldQualityBanner } from './components/GemsGoldQualityBanner';
+import { ReelsCarouselSection } from './components/ReelsCarouselSection';
 import { CraftsmanshipVisualizer } from './components/CraftsmanshipVisualizer';
 import { PurityComparison } from './components/PurityComparison';
 import { HealthyRecipesSection } from './components/HealthyRecipesSection';
@@ -33,6 +35,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { FaqModal } from './components/FaqModal';
 import { Product, CartItem, PlacedOrder, UserProfile } from './types';
 import { PRODUCTS_DATA } from './data/oilData';
+import { useStore } from './context/StoreContext';
 
 // Dedicated Page Components for each Navbar route
 import { ShopPage } from './pages/ShopPage';
@@ -44,15 +47,20 @@ import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
+import { CategoryDetailPage } from './pages/CategoryDetailPage';
 
 export function App() {
+  const { products, categories, settings } = useStore();
+  const effectiveProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
+
   // Shopping Cart state
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
-      product: PRODUCTS_DATA[0],
+      product: effectiveProducts[0] || PRODUCTS_DATA[0],
       packSize: '1 Litre Bottle',
       quantity: 1,
-      price: PRODUCTS_DATA[0].price,
+      price: (effectiveProducts[0] || PRODUCTS_DATA[0]).price,
     },
   ]);
 
@@ -97,6 +105,31 @@ export function App() {
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleOpenProduct = (product: Product) => {
+    navigateTo(`/product/${product.slug || product.id}`);
+  };
+
+  // Dedicated Product Route Helper (/product/:slug or /product/:id)
+  const isProductRoute = currentPath.startsWith('/product/');
+  const productIdentifier = isProductRoute
+    ? currentPath.replace('/product/', '').replace(/\/$/, '')
+    : null;
+  const currentProduct = productIdentifier
+    ? effectiveProducts.find(
+        (p) =>
+          p.id === productIdentifier ||
+          p.slug === productIdentifier ||
+          p.category === productIdentifier ||
+          p.name.toLowerCase().includes(productIdentifier.toLowerCase().replace(/-/g, ' '))
+      ) || effectiveProducts[0] || PRODUCTS_DATA[0]
+    : null;
+
+  // Dedicated Category Route Helper (/category/:slug)
+  const isCategoryRoute = currentPath.startsWith('/category/');
+  const categorySlug = isCategoryRoute
+    ? currentPath.replace('/category/', '').replace(/\/$/, '')
+    : null;
 
   // Checkout & Admin States
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -359,19 +392,50 @@ export function App() {
         onNavigateToLogin={() => navigateTo('/login')}
         onNavigateCategory={(cat) => {
           setSelectedCategory(cat);
-          navigateTo('/shop');
+          navigateTo(`/category/${cat}`);
         }}
         onOpenPurityReport={handleOpenPurityReport}
       />
 
       {/* Main Dedicated Page Renderer */}
       <main className="flex-1">
+        {/* Dedicated Route: /category/:slug (Dedicated Full Category Page with Products) */}
+        {isCategoryRoute && categorySlug && (
+          <CategoryDetailPage
+            categorySlug={categorySlug}
+            onAddToCart={handleAddToCart}
+            onBuyNow={(prod, pack, qty) => {
+              handleAddToCart(prod, pack, qty);
+              setIsCheckoutOpen(true);
+            }}
+            onViewLabReport={(p) => setSelectedLabReportProduct(p)}
+            onNavigate={navigateTo}
+            onSelectProduct={handleOpenProduct}
+          />
+        )}
+
+        {/* Dedicated Route: /product/:slug (Full Standalone Product Detail Page) */}
+        {isProductRoute && currentProduct && (
+          <ProductDetailPage
+            product={currentProduct}
+            allProducts={PRODUCTS_DATA}
+            onAddToCart={handleAddToCart}
+            onBuyNow={(prod, pack, qty) => {
+              handleAddToCart(prod, pack, qty);
+              setIsCheckoutOpen(true);
+            }}
+            onViewLabReport={(p) => setSelectedLabReportProduct(p)}
+            onNavigate={navigateTo}
+            onSelectProduct={handleOpenProduct}
+          />
+        )}
+
         {/* Route: /shop */}
         {currentPath === '/shop' && (
           <ShopPage
             initialCategory={selectedCategory}
             onAddToCart={handleAddToCart}
-            onQuickView={(p) => setQuickViewProduct(p)}
+            onQuickView={handleOpenProduct}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
           />
         )}
@@ -385,7 +449,7 @@ export function App() {
         {currentPath === '/sommelier' && (
           <SommelierPage
             onAddToCart={handleAddToCart}
-            onQuickView={(p) => setQuickViewProduct(p)}
+            onQuickView={handleOpenProduct}
             onExploreShop={() => navigateTo('/shop')}
           />
         )}
@@ -395,7 +459,7 @@ export function App() {
           <CategoriesPage
             onSelectCategory={(cat) => {
               setSelectedCategory(cat);
-              navigateTo('/shop');
+              navigateTo(`/category/${cat}`);
             }}
           />
         )}
@@ -412,7 +476,7 @@ export function App() {
         {currentPath === '/about' && (
           <AboutPage
             onAddToCart={handleAddToCart}
-            onQuickView={(p) => setQuickViewProduct(p)}
+            onQuickView={handleOpenProduct}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
             onViewAllProducts={() => {
               setSelectedCategory('all');
@@ -476,7 +540,7 @@ export function App() {
             <CategoryCircles
               onSelectCategory={(slug) => {
                 setSelectedCategory(slug);
-                navigateTo('/shop');
+                navigateTo(`/category/${slug}`);
               }}
               selectedCategory={selectedCategory}
             />
@@ -494,24 +558,51 @@ export function App() {
             {/* 2. 4 Value Pillars: 100% Pure & Natural, Good for Health, Premium Quality, Sustainable */}
             <ValuePillars />
 
-            {/* 3. Gemedible Signature: Smart Packaging with Built-in Measuring Chamber Simulator */}
-            <SmartBottleFeature onShopOils={() => navigateTo('/shop')} />
+            {/* 3. Gemedible Signature: 4 Pastel Product Cards (Groundnut, Sunflower, Mustard, Nithyam Lamp Oil) */}
+            <SmartBottleFeature
+              onShopOils={() => navigateTo('/shop')}
+              onSelectProductSlug={(slug) => {
+                if (slug === 'groundnut-oil') {
+                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-groundnut-1000' || x.category === 'groundnut-oil');
+                  if (p) handleOpenProduct(p);
+                  else navigateTo('/product/ss-groundnut-1000');
+                } else if (slug === 'cooking-oil') {
+                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-sunflower-1000' || x.name.includes('Sunflower'));
+                  if (p) handleOpenProduct(p);
+                  else navigateTo('/product/ss-sunflower-1000');
+                } else if (slug === 'sesame-oil') {
+                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-sesame-1000' || x.category === 'sesame-oil');
+                  if (p) handleOpenProduct(p);
+                  else navigateTo('/product/ss-sesame-1000');
+                } else if (slug === 'pooja-oil') {
+                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-deepam-1000' || x.category === 'pooja-special');
+                  if (p) handleOpenProduct(p);
+                  else navigateTo('/product/ss-deepam-1000');
+                } else {
+                  setSelectedCategory(slug);
+                  navigateTo('/shop');
+                }
+              }}
+            />
+
+            {/* Gem's Gold 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
+            <GemsGoldQualityBanner />
+
+            {/* Gem's Gold Community Reels & Kitchen Stories Carousel */}
+            <ReelsCarouselSection />
 
             {/* 4. Our Product Range & Categories: Pure Oils for a Healthier You */}
             <OurProductRange
               onShopProduct={(slug) => {
                 setSelectedCategory(slug);
-                const prodEl = document.getElementById('products');
-                if (prodEl) {
-                  prodEl.scrollIntoView({ behavior: 'smooth' });
-                }
+                navigateTo(`/category/${slug}`);
               }}
             />
 
             {/* 5. Products Showcase: Categories ku kizha ulla products (Top 4 Bestsellers) */}
             <FeaturedProducts
               onAddToCart={handleAddToCart}
-              onQuickView={(p) => setQuickViewProduct(p)}
+              onQuickView={handleOpenProduct}
               onViewLabReport={(p) => setSelectedLabReportProduct(p)}
               selectedCategory={selectedCategory}
               onSelectCategory={(c) => setSelectedCategory(c)}
@@ -537,12 +628,12 @@ export function App() {
         )}
       </main>
 
-      {/* 13. Footer (Rendered ONLY on Home Page as requested) */}
-      {(currentPath === '/' || currentPath === '') && (
+      {/* 13. Footer (Rendered on Home Page, Product Detail Pages, and Category Detail Pages) */}
+      {(currentPath === '/' || currentPath === '' || isProductRoute || isCategoryRoute) && (
         <Footer
           onSelectCategory={(cat) => {
             setSelectedCategory(cat);
-            navigateTo('/shop');
+            navigateTo(`/category/${cat}`);
           }}
           onNavigate={navigateTo}
         />
@@ -605,7 +696,7 @@ export function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSelectProduct={(product) => setQuickViewProduct(product)}
+        onSelectProduct={(product) => handleOpenProduct(product)}
         onAddToCart={handleAddToCart}
         onOpenAdmin={handleOpenAdmin}
       />

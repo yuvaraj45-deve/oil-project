@@ -13,6 +13,7 @@ import {
   Droplet
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface FooterProps {
   onSelectCategory: (slug: string) => void;
@@ -21,6 +22,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) => {
   const { language, t } = useLanguage();
+  const { settings, categories } = useStore();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -49,16 +51,16 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               </div>
               <div>
                 <span className="font-serif text-2xl font-bold tracking-tight text-white">
-                  PureVa
+                  {settings.storeName || 'PureVa'}
                 </span>
                 <span className="text-[10px] block text-gold-400 font-semibold tracking-widest uppercase">
-                  {t('nav.tagline')}
+                  {settings.tagline || t('nav.tagline')}
                 </span>
               </div>
             </div>
 
             <p className="text-stone-300 text-sm leading-relaxed max-w-sm">
-              {t('hero.subtitle')}
+              {settings.description || t('hero.subtitle')}
             </p>
 
             {/* Social Icons */}
@@ -136,49 +138,22 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             </ul>
           </div>
 
-          {/* Product Categories (Col 7-8) */}
+          {/* Product Categories (Col 7-8) - Dynamically loaded from Admin state */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
               {language === 'ta' ? 'எண்ணெய் வகைகள்' : 'Product Categories'}
             </h4>
             <ul className="space-y-2 text-sm text-stone-300">
-              <li>
-                <button
-                  onClick={() => onSelectCategory('cooking-oil')}
-                  className="hover:text-gold-400 transition-colors text-left"
-                >
-                  {language === 'ta' ? 'தினசரி சமையல் எண்ணெய்' : 'Cooking Oil (Daily Pure)'}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onSelectCategory('sesame-oil')}
-                  className="hover:text-gold-400 transition-colors text-left"
-                >
-                  {language === 'ta' ? 'மரச்செக்கு நல்லெண்ணெய்' : 'Wood-Pressed Sesame (Gingelly)'}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onSelectCategory('groundnut-oil')}
-                  className="hover:text-gold-400 transition-colors text-left"
-                >
-                  {language === 'ta' ? 'மரச்செக்கு கடலை எண்ணெய்' : 'Wood-Pressed Groundnut Oil'}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onSelectCategory('coconut-oil')}
-                  className="hover:text-gold-400 transition-colors text-left"
-                >
-                  {language === 'ta' ? 'பாரம்பரிய தேங்காய் எண்ணெய்' : 'Virgin Cold-Pressed Coconut Oil'}
-                </button>
-              </li>
-              <li>
-                <span className="text-stone-500 text-xs">
-                  {language === 'ta' ? '• 5லி & 15லி மொத்த கேன்கள்' : '• 5L & 15L Bulk Catering Tins'}
-                </span>
-              </li>
+              {categories.slice(0, 5).map((cat) => (
+                <li key={cat.id}>
+                  <button
+                    onClick={() => onSelectCategory(cat.slug)}
+                    className="hover:text-gold-400 transition-colors text-left truncate max-w-full"
+                  >
+                    {cat.title}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -190,30 +165,30 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             <div className="space-y-3 text-sm text-stone-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 mt-1 shrink-0" />
-                <span>
-                  {language === 'ta'
+                <span className="leading-snug">
+                  {settings.millAddress || (language === 'ta'
                     ? 'SS OIL மில் & பேக்கிங் பிரிவு, எண் 42 செக்கு தெரு, தொழிற்பேட்டை, சேலம், தமிழ்நாடு – 636004'
-                    : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004 (Placeholder)'}
+                    : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004')}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-gold-400 shrink-0" />
-                <a href="tel:+919876543210" className="hover:text-gold-400 transition-colors">
-                  +91 98765 43210 / 1800-425-SSOIL
+                <a href={`tel:${settings.phone || '+919876543210'}`} className="hover:text-gold-400 transition-colors">
+                  {settings.phone || '+91 98765 43210 / 1800-425-SSOIL'}
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-gold-400 shrink-0" />
-                <a href="mailto:care@ssoil.in" className="hover:text-gold-400 transition-colors">
-                  care@ssoil.in
+                <a href={`mailto:${settings.email || 'care@ssoil.in'}`} className="hover:text-gold-400 transition-colors">
+                  {settings.email || 'care@ssoil.in'}
                 </a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-stone-400">
                 <Clock className="w-4 h-4 text-gold-400 shrink-0" />
                 <span>
-                  {language === 'ta'
+                  {settings.millHours || (language === 'ta'
                     ? 'திங்கள் – சனி: காலை 9:00 – இரவு 7:30 IST'
-                    : 'Mon – Sat: 9:00 AM – 7:30 PM IST'}
+                    : 'Mon – Sat: 9:00 AM – 7:30 PM IST')}
                 </span>
               </div>
             </div>
@@ -226,10 +201,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
           <div className="flex items-center gap-4 flex-wrap">
             <span className="flex items-center gap-1.5 text-cream-200">
               <ShieldCheck className="w-4 h-4 text-gold-400" />
-              <span>FSSAI Lic. No: 1242000000001</span>
+              <span>{language === 'ta' ? 'ISO 22000:2018 தரச்சான்றிதழ்' : 'ISO 22000:2018 Certified Facility'}</span>
             </span>
-            <span>•</span>
-            <span>{language === 'ta' ? 'ISO 22000:2018 தரச்சான்றிதழ்' : 'ISO 22000:2018 Certified Facility'}</span>
             <span>•</span>
             <span>{language === 'ta' ? 'Agmark முதல் தரம்' : 'Agmark Grade I Standard'}</span>
           </div>

@@ -155,3 +155,51 @@ export interface UserProfile {
   purityPoints: number;
 }
 
+export interface StoreSettings {
+  storeName: string;
+  tagline: string;
+  description: string;
+  logoUrl: string;
+  announcementText: string;
+  announcementSubText: string;
+  announcementEnabled: boolean;
+  phone: string;
+  email: string;
+  millAddress: string;
+  millHours: string;
+  fssaiLicense: string;
+  currency: string;
+  timeZone: string;
+  defaultLanguage: string;
+  freeDeliveryThreshold: number;
+  deliveryFee: number;
+  gstRate: number;
+  razorpayKeyId: string;
+  upiVpa: string;
+  codEnabled: boolean;
+}
+
+export const DEFAULT_STORE_SETTINGS: StoreSettings = {
+  storeName: "Gem's gold",
+  tagline: 'Pure & Healthy Mara Chekku Heritage',
+  description: 'Pure Mara Chekku oil crafted from chemical-free, pesticide-free native seeds crushed in authentic Vaagai wood pestles without artificial heat, refining, or solvents.',
+  logoUrl: '/admin_assets/ss_gold_drop_logo.png',
+  announcementText: 'Pure Mara Chekku Oils, Trusted Since 1957',
+  announcementSubText: '10,000+ Kitchens Served',
+  announcementEnabled: true,
+  phone: '+91 98765 43210',
+  email: 'care@ssoil.in',
+  millAddress: 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004',
+  millHours: 'Mon – Sat: 9:00 AM – 7:30 PM IST',
+  fssaiLicense: '',
+  currency: 'INR (₹)',
+  timeZone: 'Asia/Kolkata',
+  defaultLanguage: 'English',
+  freeDeliveryThreshold: 499,
+  deliveryFee: 50,
+  gstRate: 5,
+  razorpayKeyId: 'rzp_live_9204918234',
+  upiVpa: 'ssoil@icici',
+  codEnabled: true,
+};
+

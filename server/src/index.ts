@@ -49,7 +49,7 @@ app.get('/health', async (_req: Request, res: Response) => {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       service: 'SS OIL E-Commerce API',
-      database: 'connected (SQLite/Prisma)',
+      database: 'connected (TiDB Cloud MySQL / Prisma)',
       environment: process.env.NODE_ENV || 'development',
     });
   } catch (error) {
@@ -91,6 +91,7 @@ app.listen(Number(PORT), '0.0.0.0', () => {
      SS OIL E-Commerce Backend Server Ready
      Port:        http://localhost:${PORT}
      Health:      http://localhost:${PORT}/health
+    
      Products:    http://localhost:${PORT}/api/products
      Categories:  http://localhost:${PORT}/api/products/categories
   ====================================================

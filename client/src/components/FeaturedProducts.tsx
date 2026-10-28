@@ -3,6 +3,7 @@ import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X } from 'l
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface FeaturedProductsProps {
   onAddToCart: (product: Product, packSize: string) => void;
@@ -24,14 +25,16 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   maxProducts = 4,
 }) => {
   const { language, t } = useLanguage();
+  const { products } = useStore();
   // State to track which product currently has the pack selector overlay open (when buying)
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
 
+  const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
   const filteredProducts =
     selectedCategory === 'all'
-      ? PRODUCTS_DATA
-      : PRODUCTS_DATA.filter((p) => p.category === selectedCategory);
+      ? sourceProducts
+      : sourceProducts.filter((p) => p.category === selectedCategory);
 
   const displayedProducts = maxProducts ? filteredProducts.slice(0, maxProducts) : filteredProducts;
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Droplets } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface CategoryItem {
   id: string;
@@ -21,7 +22,16 @@ interface OurProductRangeProps {
 
 export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct }) => {
   const { language, t } = useLanguage();
+  const { products } = useStore();
   const [activeGroup, setActiveGroup] = useState<string>('all');
+
+  const getStartingPrice = (slug: string, fallback: string) => {
+    if (!products || products.length === 0) return fallback;
+    const prods = products.filter((p) => p.category === slug || (slug === 'cooking-oil' && (p.category === 'cooking-oil' || p.name.includes('Sunflower'))));
+    if (prods.length === 0) return fallback;
+    const minPrice = Math.min(...prods.map((p) => p.price));
+    return `₹${minPrice}`;
+  };
 
   const categories: CategoryItem[] = [
     {
@@ -210,7 +220,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
                   {/* Price Pill */}
                   <div className="absolute bottom-4 right-4">
                     <span className="px-3 py-1 rounded-full text-xs font-black bg-forest-950/90 text-gold-300 shadow-sm">
-                      {t('range.from')} {item.startingPrice}
+                      {t('range.from')} {getStartingPrice(item.slug, item.startingPrice)}
                     </span>
                   </div>
                 </div>

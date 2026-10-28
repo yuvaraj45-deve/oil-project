@@ -3,6 +3,7 @@ import { Search, X, ArrowRight, Sparkles, ShoppingBag, ShieldCheck, Lock } from 
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onOpenAdmin,
 }) => {
   const { language, t } = useLanguage();
+  const { products } = useStore();
+  const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +42,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       : ['Sesame', 'Coconut', 'Groundnut', 'Cold-Pressed', 'Mara Chekku'];
 
   const filtered = query.trim()
-    ? PRODUCTS_DATA.filter((p) => {
+    ? sourceProducts.filter((p) => {
         const pTamilName = t(`prod.${p.id}.name`) || '';
         const pTamilTagline = t(`prod.${p.id}.tagline`) || '';
         const text = `${p.name} ${p.tagline} ${p.categoryName} ${p.description} ${p.extractionMethod} ${pTamilName} ${pTamilTagline}`.toLowerCase();

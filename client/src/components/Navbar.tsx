@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface NavbarProps {
   cartCount: number;
@@ -42,10 +43,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateToLogin,
 }) => {
   const { language, setLanguage } = useLanguage();
+  const { settings, categories } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
   const accountDropdownRef = useRef<HTMLDivElement | null>(null);
+  const shopDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll detection: 'OUR STORY', 'SHOP', 'CONTACT', 'FAQs' only visible at the starting (top)
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 25);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Trigger pulse animation when cart count changes
   useEffect(() => {
@@ -56,11 +71,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   }, [cartCount]);
 
-  // Close account dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (accountDropdownRef.current && !accountDropdownRef.current.contains(e.target as Node)) {
         setAccountDropdownOpen(false);
+      }
+      if (shopDropdownRef.current && !shopDropdownRef.current.contains(e.target as Node)) {
+        setShopDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -70,17 +88,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       {/* 1. TOP ANNOUNCEMENT GREY BAR (Exact match to gemedible.com screenshot) */}
-      <div className="bg-[#e2e2e2] text-stone-800 text-xs sm:text-[13px] font-normal py-2 px-4 sm:px-8 flex items-center justify-between border-b border-stone-300/80 select-none">
-        <span className="tracking-wide">
-          {language === 'ta' ? 'தூய மரச்செக்கு எண்ணெய்கள், 1957 முதல் நம்பகமானது' : 'Pure Oils, Trusted Since 1957'}
-        </span>
-        <span className="tracking-wide hidden xs:inline font-medium">
-          {language === 'ta' ? '10,000+ இல்லங்களில் பரிமாறப்பட்டது' : '10,000+ Kitchens Served'}
-        </span>
-      </div>
+      {settings.announcementEnabled !== false && (
+        <div className="bg-[#e2e2e2] text-stone-800 text-xs sm:text-[13px] font-normal py-2 px-4 sm:px-8 flex items-center justify-between border-b border-stone-300/80 select-none">
+          <span className="tracking-wide">
+            {settings.announcementText ||
+              (language === 'ta' ? 'தூய மரச்செக்கு எண்ணெய்கள், 1957 முதல் நம்பகமானது' : 'Pure Oils, Trusted Since 1957')}
+          </span>
+          <span className="tracking-wide hidden xs:inline font-medium">
+            {settings.announcementSubText ||
+              (language === 'ta' ? '10,000+ இல்லங்களில் பரிமாறப்பட்டது' : '10,000+ Kitchens Served')}
+          </span>
+        </div>
+      )}
 
-      {/* 2. MAIN HEADER (Clean White Layout matching gemedible.com) */}
-      <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-md border-b border-stone-200/80 shadow-xs select-none">
+      {/* 2. MAIN HEADER (Clean Solid White Layout - 100% Crisp & High Contrast) */}
+      <header className="sticky top-0 z-40 bg-white border-b border-stone-200/90 shadow-xs select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
           <div className="flex items-center justify-between">
             
@@ -110,20 +132,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* CENTER BRAND LOGO: Gem's gold / PureVa (Signature Red Serif Logo from screenshot) */}
+            {/* CENTER BRAND LOGO: Dynamic Store Logo & Name */}
             <button
               onClick={() => onNavigate('/')}
-              className="flex flex-col items-center justify-center cursor-pointer group text-center focus:outline-none"
-              aria-label="PureVa - Gem's Gold"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group text-center focus:outline-none"
+              aria-label={settings.storeName || "Gem's gold"}
             >
-              <div className="flex items-baseline gap-1">
-                <span className="font-serif text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-tight text-[#b32d2e] group-hover:text-[#942021] transition-colors leading-none">
-                  Gem's gold
+              <img
+                src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
+                alt={settings.storeName || "SS Oil"}
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform"
+              />
+              <div className="flex flex-col items-start justify-center">
+                <span className="font-serif text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight text-[#b32d2e] group-hover:text-[#942021] transition-colors leading-none">
+                  {settings.storeName || "Gem's gold"}
+                </span>
+                <span className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold text-[#b32d2e] group-hover:text-[#942021] transition-colors mt-0.5">
+                  {settings.tagline || 'SINCE 1966'}
                 </span>
               </div>
-              <span className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold text-[#b32d2e] group-hover:text-[#942021] transition-colors mt-0.5">
-                SINCE 1966
-              </span>
             </button>
 
             {/* RIGHT ACTIONS: User Account + Shopping Cart + Language */}
@@ -247,6 +274,101 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
+        {/* SUB-NAV ROW: OUR STORY • SHOP ˅ • CONTACT • FAQs */}
+        {/* Starting la mattum thaan irukanum, scroll pannathuku apram vara vena */}
+        <div
+          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out ${
+            isScrolled
+              ? 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2'
+              : 'max-h-16 opacity-100 pb-3 sm:pb-3.5 -mt-1 sm:-mt-2'
+          }`}
+        >
+          <nav className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-7 sm:gap-11 md:gap-14 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900">
+            {/* OUR STORY */}
+            <button
+              onClick={() => onNavigate('/about')}
+              className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
+                currentPath === '/about' ? 'text-[#b32d2e] font-extrabold' : ''
+              }`}
+            >
+              {language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}
+            </button>
+
+            {/* SHOP with Dropdown */}
+            <div
+              className="relative"
+              ref={shopDropdownRef}
+              onMouseEnter={() => setShopDropdownOpen(true)}
+              onMouseLeave={() => setShopDropdownOpen(false)}
+            >
+              <button
+                onClick={() => onNavigate('/shop')}
+                className={`flex items-center gap-1 hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
+                  currentPath === '/shop' ? 'text-[#b32d2e] font-extrabold' : ''
+                }`}
+              >
+                <span>{language === 'ta' ? 'கடைகள்' : 'SHOP'}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    shopDropdownOpen ? 'rotate-180 text-[#b32d2e]' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Shop Categories Dropdown */}
+              {shopDropdownOpen && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-64 bg-white rounded-2xl shadow-xl border border-stone-200 p-2 z-50 animate-fadeIn text-left normal-case tracking-normal max-h-80 overflow-y-auto">
+                  <button
+                    onClick={() => {
+                      setShopDropdownOpen(false);
+                      onNavigate('/shop');
+                      if (onNavigateCategory) onNavigateCategory('all');
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-stone-800 hover:bg-stone-50 hover:text-[#b32d2e] transition-colors cursor-pointer border-b border-stone-100 mb-1"
+                  >
+                    {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setShopDropdownOpen(false);
+                        if (onNavigateCategory) onNavigateCategory(cat.slug);
+                        else onNavigate(`/category/${cat.slug}`);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:bg-stone-50 hover:text-[#b32d2e] transition-colors cursor-pointer flex items-center justify-between"
+                    >
+                      <span className="truncate">{cat.title}</span>
+                      <span className="text-[10px] text-stone-400 font-normal shrink-0 ml-1">{cat.itemCount}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* CONTACT */}
+            <button
+              onClick={() => onNavigate('/contact')}
+              className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
+                currentPath === '/contact' ? 'text-[#b32d2e] font-extrabold' : ''
+              }`}
+            >
+              {language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}
+            </button>
+
+            {/* FAQs */}
+            <button
+              onClick={() => {
+                if (onOpenFaq) onOpenFaq();
+                else onNavigate('/faq');
+              }}
+              className="hover:text-[#b32d2e] transition-colors cursor-pointer py-1"
+            >
+              FAQs
+            </button>
+          </nav>
+        </div>
+
         {/* 3. SLIDING NAVIGATION DRAWER (Opened via Hamburger Menu) */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex animate-fadeIn">
@@ -254,9 +376,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               
               {/* Drawer Top Header */}
               <div className="flex items-center justify-between pb-5 border-b border-stone-200">
-                <div className="flex flex-col">
-                  <span className="font-serif text-2xl font-bold text-[#b32d2e]">Gem's gold</span>
-                  <span className="text-[9px] font-bold tracking-widest text-stone-400">SINCE 1966</span>
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
+                    alt={settings.storeName || "Gem's gold"}
+                    className="w-8 h-8 object-contain"
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-serif text-2xl font-bold text-[#b32d2e]">
+                      {settings.storeName || "Gem's gold"}
+                    </span>
+                    <span className="text-[9px] font-bold tracking-widest text-stone-400">
+                      {settings.tagline || 'SINCE 1966'}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}

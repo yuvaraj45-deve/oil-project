@@ -3,6 +3,7 @@ import { Search, ShoppingBag, Eye, X } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface ShopPageProps {
   initialCategory?: string;
@@ -82,8 +83,11 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     { slug: 'palm-jaggery-special', label: t('shop.cat.jaggery') },
   ];
 
+  const { products } = useStore();
+  const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
+
   // Filtering
-  const filteredProducts = PRODUCTS_DATA.filter((product) => {
+  const filteredProducts = sourceProducts.filter((product) => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesExtraction =
       selectedExtraction === 'all' ||

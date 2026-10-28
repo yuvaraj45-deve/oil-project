@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 export const ContactPage: React.FC = () => {
   const { language, t } = useLanguage();
+  const { settings } = useStore();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -53,7 +55,7 @@ export const ContactPage: React.FC = () => {
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.locationTitle')}</span>
                     <p className="text-stone-600 leading-relaxed mt-0.5">
-                      {t('contact.locationDesc')}
+                      {settings.millAddress || t('contact.locationDesc')}
                     </p>
                   </div>
                 </div>
@@ -64,8 +66,8 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.phoneTitle')}</span>
-                    <a href="tel:1800-425-7764" className="text-forest-900 font-bold block hover:underline">
-                      1800-425-SSOIL / +91 98765 43210
+                    <a href={`tel:${settings.phone || '1800-425-7764'}`} className="text-forest-900 font-bold block hover:underline">
+                      {settings.phone || '1800-425-SSOIL / +91 98765 43210'}
                     </a>
                   </div>
                 </div>
@@ -76,8 +78,8 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.emailTitle')}</span>
-                    <a href="mailto:care@ssoil.in" className="text-forest-900 font-bold block hover:underline">
-                      care@ssoil.in / orders@ssoil.in
+                    <a href={`mailto:${settings.email || 'care@ssoil.in'}`} className="text-forest-900 font-bold block hover:underline">
+                      {settings.email || 'care@ssoil.in'}
                     </a>
                   </div>
                 </div>
@@ -89,7 +91,7 @@ export const ContactPage: React.FC = () => {
                   <div>
                     <span className="font-bold text-stone-900 block">{language === 'ta' ? 'பணி நேரம்' : 'Mill Hours'}</span>
                     <p className="text-stone-600 mt-0.5">
-                      {t('contact.phoneHours')}
+                      {settings.millHours || t('contact.phoneHours')}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 // Prisma Schema for SS OIL Fullstack E-Commerce Database
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -24,8 +24,8 @@ model Category {
   id          String    @id @default(uuid())
   slug        String    @unique
   name        String
-  description String?
-  image       String?
+  description String?   @db.Text
+  image       String?   @db.Text
   products    Product[]
   createdAt   DateTime  @default(now())
 }
@@ -35,12 +35,12 @@ model Product {
   name             String
   slug             String            @unique
   tagline          String
-  description      String
+  description      String            @db.Text
   price            Float
   originalPrice    Float
   discountPercent  Float
   defaultPack      String
-  image            String
+  image            String            @db.Text
   badge            String?
   smokePoint       String
   extractionMethod String
@@ -73,7 +73,7 @@ model Order {
   customerName    String
   customerEmail   String
   customerPhone   String
-  shippingAddress String
+  shippingAddress String      @db.Text
   totalAmount     Float
   paymentStatus   String      @default("PENDING") // PENDING | PAID | FAILED
   orderStatus     String      @default("PROCESSING") // PROCESSING | SHIPPED | DELIVERED | CANCELLED
@@ -102,7 +102,7 @@ model Review {
   author    String
   location  String?
   rating    Int
-  comment   String
+  comment   String   @db.Text
   verified  Boolean  @default(true)
   createdAt DateTime @default(now())
 }

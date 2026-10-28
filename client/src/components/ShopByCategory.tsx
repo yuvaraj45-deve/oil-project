@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Droplets } from 'lucide-react';
 import { CATEGORIES_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 interface ShopByCategoryProps {
   onSelectCategory: (slug: string) => void;
@@ -13,6 +14,8 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
   selectedCategory,
 }) => {
   const { language } = useLanguage();
+  const { categories } = useStore();
+  const sourceCategories = categories && categories.length > 0 ? categories : CATEGORIES_DATA;
 
   const getCategoryDetails = (slug: string) => {
     if (language !== 'ta') return null;
@@ -69,7 +72,7 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
 
         {/* 4 Clean Category Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {CATEGORIES_DATA.map((cat) => {
+          {sourceCategories.map((cat) => {
             const isSelected = selectedCategory === cat.slug;
             const taDetails = getCategoryDetails(cat.slug);
             const title = taDetails?.title || cat.title;
