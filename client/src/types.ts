@@ -12,6 +12,7 @@ export interface LabReport {
 
 export interface Product {
   id: string;
+  slug?: string;
   name: string;
   tamilName?: string;
   tagline: string;

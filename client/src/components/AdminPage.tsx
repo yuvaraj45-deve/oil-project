@@ -112,6 +112,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     | 'products'
     | 'orders'
     | 'customers'
+    | 'users'
     | 'categories'
     | 'offers'
     | 'content'
