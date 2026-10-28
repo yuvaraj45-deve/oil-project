@@ -269,6 +269,45 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     }
   };
 
+  // Canvas-based image resizer and optimizer (ensures logo/images never exceed localStorage quota)
+  const resizeImageFile = (file: File, maxDim = 320): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/png'));
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
   // -------------------------------------------------------------
   // CATEGORY EDIT STATE & HANDLERS
   // -------------------------------------------------------------
@@ -879,10 +918,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
             <div>
               <h1 className="font-serif text-xl font-black tracking-tight text-white leading-none">
-                SS Oil
+                {settings.storeName || "Gem's gold"}
               </h1>
               <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">
-                Pure & Healthy
+                {settings.tagline || 'Pure & Healthy'}
               </p>
             </div>
           </div>
@@ -3213,35 +3252,70 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div className="w-28 h-28 rounded-2xl border border-stone-200 bg-amber-50/20 p-2 flex flex-col items-center justify-center mb-2.5 shadow-2xs overflow-hidden">
                             <img
                               src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
-                              alt="SS Oil Logo"
+                              alt={settings.storeName || "Logo"}
                               className="h-14 w-14 object-contain rounded-xl drop-shadow"
                             />
-                            <span className="text-[11px] font-serif font-black text-stone-900 mt-1 leading-tight">
-                              {settings.storeName || 'SS Oil'}
+                            <span className="text-[11px] font-serif font-black text-stone-900 mt-1 leading-tight text-center truncate max-w-full">
+                              {settings.storeName || "Gem's gold"}
                             </span>
-                            <span className="text-[7px] text-emerald-700 font-bold uppercase tracking-wider">
+                            <span className="text-[7px] text-emerald-700 font-bold uppercase tracking-wider text-center truncate max-w-full">
                               {settings.tagline || 'Pure & Healthy'}
                             </span>
                           </div>
-                          <label className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition-all">
-                            <span>Change Logo</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    setSettings({ ...settings, logoUrl: reader.result as string });
-                                    showToast('Store logo updated! Click Save Changes to apply.');
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </label>
+
+                          <div className="flex flex-col items-center gap-1.5 w-full">
+                            <label className="w-full text-center px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition-all">
+                              <span>Upload New Logo</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    try {
+                                      const optimized = await resizeImageFile(file, 256);
+                                      setSettings((prev) => ({ ...prev, logoUrl: optimized }));
+                                      showToast('Store logo updated! Click "Save Changes" to apply.');
+                                    } catch (err) {
+                                      const reader = new FileReader();
+                                      reader.onload = () => {
+                                        setSettings((prev) => ({ ...prev, logoUrl: reader.result as string }));
+                                        showToast('Store logo updated! Click "Save Changes" to apply.');
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }
+                                }}
+                              />
+                            </label>
+
+                            {/* Preset Quick Selectors */}
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSettings((prev) => ({ ...prev, logoUrl: '/admin_assets/ss_gold_drop_logo.png' }));
+                                  showToast("Gem's Gold Drop logo selected! Click 'Save Changes' to apply.");
+                                }}
+                                className="text-[10px] px-2 py-0.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium cursor-pointer"
+                                title="Default Drop Logo"
+                              >
+                                Gem's Gold
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSettings((prev) => ({ ...prev, logoUrl: '/admin_assets/ssoil_logo.png' }));
+                                  showToast("SS Oil Emblem logo selected! Click 'Save Changes' to apply.");
+                                }}
+                                className="text-[10px] px-2 py-0.5 rounded-lg border border-stone-200 bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium cursor-pointer"
+                                title="Traditional Emblem"
+                              >
+                                SS Oil
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Form Inputs */}

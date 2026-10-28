@@ -149,11 +149,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const updated = { ...prev, ...newSettings };
       try {
         localStorage.setItem('ssoil_admin_settings', JSON.stringify(updated));
+        window.dispatchEvent(new Event('store_settings_updated'));
       } catch (e) {
         console.error('Error saving settings:', e);
       }
       return updated;
     });
+  }, []);
+
+  // Listen for settings changes across windows/tabs and local triggers
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('ssoil_admin_settings');
+        if (saved) {
+          setSettings((prev) => ({ ...prev, ...JSON.parse(saved) }));
+        }
+      } catch (e) {
+        console.error('Error reloading settings:', e);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('store_settings_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('store_settings_updated', handleStorageChange);
+    };
   }, []);
 
   // Product CRUD

@@ -46,15 +46,23 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
           {/* Brand Info (Col 1-4) */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/40 flex items-center justify-center text-gold-400">
-                <Droplet className="w-5 h-5 fill-gold-400" />
+              <div className="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/40 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                {settings.logoUrl ? (
+                  <img
+                    src={settings.logoUrl}
+                    alt={settings.storeName || "Gem's gold"}
+                    className="w-full h-full object-contain p-1 rounded-full"
+                  />
+                ) : (
+                  <Droplet className="w-5 h-5 fill-gold-400 text-gold-400" />
+                )}
               </div>
               <div>
                 <span className="font-serif text-2xl font-bold tracking-tight text-white">
-                  {settings.storeName || 'PureVa'}
+                  {settings.storeName || "Gem's gold"}
                 </span>
                 <span className="text-[10px] block text-gold-400 font-semibold tracking-widest uppercase">
-                  {settings.tagline || t('nav.tagline')}
+                  {settings.tagline || 'Pure & Healthy Mara Chekku Heritage'}
                 </span>
               </div>
             </div>
