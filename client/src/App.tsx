@@ -9,6 +9,7 @@ import { PureDifference } from './components/PureDifference';
 import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
 import { SmartBottleFeature } from './components/SmartBottleFeature';
 import { GemsGoldQualityBanner } from './components/GemsGoldQualityBanner';
+import { HomeFeaturedVideoBanner } from './components/HomeFeaturedVideoBanner';
 import { ReelsCarouselSection } from './components/ReelsCarouselSection';
 import { CraftsmanshipVisualizer } from './components/CraftsmanshipVisualizer';
 import { PurityComparison } from './components/PurityComparison';
@@ -587,6 +588,9 @@ export function App() {
 
             {/* Gem's Gold 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
             <GemsGoldQualityBanner />
+
+            {/* Homepage Featured Showcase Video (Configured dynamically from Admin Portal) */}
+            <HomeFeaturedVideoBanner />
 
             {/* Gem's Gold Community Reels & Kitchen Stories Carousel */}
             <ReelsCarouselSection />

@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Product, Category, StoreSettings, DEFAULT_STORE_SETTINGS } from '../types';
+import {
+  Product,
+  Category,
+  StoreSettings,
+  DEFAULT_STORE_SETTINGS,
+  HomeFeaturedVideo,
+  DEFAULT_HOME_FEATURED_VIDEO,
+  ReelStory,
+  DEFAULT_REELS_DATA,
+} from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 
 const API_BASE_URL =
@@ -84,6 +93,13 @@ interface StoreContextType {
   updateCategory: (category: Category) => Promise<void>;
   addCategory: (category: Category) => Promise<void>;
   deleteCategory: (categoryId: string) => Promise<void>;
+  homeFeaturedVideo: HomeFeaturedVideo;
+  updateHomeFeaturedVideo: (video: Partial<HomeFeaturedVideo>) => void;
+  reels: ReelStory[];
+  addReel: (reel: ReelStory) => void;
+  updateReel: (reel: ReelStory) => void;
+  deleteReel: (id: string) => void;
+  resetReels: () => void;
   refreshData: () => Promise<void>;
   isLoading: boolean;
 }
@@ -142,6 +158,79 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return CATEGORIES_DATA;
   });
+
+  // 4. Home Featured Video State (Sync with localStorage 'ssoil_featured_video')
+  const [homeFeaturedVideo, setHomeFeaturedVideo] = useState<HomeFeaturedVideo>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_featured_video');
+      if (saved) return { ...DEFAULT_HOME_FEATURED_VIDEO, ...JSON.parse(saved) };
+    } catch {}
+    return DEFAULT_HOME_FEATURED_VIDEO;
+  });
+
+  const updateHomeFeaturedVideo = useCallback((newVideo: Partial<HomeFeaturedVideo>) => {
+    setHomeFeaturedVideo((prev) => {
+      const updated = { ...prev, ...newVideo };
+      try {
+        localStorage.setItem('ssoil_featured_video', JSON.stringify(updated));
+        window.dispatchEvent(new Event('ssoil_video_updated'));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
+  // 5. Home Reels State (Sync with localStorage 'ssoil_reels')
+  const [reels, setReels] = useState<ReelStory[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_reels');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_REELS_DATA;
+  });
+
+  const addReel = useCallback((reel: ReelStory) => {
+    setReels((prev) => {
+      const updated = [reel, ...prev];
+      try {
+        localStorage.setItem('ssoil_reels', JSON.stringify(updated));
+        window.dispatchEvent(new Event('ssoil_video_updated'));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
+  const updateReel = useCallback((updatedReel: ReelStory) => {
+    setReels((prev) => {
+      const updated = prev.map((r) => (r.id === updatedReel.id ? updatedReel : r));
+      try {
+        localStorage.setItem('ssoil_reels', JSON.stringify(updated));
+        window.dispatchEvent(new Event('ssoil_video_updated'));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
+  const deleteReel = useCallback((id: string) => {
+    setReels((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      try {
+        localStorage.setItem('ssoil_reels', JSON.stringify(updated));
+        window.dispatchEvent(new Event('ssoil_video_updated'));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
+  const resetReels = useCallback(() => {
+    setReels(DEFAULT_REELS_DATA);
+    try {
+      localStorage.setItem('ssoil_reels', JSON.stringify(DEFAULT_REELS_DATA));
+      window.dispatchEvent(new Event('ssoil_video_updated'));
+    } catch {}
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -297,6 +386,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => {
       window.removeEventListener('storage', handleProductsStorageChange);
       window.removeEventListener('ssoil_products_updated', handleProductsStorageChange);
+    };
+  }, []);
+
+  // Listen for video and reel changes across windows/tabs
+  useEffect(() => {
+    const handleVideoStorageChange = () => {
+      try {
+        const savedVideo = localStorage.getItem('ssoil_featured_video');
+        if (savedVideo) {
+          setHomeFeaturedVideo((prev) => ({ ...prev, ...JSON.parse(savedVideo) }));
+        }
+        const savedReels = localStorage.getItem('ssoil_reels');
+        if (savedReels) {
+          const parsed = JSON.parse(savedReels);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setReels(parsed);
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleVideoStorageChange);
+    window.addEventListener('ssoil_video_updated', handleVideoStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleVideoStorageChange);
+      window.removeEventListener('ssoil_video_updated', handleVideoStorageChange);
     };
   }, []);
 
@@ -522,6 +636,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateCategory,
         addCategory,
         deleteCategory,
+        homeFeaturedVideo,
+        updateHomeFeaturedVideo,
+        reels,
+        addReel,
+        updateReel,
+        deleteReel,
+        resetReels,
         refreshData,
         isLoading,
       }}

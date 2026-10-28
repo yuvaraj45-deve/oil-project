@@ -12,6 +12,7 @@ import {
   TrendingUp,
   ShoppingBag,
   ArrowLeft,
+  ArrowRight,
   LogOut,
   Plus,
   Trash2,
@@ -47,10 +48,14 @@ import {
   Home,
   ShoppingCart,
   Globe,
+  Video,
+  Play,
+  Film,
 } from 'lucide-react';
-import { PlacedOrder, Product, Category, UserProfile, StoreSettings } from '../types';
+import { PlacedOrder, Product, Category, UserProfile, StoreSettings, HomeFeaturedVideo, DEFAULT_HOME_FEATURED_VIDEO, ReelStory, DEFAULT_REELS_DATA } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 import { useStore } from '../context/StoreContext';
+import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
 
 interface AdminPageProps {
   orders: PlacedOrder[];
@@ -119,6 +124,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     | 'customers'
     | 'users'
     | 'categories'
+    | 'videos'
     | 'offers'
     | 'content'
     | 'settings'
@@ -169,8 +175,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     updateCategory: contextUpdateCategory,
     addCategory: contextAddCategory,
     deleteCategory: contextDeleteCategory,
+    homeFeaturedVideo,
+    updateHomeFeaturedVideo,
+    reels: storeReels,
+    addReel: contextAddReel,
+    updateReel: contextUpdateReel,
+    deleteReel: contextDeleteReel,
+    resetReels: contextResetReels,
     refreshData: storeRefreshData,
   } = useStore();
+
+  const reelsList = storeReels && storeReels.length > 0 ? storeReels : DEFAULT_REELS_DATA;
 
   const productsList = storeProducts && storeProducts.length > 0 ? storeProducts : PRODUCTS_DATA;
   const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
@@ -700,6 +715,92 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
+  // 4B. DATA: Homepage Video & Reels Management State
+  // -------------------------------------------------------------
+  const [videoSubTab, setVideoSubTab] = useState<'featured' | 'reels'>('featured');
+  const [videoForm, setVideoForm] = useState<HomeFeaturedVideo>(homeFeaturedVideo);
+
+  useEffect(() => {
+    if (homeFeaturedVideo) {
+      setVideoForm(homeFeaturedVideo);
+    }
+  }, [homeFeaturedVideo]);
+
+  const handleSaveFeaturedVideo = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    updateHomeFeaturedVideo(videoForm);
+    showToast('Homepage featured video updated successfully! 🎥✨');
+  };
+
+  // Video File Uploader Handler
+  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      alert('Video file is large (>50MB). Please select a file under 50MB or enter a video URL.');
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setter(reader.result);
+        showToast(`Video "${file.name}" loaded successfully! 📹`);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Reels Management State
+  const [isAddReelOpen, setIsAddReelOpen] = useState(false);
+  const [editingReel, setEditingReel] = useState<ReelStory | null>(null);
+  const [reelVideo, setReelVideo] = useState('/videos/reel_1.mp4');
+  const [reelCreator, setReelCreator] = useState('@ssoil_official');
+  const [reelTitle, setReelTitle] = useState('');
+  const [reelDishName, setReelDishName] = useState('');
+  const [reelOilUsed, setReelOilUsed] = useState('Pure Wood-Pressed Sesame Oil');
+  const [reelDescription, setReelDescription] = useState('');
+  const [reelProductSlug, setReelProductSlug] = useState('ss-gingelly-1000');
+
+  const handleSaveNewReel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reelTitle.trim() && !reelDishName.trim()) {
+      alert('Please provide a title or dish name for the reel.');
+      return;
+    }
+    const newReel: ReelStory = {
+      id: `reel_${Date.now()}`,
+      video: reelVideo.trim() || '/videos/reel_1.mp4',
+      creator: reelCreator.trim() || '@ssoil_official',
+      title: reelTitle.trim() || reelDishName.trim(),
+      dishName: reelDishName.trim() || reelTitle.trim(),
+      oilUsed: reelOilUsed.trim() || '100% Mara Chekku Oil',
+      productSlug: reelProductSlug.trim() || 'ss-gingelly-1000',
+      description: reelDescription.trim() || 'Pure wood-pressed oil home cooking video.',
+      enabled: true,
+    };
+    contextAddReel(newReel);
+    setIsAddReelOpen(false);
+    showToast(`New reel "${newReel.dishName}" added to homepage! 🎬`);
+  };
+
+  const handleUpdateReel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReel) return;
+    const updated: ReelStory = {
+      ...editingReel,
+      video: reelVideo,
+      creator: reelCreator,
+      title: reelTitle,
+      dishName: reelDishName,
+      oilUsed: reelOilUsed,
+      description: reelDescription,
+      productSlug: reelProductSlug,
+    };
+    contextUpdateReel(updated);
+    setEditingReel(null);
+    showToast(`Reel "${updated.dishName}" updated! ✨`);
+  };
+
+  // -------------------------------------------------------------
   // 5. DATA: Dashboard KPI Calculations
   // -------------------------------------------------------------
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.totalAmount, 0);
@@ -774,6 +875,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
             { id: 'products', label: 'Products', icon: Package, count: productsList.length },
             { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
+            { id: 'videos', label: 'Homepage Videos', icon: Video, count: reelsList.length },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: usersList.length },
             { id: 'offers', label: 'Offers & Coupons', icon: Tag },
@@ -881,6 +983,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
                 {activeTab === 'categories' && 'Categories Management'}
+                {activeTab === 'videos' && 'Homepage Videos & Reels'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
                 {activeTab === 'products' && 'Product Inventory'}
                 {activeTab === 'orders' && 'Orders Management'}
@@ -891,6 +994,33 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {activeTab === 'videos' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setReelTitle('');
+                      setReelDishName('');
+                      setReelCreator('@ssoil_official');
+                      setReelVideo('/videos/reel_1.mp4');
+                      setReelOilUsed('Pure Wood-Pressed Sesame Oil');
+                      setReelDescription('Traditional South Indian kitchen cooking reel');
+                      setIsAddReelOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-400" />
+                    <span>+ Add Reel Video</span>
+                  </button>
+                  <button
+                    onClick={onBackToStore}
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View on Store</span>
+                  </button>
+                </div>
+              )}
+
               {activeTab === 'dashboard' && (
                 <button
                   onClick={exportCSV}
@@ -1139,7 +1269,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </div>
 
               {/* Quick Navigation Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                 <button
                   onClick={() => handleTabChange('categories')}
                   className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
@@ -1147,6 +1277,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <Layers className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
                   <h4 className="font-bold text-xs text-stone-900">Manage Categories</h4>
                   <p className="text-[11px] text-stone-500 mt-0.5">{categoriesList.length} Categories configured</p>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange('videos')}
+                  className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
+                >
+                  <Video className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
+                  <h4 className="font-bold text-xs text-stone-900">Homepage Videos</h4>
+                  <p className="text-[11px] text-stone-500 mt-0.5">{reelsList.length} Reels & Featured Video</p>
                 </button>
 
                 <button
@@ -2817,14 +2956,590 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </span>
                 </div>
 
-                <div className="p-5 rounded-2xl border border-stone-200 bg-stone-50/50 space-y-2">
-                  <h4 className="font-serif font-bold text-base text-stone-900">Community Instagram Reels</h4>
-                  <p className="text-xs text-stone-600">5 authentic creator kitchen stories with video lightboxes configured.</p>
-                  <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                    Active on Flagship Homepage
-                  </span>
+                <div className="p-5 rounded-2xl border border-stone-200 bg-stone-50/50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif font-bold text-base text-stone-900">Homepage Videos & Reels</h4>
+                    <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                      Active on Homepage
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-600">
+                    Featured Mill Showcase video and {reelsList.length} authentic creator kitchen reels configured.
+                  </p>
+                  <button
+                    onClick={() => handleTabChange('videos')}
+                    className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Video className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Manage Homepage Videos →</span>
+                  </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* HOMEPAGE VIDEOS & REELS MANAGEMENT VIEW                      */}
+          {/* ============================================================ */}
+          {activeTab === 'videos' && (
+            <div className="space-y-6">
+              
+              {/* Top Navigation Subtabs */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white p-4 rounded-3xl border border-stone-200 shadow-xs">
+                <div className="flex items-center gap-2 p-1 rounded-2xl bg-stone-100 w-full sm:w-auto">
+                  <button
+                    onClick={() => setVideoSubTab('featured')}
+                    className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      videoSubTab === 'featured'
+                        ? 'bg-forest-950 text-white shadow-sm'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    <Video className="w-4 h-4 text-gold-400" />
+                    <span>Featured Showcase Video (முக்கிய வீடியோ)</span>
+                    {videoForm.enabled && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setVideoSubTab('reels')}
+                    className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      videoSubTab === 'reels'
+                        ? 'bg-forest-950 text-white shadow-sm'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    <Film className="w-4 h-4 text-gold-400" />
+                    <span>Reels & Stories ({reelsList.length})</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  {videoSubTab === 'reels' && (
+                    <button
+                      onClick={() => {
+                        setReelTitle('');
+                        setReelDishName('');
+                        setReelCreator('@ssoil_official');
+                        setReelVideo('/videos/reel_1.mp4');
+                        setReelOilUsed('Pure Wood-Pressed Sesame Oil');
+                        setReelDescription('Traditional South Indian cooking with authentic mara chekku oil');
+                        setIsAddReelOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-gold-400" />
+                      <span>+ Add Reel Video</span>
+                    </button>
+                  )}
+                  {videoSubTab === 'featured' && (
+                    <button
+                      onClick={handleSaveFeaturedVideo}
+                      className="px-4 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
+                    >
+                      <Save className="w-3.5 h-3.5 text-gold-300" />
+                      <span>Save Video Settings</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* -------------------------------------------------------- */}
+              {/* SUBTAB 1: FEATURED SHOWCASE VIDEO                        */}
+              {/* -------------------------------------------------------- */}
+              {videoSubTab === 'featured' && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  
+                  {/* Left Column: Video Controls Form */}
+                  <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 sm:p-8 space-y-6">
+                    
+                    {/* Header with Master Toggle */}
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+                      <div>
+                        <h3 className="font-serif font-black text-xl text-stone-900">
+                          Homepage Featured Video Settings
+                        </h3>
+                        <p className="text-xs text-stone-500">
+                          Set a main promotional or mill craftsmanship video on the storefront homepage
+                        </p>
+                      </div>
+
+                      {/* Enable / Disable Switch */}
+                      <button
+                        type="button"
+                        onClick={() => setVideoForm((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          videoForm.enabled
+                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                            : 'bg-stone-100 text-stone-500 border border-stone-200'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${videoForm.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
+                        <span>{videoForm.enabled ? 'Shown on Homepage 🟢' : 'Hidden from Homepage ⚪'}</span>
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveFeaturedVideo} className="space-y-5">
+                      
+                      {/* Video Type Choice */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          1. Video Format / Source Type
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setVideoForm((prev) => ({ ...prev, videoType: 'mp4' }))}
+                            className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                              videoForm.videoType === 'mp4'
+                                ? 'bg-forest-950 text-white border-forest-950 shadow-xs'
+                                : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                            }`}
+                          >
+                            <span className="font-bold text-xs block">Direct Video File (MP4/WebM)</span>
+                            <span className="text-[10px] opacity-80">Local mill video or hosted video URL</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setVideoForm((prev) => ({ ...prev, videoType: 'youtube' }))}
+                            className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
+                              videoForm.videoType === 'youtube'
+                                ? 'bg-forest-950 text-white border-forest-950 shadow-xs'
+                                : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                            }`}
+                          >
+                            <span className="font-bold text-xs block">YouTube Video Link (யூடியூப்)</span>
+                            <span className="text-[10px] opacity-80">Paste any standard YouTube or Shorts URL</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Video URL & File Upload */}
+                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-900">
+                          2. Video URL or Upload Video
+                        </label>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            value={videoForm.videoUrl}
+                            onChange={(e) => setVideoForm((prev) => ({ ...prev, videoUrl: e.target.value }))}
+                            placeholder={videoForm.videoType === 'youtube' ? 'e.g. https://www.youtube.com/watch?v=...' : 'e.g. /videos/reel_1.mp4 or https://...'}
+                            className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white font-mono"
+                          />
+
+                          {videoForm.videoType === 'mp4' && (
+                            <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs whitespace-nowrap justify-center">
+                              <Upload className="w-3.5 h-3.5 text-gold-400" />
+                              <span>Upload File</span>
+                              <input
+                                type="file"
+                                accept="video/mp4,video/webm,video/ogg"
+                                className="hidden"
+                                onChange={(e) => handleVideoFileUpload(e, (url) => setVideoForm((prev) => ({ ...prev, videoUrl: url })))}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        {/* Presets */}
+                        <div className="pt-2 border-t border-amber-200/60">
+                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                            ⚡ Quick Presets (கிளிக் செய்து உடனே பயன்படுத்தலாம்):
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              { name: 'Mill Heritage Reel 1', url: '/videos/reel_1.mp4', type: 'mp4' },
+                              { name: 'Cold-Pressed Crushing 2', url: '/videos/reel_2.mp4', type: 'mp4' },
+                              { name: 'Karupatti Churning 3', url: '/videos/reel_3.mp4', type: 'mp4' },
+                              { name: 'Kitchen Cooking 4', url: '/videos/reel_4.mp4', type: 'mp4' },
+                              { name: 'Healthy Swapping 5', url: '/videos/reel_5.mp4', type: 'mp4' },
+                            ].map((preset) => (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => setVideoForm((prev) => ({ ...prev, videoUrl: preset.url, videoType: preset.type as any }))}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
+                                  videoForm.videoUrl === preset.url
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
+                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                                }`}
+                              >
+                                {preset.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Titles & Descriptions */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          3. Video Titles & Texts
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Title (English)
+                            </label>
+                            <input
+                              type="text"
+                              value={videoForm.title}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, title: e.target.value }))}
+                              placeholder="e.g. Mara Chekku Heritage: The Live Wood Pressing Experience"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              தலைப்பு (Tamil)
+                            </label>
+                            <input
+                              type="text"
+                              value={videoForm.tamilTitle || ''}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, tamilTitle: e.target.value }))}
+                              placeholder="e.g. மரச்செக்கு பாரம்பரியம்: நேரடி தயாரிப்பு"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Subtitle (English)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={videoForm.subtitle}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, subtitle: e.target.value }))}
+                              placeholder="Watch how native seeds are crushed cold..."
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 resize-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              விவரம் (Tamil)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={videoForm.tamilSubtitle || ''}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, tamilSubtitle: e.target.value }))}
+                              placeholder="பாரம்பரிய முறையில் வாகை மர உரலில் நாட்டு விதைகளை..."
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Highlight Badge
+                            </label>
+                            <input
+                              type="text"
+                              value={videoForm.badge}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, badge: e.target.value }))}
+                              placeholder="e.g. Salem Mill Heritage 🎥"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Button Label
+                            </label>
+                            <input
+                              type="text"
+                              value={videoForm.buttonText || ''}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, buttonText: e.target.value }))}
+                              placeholder="e.g. Shop Authentic Oils"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Button Link
+                            </label>
+                            <input
+                              type="text"
+                              value={videoForm.buttonLink || ''}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, buttonLink: e.target.value }))}
+                              placeholder="e.g. /shop or #shop"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                            Thumbnail / Poster Image URL
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={videoForm.posterUrl || ''}
+                              onChange={(e) => setVideoForm((prev) => ({ ...prev, posterUrl: e.target.value }))}
+                              placeholder="e.g. /products/sesame_oil.jpg"
+                              className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-mono"
+                            />
+                            <label className="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1 shrink-0">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageFileUpload(e, (url) => setVideoForm((prev) => ({ ...prev, posterUrl: url })))}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Autoplay Switch */}
+                      <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold text-xs text-stone-900">Autoplay on Homepage Load</h5>
+                          <p className="text-[11px] text-stone-500">Starts video automatically in muted state when page opens</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setVideoForm((prev) => ({ ...prev, autoplay: !prev.autoplay }))}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                            videoForm.autoplay ? 'bg-emerald-600' : 'bg-stone-300'
+                          }`}
+                        >
+                          <div
+                            className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                              videoForm.autoplay ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Save Button */}
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          className="w-full py-3 rounded-2xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Save className="w-4 h-4 text-gold-300" />
+                          <span>Save Homepage Featured Video Settings</span>
+                        </button>
+                      </div>
+
+                    </form>
+
+                  </div>
+
+                  {/* Right Column: Live Storefront Preview */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 space-y-4 sticky top-6">
+                      <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-forest-800" />
+                          <h4 className="font-serif font-bold text-sm text-stone-900">Live Video Preview</h4>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          {videoForm.enabled ? 'Live on Home 🟢' : 'Draft / Disabled ⚪'}
+                        </span>
+                      </div>
+
+                      {/* Mini Video Card */}
+                      <div className="rounded-2xl overflow-hidden border border-stone-300 shadow-md bg-black relative aspect-video flex items-center justify-center">
+                        {videoForm.videoType === 'youtube' && videoForm.videoUrl ? (
+                          <iframe
+                            src={getYouTubeEmbedUrl(videoForm.videoUrl) || ''}
+                            title="Preview"
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video
+                            src={videoForm.videoUrl || '/videos/reel_1.mp4'}
+                            poster={videoForm.posterUrl || '/products/sesame_oil.jpg'}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-bold text-gold-600 uppercase tracking-wider block">
+                          {videoForm.badge || 'Mill Heritage'}
+                        </span>
+                        <h5 className="font-serif font-black text-sm text-stone-900 leading-snug">
+                          {videoForm.title || 'Mara Chekku Heritage Video'}
+                        </h5>
+                        <p className="text-xs text-stone-600 line-clamp-2">
+                          {videoForm.subtitle}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                        <span className="text-[11px] text-stone-400">Status: {videoForm.enabled ? '🟢 Enabled' : '⚪ Disabled'}</span>
+                        <button
+                          onClick={onBackToStore}
+                          className="text-xs font-bold text-[#1e7e34] hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Open Storefront</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* -------------------------------------------------------- */}
+              {/* SUBTAB 2: REELS & SHORT STORIES MANAGEMENT               */}
+              {/* -------------------------------------------------------- */}
+              {videoSubTab === 'reels' && (
+                <div className="space-y-5">
+                  <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div>
+                      <h4 className="font-serif font-bold text-sm text-stone-900">
+                        Homepage Reels Carousel ({reelsList.length} Active Videos)
+                      </h4>
+                      <p className="text-xs text-stone-500">
+                        Add, edit, change videos or reorder mobile cooking reels shown in the carousel
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Reset all reels back to original 5 heritage recipes?')) {
+                            contextResetReels();
+                            showToast('Reels reset to default recipes!');
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-stone-300 text-stone-600 hover:bg-stone-50 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Reset Defaults
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setReelTitle('');
+                          setReelDishName('');
+                          setReelCreator('@ssoil_official');
+                          setReelVideo('/videos/reel_1.mp4');
+                          setReelOilUsed('Pure Wood-Pressed Sesame Oil');
+                          setReelDescription('Traditional South Indian cooking with authentic mara chekku oil');
+                          setIsAddReelOpen(true);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-gold-400" />
+                        <span>+ Add Reel Video</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Reels Cards Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    {reelsList.map((reel, index) => (
+                      <div
+                        key={reel.id}
+                        className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                      >
+                        {/* Video Card Top with Mini Player */}
+                        <div className="relative aspect-[9/14] bg-black overflow-hidden group">
+                          <video
+                            src={reel.video}
+                            playsInline
+                            muted
+                            loop
+                            className="w-full h-full object-cover"
+                            onMouseEnter={(e) => e.currentTarget.play()}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.pause();
+                              e.currentTarget.currentTime = 0;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+
+                          {/* Index Badge */}
+                          <div className="absolute top-3 left-3 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-mono font-bold backdrop-blur-xs">
+                            #{index + 1}
+                          </div>
+
+                          {/* Reel Creator */}
+                          <div className="absolute bottom-3 left-3 right-3 text-white">
+                            <span className="font-mono text-xs font-bold text-amber-300 block">
+                              {reel.creator}
+                            </span>
+                            <span className="font-serif font-black text-sm block leading-tight truncate">
+                              {reel.dishName}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card Content & Details */}
+                        <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mb-1 border border-emerald-100">
+                              {reel.oilUsed}
+                            </span>
+                            <h5 className="font-serif font-bold text-xs text-stone-900 line-clamp-1">
+                              {reel.title}
+                            </h5>
+                            <p className="text-[11px] text-stone-500 line-clamp-2 mt-1">
+                              {reel.description}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingReel(reel);
+                                setReelVideo(reel.video);
+                                setReelCreator(reel.creator);
+                                setReelTitle(reel.title);
+                                setReelDishName(reel.dishName);
+                                setReelOilUsed(reel.oilUsed);
+                                setReelDescription(reel.description);
+                                setReelProductSlug(reel.productSlug);
+                              }}
+                              className="flex-1 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <Edit className="w-3 h-3" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Delete reel "${reel.dishName}"?`)) {
+                                  contextDeleteReel(reel.id);
+                                  showToast('Reel deleted.');
+                                }
+                              }}
+                              className="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                              title="Delete Reel"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -3576,6 +4291,352 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     >
                       <Plus className="w-4 h-4 text-gold-400" />
                       <span>Create Category</span>
+                    </button>
+                  </div>
+
+                </form>
+
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* ADD REEL MODAL                                               */}
+          {/* ============================================================ */}
+          {isAddReelOpen && (
+            <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+                
+                <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
+                      Reel Manager
+                    </span>
+                    <h3 className="font-serif font-black text-xl text-forest-950">
+                      Add New Homepage Reel Video
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setIsAddReelOpen(false)}
+                    className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveNewReel} className="space-y-4">
+                  
+                  {/* Video Picker */}
+                  <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                      1. Video Source (வீடியோ தேர்வு செய்யவும்)
+                    </label>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        required
+                        value={reelVideo}
+                        onChange={(e) => setReelVideo(e.target.value)}
+                        placeholder="e.g. /videos/reel_1.mp4 or https://..."
+                        className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white font-mono"
+                      />
+                      <label className="px-3 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <Upload className="w-3.5 h-3.5 text-gold-400" />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm"
+                          className="hidden"
+                          onChange={(e) => handleVideoFileUpload(e, setReelVideo)}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Presets */}
+                    <div className="pt-2 border-t border-stone-200">
+                      <span className="text-[11px] font-semibold text-stone-500 block mb-1">
+                        Quick Video Presets:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['/videos/reel_1.mp4', '/videos/reel_2.mp4', '/videos/reel_3.mp4', '/videos/reel_4.mp4', '/videos/reel_5.mp4'].map((v, i) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setReelVideo(v)}
+                            className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all border ${
+                              reelVideo === v ? 'bg-forest-950 text-gold-300 border-forest-950' : 'bg-white text-stone-700 border-stone-200'
+                            }`}
+                          >
+                            Reel {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Creator Handle (கணக்கு பெயர்)
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reelCreator}
+                        onChange={(e) => setReelCreator(e.target.value)}
+                        placeholder="e.g. @ssoil_official"
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono focus:outline-none focus:border-forest-900 font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Dish Name (உணவு பெயர்)
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reelDishName}
+                        onChange={(e) => setReelDishName(e.target.value)}
+                        placeholder="e.g. Authentic Mara Chekku Cooking"
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      Reel Title / Story Heading
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={reelTitle}
+                      onChange={(e) => setReelTitle(e.target.value)}
+                      placeholder="e.g. Heritage Mill Cooking & Live Crushing Fair"
+                      className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Oil Used (பயன்படுத்திய எண்ணெய்)
+                      </label>
+                      <input
+                        type="text"
+                        value={reelOilUsed}
+                        onChange={(e) => setReelOilUsed(e.target.value)}
+                        placeholder="e.g. Pure Wood-Pressed Sesame Oil"
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Product Linked
+                      </label>
+                      <select
+                        value={reelProductSlug}
+                        onChange={(e) => setReelProductSlug(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                      >
+                        {productsList.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} (₹{p.price})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      Description (விளக்கம்)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={reelDescription}
+                      onChange={(e) => setReelDescription(e.target.value)}
+                      placeholder="Traditional Vaagai wood churned oil used in authentic South Indian kitchens..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddReelOpen(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                    >
+                      <Plus className="w-4 h-4 text-gold-400" />
+                      <span>Add to Homepage</span>
+                    </button>
+                  </div>
+
+                </form>
+
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* EDIT REEL MODAL                                              */}
+          {/* ============================================================ */}
+          {editingReel && (
+            <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+                
+                <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
+                      Edit Reel
+                    </span>
+                    <h3 className="font-serif font-black text-xl text-forest-950">
+                      Edit Video: {editingReel.dishName}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setEditingReel(null)}
+                    className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUpdateReel} className="space-y-4">
+                  
+                  <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                      Video Source
+                    </label>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        required
+                        value={reelVideo}
+                        onChange={(e) => setReelVideo(e.target.value)}
+                        className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white font-mono"
+                      />
+                      <label className="px-3 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <Upload className="w-3.5 h-3.5 text-gold-400" />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm"
+                          className="hidden"
+                          onChange={(e) => handleVideoFileUpload(e, setReelVideo)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Creator Handle
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reelCreator}
+                        onChange={(e) => setReelCreator(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono focus:outline-none focus:border-forest-900 font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Dish Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reelDishName}
+                        onChange={(e) => setReelDishName(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      Reel Title
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={reelTitle}
+                      onChange={(e) => setReelTitle(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Oil Used
+                      </label>
+                      <input
+                        type="text"
+                        value={reelOilUsed}
+                        onChange={(e) => setReelOilUsed(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Product Linked
+                      </label>
+                      <select
+                        value={reelProductSlug}
+                        onChange={(e) => setReelProductSlug(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                      >
+                        {productsList.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} (₹{p.price})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={reelDescription}
+                      onChange={(e) => setReelDescription(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditingReel(null)}
+                      className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                    >
+                      <Save className="w-4 h-4 text-gold-400" />
+                      <span>Save Changes</span>
                     </button>
                   </div>
 
