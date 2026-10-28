@@ -148,10 +148,117 @@ export const ReelsCarouselSection: React.FC = () => {
       productSlug: 'ss-coconut-1000',
       description:
         language === 'ta'
-          ? 'ரசாயன ரீஃபைன்ட் எண்ணெய்களை கைவிட்டு கெம்ஸ் கோல்ட் இயற்கை எண்ணெய்க்கு மாறியதால் எங்கள் குடும்பத்திற்கு கிடைத்த ஆரோக்கியம்.'
-          : 'Why switching from chemical-refined solvent oils to Gem’s Gold 100% unrefined cold-pressed oils transformed my family wellness.',
+          ? 'ரசாயன ரீஃபைன்ட் எண்ணெய்களை கைவிட்டு SS OIL அசல் இயற்கை மரச்செக்கு எண்ணெய்க்கு மாறியதால் எங்கள் குடும்பத்திற்கு கிடைத்த ஆரோக்கியம்.'
+          : 'Why switching from chemical-refined solvent oils to SS OIL 100% unrefined cold-pressed oils transformed my family wellness.',
+    },
+    {
+      id: 'reel_6',
+      video: '/videos/reel_1.mp4',
+      creator: '@salem_samayal',
+      title:
+        language === 'ta'
+          ? 'சேலம் நாட்டு கோழி வறுவல் மரச்செக்கு நல்லெண்ணெயில்'
+          : 'Salem Special Country Chicken Fry in Sesame Oil',
+      dishName:
+        language === 'ta'
+          ? 'சேலம் மணக்கும் நாட்டுக்கோழி வறுவல்'
+          : 'Salem Naatu Kozhi Pepper Fry',
+      oilUsed:
+        language === 'ta'
+          ? 'அசல் மரச்செக்கு நல்லெண்ணெய்'
+          : 'Traditional Vaagai Sesame Oil',
+      productSlug: 'ss-gingelly-1000',
+      description:
+        language === 'ta'
+          ? 'வாகை மரச்செக்கில் ஆட்டிய அசல் நல்லெண்ணெயில் வறுத்த மணக்கும் சேலம் நாட்டுக்கோழி வறுவல்.'
+          : 'Authentic village style pepper chicken roasted slow in wood-pressed cold extracted gingelly oil.',
+    },
+    {
+      id: 'reel_7',
+      video: '/videos/reel_2.mp4',
+      creator: '@anita_healthy_bites',
+      title:
+        language === 'ta'
+          ? 'சுத்தமான தேங்காய் எண்ணெயில் மொறுமொறு வாழைக்காய் சிப்ஸ்'
+          : 'Crispy Kerala Banana Chips in Virgin Coconut Oil',
+      dishName:
+        language === 'ta'
+          ? 'மொறுமொறு பொன்னிற நேந்திரம் சிப்ஸ்'
+          : 'Golden Crispy Banana Chips',
+      oilUsed:
+        language === 'ta'
+          ? 'மரச்செக்கு தேங்காய் எண்ணெய்'
+          : 'Cold-Pressed Virgin Coconut Oil',
+      productSlug: 'ss-coconut-1000',
+      description:
+        language === 'ta'
+          ? 'கந்தக கலப்பற்ற கொப்பரையில் எடுத்த தூய தேங்காய் எண்ணெயில் வறுத்த மொறுமொறு சிப்ஸ்.'
+          : 'Crisp, aromatic raw banana wafers fried delicately in 100% natural cold-pressed virgin coconut oil.',
+    },
+    {
+      id: 'reel_8',
+      video: '/videos/reel_3.mp4',
+      creator: '@heritage_flavours',
+      title:
+        language === 'ta'
+          ? 'பாரம்பரிய கல்யாண சாம்பார் தாளிப்பு'
+          : 'Authentic South Indian Sambar Aromatic Tadka',
+      dishName:
+        language === 'ta'
+          ? 'மணக்கும் சாம்பார் வடகம் தாளிப்பு'
+          : 'Aromatic Vadagam & Mustard Tadka',
+      oilUsed:
+        language === 'ta'
+          ? 'அசல் மரச்செக்கு கடலை எண்ணெய்'
+          : 'Cold-Pressed Groundnut Oil',
+      productSlug: 'ss-groundnut-1000',
+      description:
+        language === 'ta'
+          ? 'மணக்கும் வடகம் மற்றும் கடுகு நாட்டு மரச்செக்கு கடலை எண்ணெயில் பொரிந்து எழும் பாரம்பரிய வாசனை.'
+          : 'The divine aroma of sun-dried vadagam crackling in pure cold-pressed groundnut oil.',
     },
   ];
+
+  // Mouse Drag to Scroll handlers
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isMouseDown = useRef<boolean>(false);
+  const dragStartX = useRef<number>(0);
+  const dragScrollLeft = useRef<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const hasDraggedFar = useRef<boolean>(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    isMouseDown.current = true;
+    hasDraggedFar.current = false;
+    dragStartX.current = e.pageX - scrollContainerRef.current.offsetLeft;
+    dragScrollLeft.current = scrollContainerRef.current.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown.current || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - dragStartX.current) * 1.5;
+    if (Math.abs(walk) > 5) {
+      hasDraggedFar.current = true;
+      setIsDragging(true);
+    }
+    scrollContainerRef.current.scrollLeft = dragScrollLeft.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    isMouseDown.current = false;
+    setTimeout(() => {
+      setIsDragging(false);
+      hasDraggedFar.current = false;
+    }, 100);
+  };
+
+  const handleMouseLeaveContainer = () => {
+    isMouseDown.current = false;
+    setIsDragging(false);
+  };
 
   // Mouse hover: Whichever video the arrow points to -> plays instantly!
   // All other videos pause immediately!
@@ -186,16 +293,16 @@ export const ReelsCarouselSection: React.FC = () => {
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const nextIdx =
-      hoveredIndex !== null && hoveredIndex > 0 ? hoveredIndex - 1 : reels.length - 1;
-    handleMouseEnter(nextIdx);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -250, behavior: 'smooth' });
+    }
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const nextIdx =
-      hoveredIndex !== null && hoveredIndex < reels.length - 1 ? hoveredIndex + 1 : 0;
-    handleMouseEnter(nextIdx);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 250, behavior: 'smooth' });
+    }
   };
 
   const toggleSound = (reelId: string, index: number, e: React.MouseEvent) => {
@@ -210,6 +317,7 @@ export const ReelsCarouselSection: React.FC = () => {
 
   const openModal = (reel: ReelStory, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (hasDraggedFar.current || isDragging) return;
     videoRefs.current.forEach((vid) => vid?.pause());
     setSelectedStory(reel);
     setModalPlaying(true);
@@ -232,30 +340,43 @@ export const ReelsCarouselSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
 
         {/* Carousel Container matching exact width & height of reference screenshot */}
-        <div className="relative max-w-[1040px] mx-auto py-8 sm:py-10">
+        <div className="relative max-w-7xl mx-auto py-4 sm:py-6">
 
           {/* Left Arrow Button */}
           <button
             onClick={handlePrev}
             aria-label="Previous Reel"
-            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-stone-900 shadow-xl border border-stone-200/90 flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-all"
-            title="Previous Story"
+            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-stone-900 shadow-xl border border-stone-200/90 flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-all"
+            title="Move Left"
           >
-            <ChevronLeft className="w-5 h-5 stroke-[2.2]" />
+            <ChevronLeft className="w-6 h-6 stroke-[2.2]" />
           </button>
 
           {/* Right Arrow Button */}
           <button
             onClick={handleNext}
             aria-label="Next Reel"
-            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-stone-900 shadow-xl border border-stone-200/90 flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-all"
-            title="Next Story"
+            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-stone-900 shadow-xl border border-stone-200/90 flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-all"
+            title="Move Right"
           >
-            <ChevronRight className="w-5 h-5 stroke-[2.2]" />
+            <ChevronRight className="w-6 h-6 stroke-[2.2]" />
           </button>
 
-          {/* 5 Video Cards Row: Completely Rock-Solid & Stable (Zero Shake / Zero Jitter) */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 overflow-visible">
+          {/* Moveable & Draggable Video Cards Row */}
+          <div
+            ref={scrollContainerRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeaveContainer}
+            className={`flex items-center gap-4 sm:gap-5 overflow-x-auto scroll-smooth py-6 px-8 sm:px-12 select-none no-scrollbar ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
             {reels.map((reel, index) => {
               const isHovered = hoveredIndex === index;
               const isMuted = mutedStates[reel.id] ?? true;
@@ -263,17 +384,17 @@ export const ReelsCarouselSection: React.FC = () => {
               return (
                 <div
                   key={reel.id}
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={() => handleMouseLeave(index)}
+                  onMouseEnter={() => !isDragging && handleMouseEnter(index)}
+                  onMouseLeave={() => !isDragging && handleMouseLeave(index)}
                   onClick={(e) => openModal(reel, e)}
                   className={`relative cursor-pointer transition-all duration-300 ease-out select-none shrink-0 ${
-                    isHovered
-                      ? 'z-30 scale-[1.14] sm:scale-[1.16] -translate-y-3 sm:-translate-y-4'
+                    isHovered && !isDragging
+                      ? 'z-30 scale-[1.10] sm:scale-[1.12] -translate-y-2 sm:-translate-y-3'
                       : 'z-10 scale-100 translate-y-0 opacity-95'
                   }`}
                   style={{
                     width: '215px',
-                    minWidth: '170px',
+                    minWidth: '200px',
                     maxWidth: '225px',
                   }}
                 >
