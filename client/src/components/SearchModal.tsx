@@ -48,7 +48,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         const text = `${p.name} ${p.tagline} ${p.categoryName} ${p.description} ${p.extractionMethod} ${pTamilName} ${pTamilTagline}`.toLowerCase();
         return text.includes(query.toLowerCase());
       })
-    : [];
+    : sourceProducts;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -144,16 +144,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               </div>
             )}
 
-            {query.trim() === '' ? (
-              <div className="text-center py-8 text-stone-400 text-xs sm:text-sm">
-                <Sparkles className="w-6 h-6 text-gold-500 mx-auto mb-2 opacity-80" />
-                <span>
-                  {language === 'ta'
-                    ? 'எங்கள் தூய மரச்செக்கு சமையல் எண்ணெய்களைத் தேடத் தொடங்கவும்.'
-                    : 'Type to search from our range of 100% authentic edible oils.'}
-                </span>
-              </div>
-            ) : filtered.length === 0 && query.trim().toLowerCase() !== 'admin' ? (
+            {filtered.length === 0 && query.trim() !== '' && query.trim().toLowerCase() !== 'admin' ? (
               <div className="text-center py-8 text-stone-500 text-sm">
                 {language === 'ta'
                   ? `"${query}" தொடர்பாக எந்த எண்ணெயும் கிடைக்கவில்லை. நல்லெண்ணெய் அல்லது தேங்காய் எண்ணெய் எனத் தேடிப் பார்க்கவும்.`

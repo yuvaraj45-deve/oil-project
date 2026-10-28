@@ -405,6 +405,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       });
     }
 
+    if (isAddProductOpen) {
+      setNewProdCategory(slug);
+    }
+    if (editingProduct) {
+      setEditProdCategory(slug);
+    }
+
     setIsAddCategoryOpen(false);
     setNewCatTitle('');
     setNewCatSubtitle('');
@@ -766,6 +773,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
             { id: 'products', label: 'Products', icon: Package, count: productsList.length },
+            { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: usersList.length },
             { id: 'offers', label: 'Offers & Coupons', icon: Tag },
@@ -912,29 +920,46 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               )}
 
               {activeTab === 'products' && (
-                <button
-                  onClick={() => {
-                    setNewProdName('');
-                    setNewProdTagline('');
-                    setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
-                    setNewProdPrice(350);
-                    setNewProdOriginalPrice(420);
-                    setNewProdDefaultPack('1 Litre Bottle');
-                    setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
-                    setNewProdImage('/products/sesame_oil.jpg');
-                    setNewProdBadge('Cold-Pressed');
-                    setNewProdSmokePoint('220°C');
-                    setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
-                    setNewProdDescription('');
-                    setNewProdInStock(true);
-                    setNewProdFeatured(false);
-                    setIsAddProductOpen(true);
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <Plus className="w-3.5 h-3.5 text-gold-400" />
-                  <span>Add Product</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setNewCatTitle('');
+                      setNewCatSubtitle('');
+                      setNewCatBadge('New Arrival');
+                      setNewCatSlug('');
+                      setNewCatImage('/products/sesame_oil.jpg');
+                      setNewCatAssignedProductIds([]);
+                      setIsAddCategoryOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-white" />
+                    <span>Add Category</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewProdName('');
+                      setNewProdTagline('');
+                      setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
+                      setNewProdPrice(350);
+                      setNewProdOriginalPrice(420);
+                      setNewProdDefaultPack('1 Litre Bottle');
+                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                      setNewProdImage('/products/sesame_oil.jpg');
+                      setNewProdBadge('Cold-Pressed');
+                      setNewProdSmokePoint('220°C');
+                      setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
+                      setNewProdDescription('');
+                      setNewProdInStock(true);
+                      setNewProdFeatured(false);
+                      setIsAddProductOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Add Product</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -1540,232 +1565,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               )}
 
-              {/* ============================================================ */}
-              {/* ADD CATEGORY MODAL (Image upload + Product Assignment)        */}
-              {/* ============================================================ */}
-              {isAddCategoryOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                  <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-                    
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
-                          Create Category
-                        </span>
-                        <h3 className="font-serif font-black text-xl text-forest-950">
-                          Add New Category
-                        </h3>
-                      </div>
-                      <button
-                        onClick={() => setIsAddCategoryOpen(false)}
-                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleAddCategory} className="space-y-5">
-                      
-                      {/* Image Picker */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Category Image (புகைப்படம் சேர்க்கவும்)
-                        </label>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100">
-                            <img
-                              src={newCatImage}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-
-                          <div className="flex-1 space-y-2 w-full">
-                            <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
-                              <Upload className="w-3.5 h-3.5 text-gold-400" />
-                              <span>Upload Image from Device</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleImageFileUpload(e, setNewCatImage)}
-                              />
-                            </label>
-
-                            <input
-                              type="text"
-                              value={newCatImage}
-                              onChange={(e) => setNewCatImage(e.target.value)}
-                              placeholder="Image URL"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Presets */}
-                        <div className="pt-2 border-t border-stone-200">
-                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
-                            ⚡ Quick Presets:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_IMAGES.map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => setNewCatImage(preset.url)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                                  newCatImage === preset.url
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                }`}
-                              >
-                                {preset.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Basic Fields */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          2. Category Info
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Category Title (பெயர்)
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={newCatTitle}
-                              onChange={(e) => setNewCatTitle(e.target.value)}
-                              placeholder="e.g. Cold-Pressed Mustard Oil"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Slug (Optional)
-                            </label>
-                            <input
-                              type="text"
-                              value={newCatSlug}
-                              onChange={(e) => setNewCatSlug(e.target.value)}
-                              placeholder="e.g. mustard-oil"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Subtitle (விளக்கம்)
-                          </label>
-                          <input
-                            type="text"
-                            value={newCatSubtitle}
-                            onChange={(e) => setNewCatSubtitle(e.target.value)}
-                            placeholder="e.g. Traditional pungent cold-pressed mustard oil"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Badge Tag
-                          </label>
-                          <input
-                            type="text"
-                            value={newCatBadge}
-                            onChange={(e) => setNewCatBadge(e.target.value)}
-                            placeholder="e.g. Pure Mara Chekku"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Products to Link */}
-                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-xs font-bold uppercase tracking-wider text-forest-950">
-                            3. Select Products for this Category
-                          </label>
-                          <span className="text-[11px] font-bold text-amber-800">
-                            {newCatAssignedProductIds.length} Selected
-                          </span>
-                        </div>
-
-                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                          {productsList.map((product) => {
-                            const isAssigned = newCatAssignedProductIds.includes(product.id);
-                            return (
-                              <div
-                                key={product.id}
-                                onClick={() => handleToggleProductInNew(product.id)}
-                                className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                                  isAssigned
-                                    ? 'bg-white border-forest-900 shadow-2xs'
-                                    : 'bg-white/60 border-stone-200 hover:border-stone-300 opacity-80'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
-                                  />
-                                  <div>
-                                    <span className="font-bold text-xs text-stone-900 block">
-                                      {product.name}
-                                    </span>
-                                    <span className="text-[10px] text-stone-500">
-                                      ₹{product.price} • {product.extractionMethod}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="shrink-0 text-forest-900">
-                                  {isAssigned ? (
-                                    <CheckSquare className="w-5 h-5 text-forest-950" />
-                                  ) : (
-                                    <Square className="w-5 h-5 text-stone-300" />
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setIsAddCategoryOpen(false)}
-                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                        >
-                          <Plus className="w-4 h-4 text-gold-400" />
-                          <span>Create Category</span>
-                        </button>
-                      </div>
-
-                    </form>
-
-                  </div>
-                </div>
-              )}
-
             </div>
           )}
 
@@ -1966,6 +1765,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           : categoriesList.find((c) => c.slug === cat)?.title || cat}
                       </button>
                     ))}
+                    <button
+                      onClick={() => {
+                        setNewCatTitle('');
+                        setNewCatSubtitle('');
+                        setNewCatBadge('New Arrival');
+                        setNewCatSlug('');
+                        setNewCatImage('/products/sesame_oil.jpg');
+                        setNewCatAssignedProductIds([]);
+                        setIsAddCategoryOpen(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl border border-dashed border-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 text-emerald-800 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-2xs"
+                      title="Add a new category"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>+ Category</span>
+                    </button>
                   </div>
 
                   <button
@@ -2255,9 +2070,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Category (பிரிவு)
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-xs font-semibold text-stone-700">
+                                Category (பிரிவு)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCatTitle('');
+                                  setNewCatSubtitle('');
+                                  setNewCatBadge('New Arrival');
+                                  setNewCatSlug('');
+                                  setNewCatImage('/products/sesame_oil.jpg');
+                                  setNewCatAssignedProductIds([]);
+                                  setIsAddCategoryOpen(true);
+                                }}
+                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
+                              >
+                                <Plus className="w-3 h-3 text-emerald-600" />
+                                <span>+ New Category</span>
+                              </button>
+                            </div>
                             <select
                               value={editProdCategory}
                               onChange={(e) => setEditProdCategory(e.target.value)}
@@ -2611,9 +2444,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Category (பிரிவு)
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-xs font-semibold text-stone-700">
+                                Category (பிரிவு)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCatTitle('');
+                                  setNewCatSubtitle('');
+                                  setNewCatBadge('New Arrival');
+                                  setNewCatSlug('');
+                                  setNewCatImage('/products/sesame_oil.jpg');
+                                  setNewCatAssignedProductIds([]);
+                                  setIsAddCategoryOpen(true);
+                                }}
+                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
+                              >
+                                <Plus className="w-3 h-3 text-emerald-600" />
+                                <span>+ New Category</span>
+                              </button>
+                            </div>
                             <select
                               value={newProdCategory}
                               onChange={(e) => setNewProdCategory(e.target.value)}
@@ -3505,6 +3356,232 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               )}
 
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* GLOBAL ADD CATEGORY MODAL (Accessible from any tab or dialog) */}
+          {/* ============================================================ */}
+          {isAddCategoryOpen && (
+            <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+                
+                <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
+                      Create Category
+                    </span>
+                    <h3 className="font-serif font-black text-xl text-forest-950">
+                      Add New Category
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setIsAddCategoryOpen(false)}
+                    className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddCategory} className="space-y-5">
+                  
+                  {/* Image Picker */}
+                  <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                      1. Category Image (புகைப்படம் சேர்க்கவும்)
+                    </label>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100">
+                        <img
+                          src={newCatImage}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-2 w-full">
+                        <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
+                          <Upload className="w-3.5 h-3.5 text-gold-400" />
+                          <span>Upload Image from Device</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageFileUpload(e, setNewCatImage)}
+                          />
+                        </label>
+
+                        <input
+                          type="text"
+                          value={newCatImage}
+                          onChange={(e) => setNewCatImage(e.target.value)}
+                          placeholder="Image URL"
+                          className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Presets */}
+                    <div className="pt-2 border-t border-stone-200">
+                      <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                        ⚡ Quick Presets:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_IMAGES.map((preset) => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setNewCatImage(preset.url)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
+                              newCatImage === preset.url
+                                ? 'bg-forest-950 text-gold-300 border-forest-950'
+                                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                            }`}
+                          >
+                            {preset.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Basic Fields */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                      2. Category Info
+                    </label>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Category Title (பெயர்)
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newCatTitle}
+                          onChange={(e) => setNewCatTitle(e.target.value)}
+                          placeholder="e.g. Cold-Pressed Mustard Oil"
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Slug (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={newCatSlug}
+                          onChange={(e) => setNewCatSlug(e.target.value)}
+                          placeholder="e.g. mustard-oil"
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono focus:outline-none focus:border-forest-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Subtitle (விளக்கம்)
+                      </label>
+                      <input
+                        type="text"
+                        value={newCatSubtitle}
+                        onChange={(e) => setNewCatSubtitle(e.target.value)}
+                        placeholder="e.g. Traditional pungent cold-pressed mustard oil"
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Badge Tag
+                      </label>
+                      <input
+                        type="text"
+                        value={newCatBadge}
+                        onChange={(e) => setNewCatBadge(e.target.value)}
+                        placeholder="e.g. Pure Mara Chekku"
+                        className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Products to Link */}
+                  <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-forest-950">
+                        3. Select Products for this Category
+                      </label>
+                      <span className="text-[11px] font-bold text-amber-800">
+                        {newCatAssignedProductIds.length} Selected
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {productsList.map((product) => {
+                        const isAssigned = newCatAssignedProductIds.includes(product.id);
+                        return (
+                          <div
+                            key={product.id}
+                            onClick={() => handleToggleProductInNew(product.id)}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                              isAssigned
+                                ? 'bg-white border-forest-900 shadow-2xs'
+                                : 'bg-white/60 border-stone-200 hover:border-stone-300 opacity-80'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
+                              />
+                              <div>
+                                <span className="font-bold text-xs text-stone-900 block">
+                                  {product.name}
+                                </span>
+                                <span className="text-[10px] text-stone-500">
+                                  ₹{product.price} • {product.extractionMethod}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 text-forest-900">
+                              {isAssigned ? (
+                                <CheckSquare className="w-5 h-5 text-forest-950" />
+                              ) : (
+                                <Square className="w-5 h-5 text-stone-300" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddCategoryOpen(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                    >
+                      <Plus className="w-4 h-4 text-gold-400" />
+                      <span>Create Category</span>
+                    </button>
+                  </div>
+
+                </form>
+
+              </div>
             </div>
           )}
 
