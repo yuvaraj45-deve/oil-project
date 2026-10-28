@@ -193,7 +193,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               highlightText: c.highlightText || '100% Traditional Mara Chekku',
               itemCount: `${c._count?.products || 0} Varieties`,
             }));
-            setCategoriesList(mappedCats);
+            setCategoriesList((prev) => {
+              const map = new Map<string, Category>();
+              CATEGORIES_DATA.forEach((c) => map.set(c.slug, c));
+              mappedCats.forEach((c) => map.set(c.slug, { ...(map.get(c.slug) || {}), ...c }));
+              prev.forEach((c) => {
+                if (!map.has(c.slug)) map.set(c.slug, c);
+              });
+              return Array.from(map.values());
+            });
           }
         }
 
@@ -224,7 +232,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               inStock: p.inStock !== false,
               featured: Boolean(p.featured),
             }));
-            setProductsList(mappedProds);
+            setProductsList((prev) => {
+              const map = new Map<string, Product>();
+              PRODUCTS_DATA.forEach((p) => map.set(p.id, p));
+              mappedProds.forEach((p) => {
+                const match = Array.from(map.values()).find(
+                  (m) => m.id === p.id || (m.name && p.name && m.name.toLowerCase().trim() === p.name.toLowerCase().trim())
+                );
+                if (match) {
+                  map.set(match.id, { ...match, ...p });
+                } else {
+                  map.set(p.id, p);
+                }
+              });
+              prev.forEach((p) => {
+                const match = Array.from(map.values()).find(
+                  (m) => m.id === p.id || (m.name && p.name && m.name.toLowerCase().trim() === p.name.toLowerCase().trim())
+                );
+                if (!match) {
+                  map.set(p.id, p);
+                }
+              });
+              return Array.from(map.values());
+            });
           }
         }
       } catch (err) {

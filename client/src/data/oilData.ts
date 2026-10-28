@@ -151,6 +151,36 @@ export const CULINARY_PAIRINGS_DATA: CulinaryPairing[] = [
 
 export const CATEGORIES_DATA: Category[] = [
   {
+    id: 'cat-groundnut',
+    slug: 'groundnut-oil',
+    title: 'Groundnut Oil',
+    subtitle: 'Traditional Wood-Pressed Peanut Oil',
+    image: '/products/groundnut_oil.jpg',
+    itemCount: '4 Varieties',
+    badge: 'Wood-Pressed',
+    highlightText: 'Vaagai Mara Chekku'
+  },
+  {
+    id: 'cat-sesame',
+    slug: 'sesame-oil',
+    title: 'Sesame Oil',
+    subtitle: 'Traditional Gingelly Oil with Palm Jaggery',
+    image: '/products/sesame_oil.jpg',
+    itemCount: '4 Varieties',
+    badge: 'Authentic Gingelly',
+    highlightText: 'Wood-Pressed with Palm Jaggery'
+  },
+  {
+    id: 'cat-coconut',
+    slug: 'coconut-oil',
+    title: 'Coconut Oil',
+    subtitle: 'Cold-Pressed Virgin Copra Oil',
+    image: '/products/coconut_oil.jpg',
+    itemCount: '4 Varieties',
+    badge: '100% Virgin Pure',
+    highlightText: 'Sulphur-Free Sun-Dried Copra'
+  },
+  {
     id: 'cat-cooking',
     slug: 'cooking-oil',
     title: 'Cooking Oil',
@@ -161,24 +191,54 @@ export const CATEGORIES_DATA: Category[] = [
     highlightText: 'Chemical-Free & High Smoke Point'
   },
   {
-    id: 'cat-sesame',
-    slug: 'sesame-oil',
-    title: 'Sesame Oil',
-    subtitle: 'Traditional Gingelly Oil with Palm Jaggery',
-    image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=800&q=80',
-    itemCount: '4 Varieties',
-    badge: 'Authentic Gingelly',
-    highlightText: 'Wood-Pressed with Palm Jaggery'
+    id: 'cat-sunflower',
+    slug: 'sunflower-oil',
+    title: 'Sunflower Oil',
+    subtitle: 'Light & Pure Micro-Filtered Oil',
+    image: '/products/sunflower_oil.jpg',
+    itemCount: '3 Varieties',
+    badge: 'Light & Pure',
+    highlightText: 'Vitamin E Enriched'
   },
   {
-    id: 'cat-coconut',
-    slug: 'coconut-oil',
-    title: 'Coconut Oil',
-    subtitle: 'Cold-Pressed Virgin Copra Oil',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
-    itemCount: '4 Varieties',
-    badge: '100% Virgin Pure',
-    highlightText: 'Sulphur-Free Sun-Dried Copra'
+    id: 'cat-ricebran',
+    slug: 'ricebran-oil',
+    title: 'Rice Bran Oil',
+    subtitle: 'Heart-Care Oil with Gamma Oryzanol',
+    image: '/products/rice_bran_oil.jpg',
+    itemCount: '3 Varieties',
+    badge: 'Heart Care',
+    highlightText: '10,000+ ppm Oryzanol'
+  },
+  {
+    id: 'cat-pooja',
+    slug: 'pooja-special',
+    title: 'Pooja Deepam Oil',
+    subtitle: 'Sacred 5-Oil Blend with Sugandha Herbs',
+    image: 'https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80',
+    itemCount: '2 Varieties',
+    badge: 'Temple Pooja',
+    highlightText: 'Divine Sugandha Fragrance'
+  },
+  {
+    id: 'cat-ghee',
+    slug: 'a2-desi-ghee',
+    title: 'A2 Desi Cow Ghee',
+    subtitle: 'Hand-Churned Danedaar Bilona Ghee',
+    image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80',
+    itemCount: '3 Varieties',
+    badge: 'Bilona Pure',
+    highlightText: 'Native Cow Milk'
+  },
+  {
+    id: 'cat-jaggery',
+    slug: 'palm-jaggery-special',
+    title: 'Palm Jaggery',
+    subtitle: 'Pure Udangudi Karupatti Block',
+    image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
+    itemCount: '2 Varieties',
+    badge: 'Native Pure',
+    highlightText: 'Rich in Natural Iron'
   }
 ];
 

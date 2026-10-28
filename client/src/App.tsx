@@ -599,14 +599,13 @@ export function App() {
               }}
             />
 
-            {/* 5. Products Showcase: Categories ku kizha ulla products (Top 4 Bestsellers) */}
+            {/* 5. Products Showcase: All Catalog & Added Products */}
             <FeaturedProducts
               onAddToCart={handleAddToCart}
               onQuickView={handleOpenProduct}
               onViewLabReport={(p) => setSelectedLabReportProduct(p)}
               selectedCategory={selectedCategory}
               onSelectCategory={(c) => setSelectedCategory(c)}
-              maxProducts={4}
               onViewAllProducts={() => {
                 setSelectedCategory('all');
                 navigateTo('/shop');

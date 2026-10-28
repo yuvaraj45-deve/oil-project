@@ -2,7 +2,71 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Product, Category, StoreSettings, DEFAULT_STORE_SETTINGS } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+
+const getDeletedProductIds = (): string[] => {
+  try {
+    const raw = localStorage.getItem('ssoil_deleted_products');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | null)[]): Product[] => {
+  const deletedIds = getDeletedProductIds();
+  const map = new Map<string, Product>();
+
+  // Baseline products
+  base.forEach((p) => {
+    if (!deletedIds.includes(p.id)) {
+      map.set(p.id, p);
+    }
+  });
+
+  // Sources (localStorage, API response, etc.)
+  sources.forEach((src) => {
+    if (!src || !Array.isArray(src)) return;
+    src.forEach((p) => {
+      if (!p || !p.id || deletedIds.includes(p.id)) return;
+      const matchedKey = Array.from(map.keys()).find((k) => {
+        const item = map.get(k);
+        return (
+          item &&
+          (item.id === p.id ||
+            (item.name && p.name && item.name.toLowerCase().trim() === p.name.toLowerCase().trim()))
+        );
+      });
+      if (matchedKey) {
+        map.set(matchedKey, { ...map.get(matchedKey)!, ...p });
+      } else {
+        map.set(p.id, p);
+      }
+    });
+  });
+
+  return Array.from(map.values());
+};
+
+const mergeCategories = (base: Category[], ...sources: (Category[] | undefined | null)[]): Category[] => {
+  const map = new Map<string, Category>();
+  base.forEach((c) => {
+    if (c?.slug) map.set(c.slug, c);
+  });
+  sources.forEach((src) => {
+    if (!src || !Array.isArray(src)) return;
+    src.forEach((c) => {
+      if (!c || !c.slug) return;
+      const existing = map.get(c.slug);
+      if (existing) {
+        map.set(c.slug, { ...existing, ...c });
+      } else {
+        map.set(c.slug, c);
+      }
+    });
+  });
+  return Array.from(map.values());
+};
 
 interface StoreContextType {
   settings: StoreSettings;
@@ -42,13 +106,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return DEFAULT_STORE_SETTINGS;
   });
 
-  // 2. Products State (Sync with localStorage 'ssoil_products' or fallback to PRODUCTS_DATA)
+  // 2. Products State (Always guarantees all 9 base catalog products + any locally added or saved products)
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('ssoil_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mergeProducts(PRODUCTS_DATA, parsed);
+        }
       }
     } catch (e) {
       console.error('Error reading saved products:', e);
@@ -56,13 +122,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return PRODUCTS_DATA;
   });
 
-  // 3. Categories State (Sync with localStorage 'ssoil_categories' or fallback to CATEGORIES_DATA)
+  // 3. Categories State (Sync with localStorage 'ssoil_categories' and CATEGORIES_DATA)
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
       const saved = localStorage.getItem('ssoil_categories');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mergeCategories(CATEGORIES_DATA, parsed);
+        }
       }
     } catch (e) {
       console.error('Error reading saved categories:', e);
@@ -74,6 +142,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Helper to fetch live from backend API if online
   const refreshData = useCallback(async () => {
+    if (!API_BASE_URL) return;
     try {
       setIsLoading(true);
       const [catRes, prodRes] = await Promise.allSettled([
@@ -91,14 +160,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               slug: c.slug,
               title: c.name,
               subtitle: c.description || fallback?.subtitle || '100% Traditional Wood-Pressed',
-              image: c.image || fallback?.image || '/showcase/showcase_groundnut.png',
+              image: c.image || fallback?.image || '/products/sesame_oil.jpg',
               itemCount: `${c._count?.products || 4} Variants`,
               badge: fallback?.badge || 'Wood-Pressed',
               highlightText: fallback?.highlightText || 'Native Seeds',
             };
           });
-          setCategories(mappedCats);
-          localStorage.setItem('ssoil_categories', JSON.stringify(mappedCats));
+
+          let localSavedCats: Category[] = [];
+          try {
+            const saved = localStorage.getItem('ssoil_categories');
+            if (saved) localSavedCats = JSON.parse(saved);
+          } catch {}
+
+          const finalCats = mergeCategories(CATEGORIES_DATA, mappedCats, localSavedCats);
+          setCategories(finalCats);
+          localStorage.setItem('ssoil_categories', JSON.stringify(finalCats));
         }
       }
 
@@ -121,7 +198,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               reviewsCount: fallback?.reviewsCount || (p.reviews?.length ? p.reviews.length * 10 + 24 : 128),
               packSizes: p.packSizes?.length ? p.packSizes.map((ps: any) => ps.packSize) : (fallback?.packSizes || ['1 Litre Bottle']),
               defaultPack: p.defaultPack || fallback?.defaultPack || '1 Litre Bottle',
-              image: p.image || fallback?.image || '/showcase/showcase_groundnut.png',
+              image: p.image || fallback?.image || '/products/sesame_oil.jpg',
               badge: p.badge || fallback?.badge,
               description: p.description,
               benefits: fallback?.benefits || ['Zero Preservatives', 'Cold Extracted', 'Rich Antioxidants'],
@@ -135,21 +212,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             };
           });
 
-          // Preserve any custom products from localStorage that aren't yet in backend response
-          let finalProds = mappedProds;
+          // Read any custom products currently in localStorage
+          let localSavedProds: Product[] = [];
           try {
             const saved = localStorage.getItem('ssoil_products');
-            if (saved) {
-              const parsedLocal: Product[] = JSON.parse(saved);
-              if (Array.isArray(parsedLocal)) {
-                const uniqueLocal = parsedLocal.filter(
-                  (lp) => !mappedProds.some((mp) => mp.id === lp.id || (mp.name && lp.name && mp.name.toLowerCase().trim() === lp.name.toLowerCase().trim()))
-                );
-                finalProds = [...mappedProds, ...uniqueLocal];
-              }
-            }
+            if (saved) localSavedProds = JSON.parse(saved);
           } catch {}
 
+          const finalProds = mergeProducts(PRODUCTS_DATA, mappedProds, localSavedProds);
           setProducts(finalProds);
           localStorage.setItem('ssoil_products', JSON.stringify(finalProds));
         }
@@ -241,6 +311,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const addProduct = useCallback(async (newProduct: Product) => {
+    // 0. Remove from deleted products list if re-added
+    try {
+      const deletedRaw = localStorage.getItem('ssoil_deleted_products');
+      if (deletedRaw) {
+        const deletedArr: string[] = JSON.parse(deletedRaw);
+        const filtered = deletedArr.filter((id) => id !== newProduct.id);
+        localStorage.setItem('ssoil_deleted_products', JSON.stringify(filtered));
+      }
+    } catch (e) {}
+
     // 1. Immediately update state and localStorage
     setProducts((prev) => {
       const next = [newProduct, ...prev.filter((p) => p.id !== newProduct.id)];
@@ -250,7 +330,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return next;
     });
 
-    // 2. Persist to API
+    // 2. Persist to API if reachable
+    if (!API_BASE_URL) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
@@ -308,11 +389,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = prev.filter((p) => p.id !== productId);
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
+        const deletedRaw = localStorage.getItem('ssoil_deleted_products');
+        const deletedArr: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+        if (!deletedArr.includes(productId)) {
+          deletedArr.push(productId);
+          localStorage.setItem('ssoil_deleted_products', JSON.stringify(deletedArr));
+        }
       } catch (e) {}
       return next;
     });
 
     // Background API call
+    if (!API_BASE_URL) return;
     try {
       await fetch(`${API_BASE_URL}/api/products/${productId}`, {
         method: 'DELETE',

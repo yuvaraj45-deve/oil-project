@@ -22,7 +22,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   selectedCategory,
   onSelectCategory,
   onViewAllProducts,
-  maxProducts = 4,
+  maxProducts,
 }) => {
   const { language, t } = useLanguage();
   const { products } = useStore();
@@ -119,8 +119,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           </p>
         </div>
 
-        {/* 5-Column Grid: 4 Products + View All Card placed right next to the 4th product */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 sm:gap-6 items-stretch">
+        {/* Responsive Grid: All Products + View All */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${maxProducts === 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-5 sm:gap-6 items-stretch`}>
           {displayedProducts.map((product) => {
             const defaultPack = formatPack(product.defaultPack, language);
             const basePrice = product.price;
