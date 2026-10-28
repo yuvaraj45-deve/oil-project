@@ -2,7 +2,12 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Product, Category, StoreSettings, DEFAULT_STORE_SETTINGS } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000'
+    : '');
 
 const getDeletedProductIds = (): string[] => {
   try {
@@ -274,17 +279,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Listen for product changes across windows/tabs and local updates
+  useEffect(() => {
+    const handleProductsStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('ssoil_products');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(mergeProducts(PRODUCTS_DATA, parsed));
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleProductsStorageChange);
+    window.addEventListener('ssoil_products_updated', handleProductsStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleProductsStorageChange);
+      window.removeEventListener('ssoil_products_updated', handleProductsStorageChange);
+    };
+  }, []);
+
   // Product CRUD
   const updateProduct = useCallback(async (updatedProduct: Product) => {
     setProducts((prev) => {
       const next = prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
+        window.dispatchEvent(new Event('ssoil_products_updated'));
       } catch (e) {}
       return next;
     });
 
     // Background API call
+    if (!API_BASE_URL) return;
     try {
       await fetch(`${API_BASE_URL}/api/products/${updatedProduct.id}`, {
         method: 'PUT',
@@ -326,6 +354,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = [newProduct, ...prev.filter((p) => p.id !== newProduct.id)];
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
+        window.dispatchEvent(new Event('ssoil_products_updated'));
       } catch (e) {}
       return next;
     });
@@ -395,6 +424,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           deletedArr.push(productId);
           localStorage.setItem('ssoil_deleted_products', JSON.stringify(deletedArr));
         }
+        window.dispatchEvent(new Event('ssoil_products_updated'));
       } catch (e) {}
       return next;
     });

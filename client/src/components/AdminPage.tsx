@@ -98,7 +98,12 @@ const PRESET_IMAGES = [
   },
 ];
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000'
+    : '');
 
 export const AdminPage: React.FC<AdminPageProps> = ({
   orders,
@@ -106,7 +111,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onBackToStore,
   onLogout,
 }) => {
-  // Admin Tab Navigation
+  // Admin Tab Navigation (default to 'products' and remember tab across reloads)
   type AdminTab =
     | 'dashboard'
     | 'products'
@@ -118,7 +123,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     | 'content'
     | 'settings'
     | 'analytics';
-  const [activeTab, setActiveTab] = useState<AdminTab>('settings');
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    try {
+      const saved = sessionStorage.getItem('admin_active_tab') as AdminTab;
+      if (saved) return saved;
+    } catch {}
+    return 'products';
+  });
+
+  const handleTabChange = (tab: AdminTab) => {
+    setActiveTab(tab);
+    try {
+      sessionStorage.setItem('admin_active_tab', tab);
+    } catch {}
+  };
 
   // Settings Sub-Navigation Tabs (Appearance, Notifications, SEO removed per request)
   type SettingsSubTab =
@@ -138,7 +156,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
-  // 1. DATA: Live Store Context Connection (Bi-directional Sync)
+  // 1. DATA: Live Store Context Connection (Single Source of Truth)
   // -------------------------------------------------------------
   const {
     settings: storeSettings,
@@ -151,122 +169,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     updateCategory: contextUpdateCategory,
     addCategory: contextAddCategory,
     deleteCategory: contextDeleteCategory,
+    refreshData: storeRefreshData,
   } = useStore();
 
-  const [productsList, setProductsList] = useState<Product[]>(storeProducts || PRODUCTS_DATA);
+  const productsList = storeProducts && storeProducts.length > 0 ? storeProducts : PRODUCTS_DATA;
+  const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
-  const [categoriesList, setCategoriesList] = useState<Category[]>(storeCategories || CATEGORIES_DATA);
 
-  // Sync when context changes
+  // Refresh live data on mount
   useEffect(() => {
-    if (storeProducts && storeProducts.length > 0) {
-      setProductsList(storeProducts);
-    }
-  }, [storeProducts]);
-
-  useEffect(() => {
-    if (storeCategories && storeCategories.length > 0) {
-      setCategoriesList(storeCategories);
-    }
-  }, [storeCategories]);
-
-  // Load Live Data from TiDB Cloud via Express Server on mount
-  useEffect(() => {
-    let isMounted = true;
-    const fetchLiveData = async () => {
-      try {
-        const [catRes, prodRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/products/categories`),
-          fetch(`${API_BASE_URL}/api/products`),
-        ]);
-
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          if (catData.success && Array.isArray(catData.data) && catData.data.length > 0 && isMounted) {
-            const mappedCats: Category[] = catData.data.map((c: any) => ({
-              id: c.id,
-              slug: c.slug,
-              title: c.name || c.title || 'Category',
-              subtitle: c.description || c.subtitle || '',
-              image: c.image || '/products/sesame_oil.jpg',
-              badge: c.badge || 'Cold-Pressed',
-              highlightText: c.highlightText || '100% Traditional Mara Chekku',
-              itemCount: `${c._count?.products || 0} Varieties`,
-            }));
-            setCategoriesList((prev) => {
-              const map = new Map<string, Category>();
-              CATEGORIES_DATA.forEach((c) => map.set(c.slug, c));
-              mappedCats.forEach((c) => map.set(c.slug, { ...(map.get(c.slug) || {}), ...c }));
-              prev.forEach((c) => {
-                if (!map.has(c.slug)) map.set(c.slug, c);
-              });
-              return Array.from(map.values());
-            });
-          }
-        }
-
-        if (prodRes.ok) {
-          const prodData = await prodRes.json();
-          if (prodData.success && Array.isArray(prodData.data) && prodData.data.length > 0 && isMounted) {
-            const mappedProds: Product[] = prodData.data.map((p: any) => ({
-              id: p.id,
-              name: p.name,
-              tagline: p.tagline || '',
-              category: p.category?.slug || p.categoryId || 'cooking-oil',
-              categoryName: p.category?.name || 'Cold-Pressed Oil',
-              price: Number(p.price),
-              originalPrice: Number(p.originalPrice || p.price),
-              discountPercent: p.discountPercent || 0,
-              rating: p.rating || 4.9,
-              reviewsCount: p.reviews?.length || p.reviewsCount || 128,
-              packSizes: p.packSizes && p.packSizes.length > 0
-                ? p.packSizes.map((ps: any) => ps.packSize || ps)
-                : ['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can'],
-              defaultPack: p.defaultPack || '1 Litre Bottle',
-              image: p.image || '/products/sesame_oil.jpg',
-              badge: p.badge || undefined,
-              description: p.description || '',
-              benefits: p.benefits || ['Zero Chemical Solvents', 'Unrefined & Pure', 'High Smoke Point'],
-              smokePoint: p.smokePoint || '210°C',
-              extractionMethod: p.extractionMethod || 'Traditional Cold-Pressed Mara Chekku',
-              inStock: p.inStock !== false,
-              featured: Boolean(p.featured),
-            }));
-            setProductsList((prev) => {
-              const map = new Map<string, Product>();
-              PRODUCTS_DATA.forEach((p) => map.set(p.id, p));
-              mappedProds.forEach((p) => {
-                const match = Array.from(map.values()).find(
-                  (m) => m.id === p.id || (m.name && p.name && m.name.toLowerCase().trim() === p.name.toLowerCase().trim())
-                );
-                if (match) {
-                  map.set(match.id, { ...match, ...p });
-                } else {
-                  map.set(p.id, p);
-                }
-              });
-              prev.forEach((p) => {
-                const match = Array.from(map.values()).find(
-                  (m) => m.id === p.id || (m.name && p.name && m.name.toLowerCase().trim() === p.name.toLowerCase().trim())
-                );
-                if (!match) {
-                  map.set(p.id, p);
-                }
-              });
-              return Array.from(map.values());
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('Backend offline or not reachable, using seeded oil dataset.', err);
-      }
-    };
-
-    fetchLiveData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    storeRefreshData();
+  }, [storeRefreshData]);
 
   // Common Pack Size Options for Oils
   const ALL_PACK_OPTIONS = [
@@ -281,26 +194,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     '15 Litre Tin',
   ];
 
-  // Image Upload helper (FileReader -> DataURL)
-  const handleImageFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setImageCallback: (url: string) => void
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImageCallback(reader.result);
-          showToast('Image uploaded successfully! 📸');
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Canvas-based image resizer and optimizer (ensures logo/images never exceed localStorage quota)
-  const resizeImageFile = (file: File, maxDim = 320): Promise<string> => {
+  const resizeImageFile = (file: File, maxDim = 600): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -325,7 +220,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/png'));
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
           } else {
             resolve(e.target?.result as string);
           }
@@ -336,6 +231,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(file);
     });
+  };
+
+  // Image Upload helper (FileReader -> Canvas Optimized DataURL)
+  const handleImageFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setImageCallback: (url: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const optimized = await resizeImageFile(file, 600);
+        setImageCallback(optimized);
+        showToast('Image uploaded and optimized successfully! 📸');
+      } catch (err) {
+        console.error('Image upload error:', err);
+        showToast('Failed to load image file. Please try another.');
+      }
+    }
   };
 
   // -------------------------------------------------------------
@@ -385,45 +298,34 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       itemCount: `${editCatAssignedProductIds.length} Varieties`,
     };
 
-    // Update categoriesList locally
-    setCategoriesList((prev) =>
-      prev.map((c) => (c.id === editingCategory.id ? updatedCategory : c))
-    );
-
-    // Update productsList: reassign products
-    setProductsList((prev) =>
-      prev.map((prod) => {
-        if (editCatAssignedProductIds.includes(prod.id)) {
-          return {
-            ...prod,
-            category: updatedSlug as any,
-            categoryName: updatedCategory.title,
-          };
-        } else if (prod.category === editingCategory.slug) {
-          return {
-            ...prod,
-            category: 'cooking-oil',
-            categoryName: 'Cooking Oil',
-          };
-        }
-        return prod;
-      })
-    );
+    // Reassign products if category changed
+    editCatAssignedProductIds.forEach((pid) => {
+      const prod = productsList.find((p) => p.id === pid);
+      if (prod) {
+        contextUpdateProduct({
+          ...prod,
+          category: updatedSlug as any,
+          categoryName: updatedCategory.title,
+        });
+      }
+    });
 
     // Sync to TiDB Cloud backend
-    try {
-      await fetch(`${API_BASE_URL}/api/products/categories/${editingCategory.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: updatedCategory.title,
-          slug: updatedCategory.slug,
-          description: updatedCategory.subtitle,
-          image: updatedCategory.image,
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to sync category update to database:', err);
+    if (API_BASE_URL) {
+      try {
+        await fetch(`${API_BASE_URL}/api/products/categories/${editingCategory.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: updatedCategory.title,
+            slug: updatedCategory.slug,
+            description: updatedCategory.subtitle,
+            image: updatedCategory.image,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to sync category update to database:', err);
+      }
     }
 
     setEditingCategory(null);
@@ -488,20 +390,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       highlightText: 'Fresh Salem Mill Production',
     };
 
-    setCategoriesList((prev) => [newCategory, ...prev]);
+    await contextAddCategory(newCategory);
 
     if (newCatAssignedProductIds.length > 0) {
-      setProductsList((prev) =>
-        prev.map((prod) =>
-          newCatAssignedProductIds.includes(prod.id)
-            ? {
-                ...prod,
-                category: slug as any,
-                categoryName: newCategory.title,
-              }
-            : prod
-        )
-      );
+      newCatAssignedProductIds.forEach((pid) => {
+        const prod = productsList.find((p) => p.id === pid);
+        if (prod) {
+          contextUpdateProduct({
+            ...prod,
+            category: slug as any,
+            categoryName: newCategory.title,
+          });
+        }
+      });
     }
 
     setIsAddCategoryOpen(false);
@@ -511,21 +412,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setNewCatSlug('');
     setNewCatImage('/products/sesame_oil.jpg');
     setNewCatAssignedProductIds([]);
-    contextAddCategory(newCategory);
     showToast(`Category "${newCategory.title}" created successfully! 🏷️`);
   };
 
   const handleDeleteCategory = async (catId: string) => {
-    const catToDelete = categoriesList.find((c) => c.id === catId);
-    setCategoriesList((prev) => prev.filter((c) => c.id !== catId));
-    contextDeleteCategory(catId);
+    const catToDelete = categoriesList.find((c) => c.id === catId || c.slug === catId);
+    await contextDeleteCategory(catId);
 
-    try {
-      await fetch(`${API_BASE_URL}/api/products/categories/${catId}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.error('Failed to delete category from database:', err);
+    if (API_BASE_URL) {
+      try {
+        await fetch(`${API_BASE_URL}/api/products/categories/${catId}`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        console.error('Failed to delete category from database:', err);
+      }
     }
 
     showToast(`Category "${catToDelete?.title || 'Selected'}" deleted.`);
@@ -602,43 +503,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       featured: editProdFeatured,
     };
 
-    setProductsList((prev) =>
-      prev.map((p) => (p.id === editingProduct.id ? updatedProduct : p))
-    );
-
-    // Sync to TiDB Cloud backend
-    try {
-      await fetch(`${API_BASE_URL}/api/products/${editingProduct.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: updatedProduct.name,
-          tagline: updatedProduct.tagline,
-          description: updatedProduct.description,
-          price: updatedProduct.price,
-          originalPrice: updatedProduct.originalPrice,
-          defaultPack: updatedProduct.defaultPack,
-          image: updatedProduct.image,
-          badge: updatedProduct.badge || null,
-          smokePoint: updatedProduct.smokePoint,
-          extractionMethod: updatedProduct.extractionMethod,
-          inStock: updatedProduct.inStock,
-          featured: updatedProduct.featured,
-          categoryId: matchedCat?.id,
-          packSizes: updatedProduct.packSizes.map((ps) => ({
-            packSize: ps,
-            price: updatedProduct.price,
-            originalPrice: updatedProduct.originalPrice,
-            inStock: updatedProduct.inStock,
-          })),
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to sync product update to database:', err);
-    }
-
     setEditingProduct(null);
-    contextUpdateProduct(updatedProduct);
+    await contextUpdateProduct(updatedProduct);
     showToast(`Product "${updatedProduct.name}" updated successfully! ✨`);
   };
 
@@ -703,7 +569,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       featured: newProdFeatured,
     };
 
-    setProductsList((prev) => [newProduct, ...prev.filter((p) => p.id !== newProduct.id)]);
     await contextAddProduct(newProduct);
     setIsAddProductOpen(false);
     setNewProdName('');
@@ -714,7 +579,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleDeleteProduct = async (productId: string) => {
     const prodToDelete = productsList.find((p) => p.id === productId);
-    setProductsList((prev) => prev.filter((p) => p.id !== productId));
     await contextDeleteProduct(productId);
     showToast(`Product "${prodToDelete?.name || 'Selected'}" deleted.`);
   };
@@ -723,21 +587,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     const target = productsList.find((p) => p.id === productId);
     if (!target) return;
     const newStock = !target.inStock;
-
-    setProductsList((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, inStock: newStock } : p))
-    );
-
-    try {
-      await fetch(`${API_BASE_URL}/api/products/${productId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inStock: newStock }),
-      });
-    } catch (err) {
-      console.error('Failed to update stock in database:', err);
-    }
-
+    await contextUpdateProduct({ ...target, inStock: newStock });
     showToast(`Stock status for "${target.name}" updated.`);
   };
 
@@ -930,7 +780,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <button
                 key={item.id}
                 onClick={() => {
-                  setActiveTab(item.id as AdminTab);
+                  handleTabChange(item.id as AdminTab);
                   setSearchTerm('');
                 }}
                 className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
@@ -1266,7 +1116,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               {/* Quick Navigation Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <button
-                  onClick={() => setActiveTab('categories')}
+                  onClick={() => handleTabChange('categories')}
                   className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
                 >
                   <Layers className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
@@ -1275,7 +1125,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('users')}
+                  onClick={() => handleTabChange('users')}
                   className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
                 >
                   <Users className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
@@ -1284,7 +1134,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('products')}
+                  onClick={() => handleTabChange('products')}
                   className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
                 >
                   <Package className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
@@ -1293,7 +1143,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('settings')}
+                  onClick={() => handleTabChange('settings')}
                   className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
                 >
                   <Settings className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
