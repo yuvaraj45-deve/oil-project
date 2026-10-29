@@ -603,8 +603,9 @@ export function App() {
               }}
             />
 
-            {/* 5. Products Showcase: All Catalog & Added Products */}
+            {/* 5. Products Showcase: Only 4 Curated Products on Homepage + View All */}
             <FeaturedProducts
+              maxProducts={settings.homepageProductsLimit || 4}
               onAddToCart={handleAddToCart}
               onQuickView={handleOpenProduct}
               onViewLabReport={(p) => setSelectedLabReportProduct(p)}

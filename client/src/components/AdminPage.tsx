@@ -3678,6 +3678,25 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium resize-none"
                             />
                           </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Homepage Products Display (முகப்பில் காட்ட வேண்டிய தயாரிப்புகள்)
+                            </label>
+                            <select
+                              value={settings.homepageProductsLimit || 4}
+                              onChange={(e) => setSettings({ ...settings, homepageProductsLimit: Number(e.target.value) })}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium cursor-pointer"
+                            >
+                              <option value={4}>4 Products (Recommended - 4 தயாரிப்புகள் மட்டும்)</option>
+                              <option value={6}>6 Products (6 தயாரிப்புகள்)</option>
+                              <option value={8}>8 Products (8 தயாரிப்புகள்)</option>
+                              <option value={999}>All Products (அனைத்து தயாரிப்புகளும்)</option>
+                            </select>
+                            <p className="text-[10px] text-stone-400 mt-1">
+                              முகப்பில் 4 தயாரிப்புகள் மட்டுமே காட்டப்படும். மற்றவற்றை "Explore All Pure Oils" பட்டனை கிளிக் செய்து பார்க்கலாம்.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

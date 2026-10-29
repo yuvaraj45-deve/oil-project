@@ -178,6 +178,7 @@ export interface StoreSettings {
   razorpayKeyId: string;
   upiVpa: string;
   codEnabled: boolean;
+  homepageProductsLimit?: number;
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
@@ -202,6 +203,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   razorpayKeyId: 'rzp_live_9204918234',
   upiVpa: 'ssoil@icici',
   codEnabled: true,
+  homepageProductsLimit: 4,
 };
 
 export interface HomeFeaturedVideo {
