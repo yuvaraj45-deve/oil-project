@@ -7,7 +7,6 @@ import { OurProductRange } from './components/OurProductRange';
 import { FeaturedProducts } from './components/FeaturedProducts';
 import { PureDifference } from './components/PureDifference';
 import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
-import { SmartBottleFeature } from './components/SmartBottleFeature';
 import { GemsGoldQualityBanner } from './components/GemsGoldQualityBanner';
 import { HomeFeaturedVideoBanner } from './components/HomeFeaturedVideoBanner';
 import { ReelsCarouselSection } from './components/ReelsCarouselSection';
@@ -558,33 +557,6 @@ export function App() {
 
             {/* 2. 4 Value Pillars: 100% Pure & Natural, Good for Health, Premium Quality, Sustainable */}
             <ValuePillars />
-
-            {/* 3. Gemedible Signature: 4 Pastel Product Cards (Groundnut, Sunflower, Mustard, Nithyam Lamp Oil) */}
-            <SmartBottleFeature
-              onShopOils={() => navigateTo('/shop')}
-              onSelectProductSlug={(slug) => {
-                if (slug === 'groundnut-oil') {
-                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-groundnut-1000' || x.category === 'groundnut-oil');
-                  if (p) handleOpenProduct(p);
-                  else navigateTo('/product/ss-groundnut-1000');
-                } else if (slug === 'cooking-oil') {
-                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-sunflower-1000' || x.name.includes('Sunflower'));
-                  if (p) handleOpenProduct(p);
-                  else navigateTo('/product/ss-sunflower-1000');
-                } else if (slug === 'sesame-oil') {
-                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-sesame-1000' || x.category === 'sesame-oil');
-                  if (p) handleOpenProduct(p);
-                  else navigateTo('/product/ss-sesame-1000');
-                } else if (slug === 'pooja-oil') {
-                  const p = PRODUCTS_DATA.find((x) => x.id === 'ss-deepam-1000' || x.category === 'pooja-special');
-                  if (p) handleOpenProduct(p);
-                  else navigateTo('/product/ss-deepam-1000');
-                } else {
-                  setSelectedCategory(slug);
-                  navigateTo('/shop');
-                }
-              }}
-            />
 
             {/* Gem's Gold 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
             <GemsGoldQualityBanner />
