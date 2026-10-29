@@ -202,7 +202,7 @@ export const ReelsCarouselSection: React.FC = () => {
                   onMouseEnter={() => !isDragging && handleMouseEnter(index)}
                   onMouseLeave={() => !isDragging && handleMouseLeave(index)}
                   onClick={(e) => openModal(reel, e)}
-                  className={`relative cursor-pointer transition-all duration-300 ease-out select-none shrink-0 ${
+                  className={`group relative cursor-pointer transition-all duration-300 ease-out select-none shrink-0 ${
                     isHovered && !isDragging
                       ? 'z-30 scale-[1.10] sm:scale-[1.12] -translate-y-2 sm:-translate-y-3'
                       : 'z-10 scale-100 translate-y-0 opacity-95'
@@ -234,48 +234,19 @@ export const ReelsCarouselSection: React.FC = () => {
                       className="w-full h-full object-cover pointer-events-none"
                     />
 
-                    {/* Gradient Vignette Overlays for Maximum Legibility */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
-
-                    {/* Top Watermark (SS OIL SINCE 1966) */}
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-white pointer-events-none">
-                      <div className="flex flex-col">
-                        <span className="font-serif text-xs font-black text-emerald-400 drop-shadow-md leading-none">
-                          ss oil
-                        </span>
-                        <span className="text-[7px] font-bold tracking-widest text-amber-300 drop-shadow-sm uppercase mt-0.5">
-                          SINCE 1966
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom Info Bar: Creator Handle & Sound Toggle */}
-                    <div className="absolute bottom-0 inset-x-0 p-3 text-white">
-                      <div className="flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                          <span className="font-mono text-[10px] sm:text-[11px] font-medium text-white/95 truncate drop-shadow">
-                            {reel.creator}
-                          </span>
-                        </div>
-
-                        {/* Sound Toggle Box (Styled matching reference screenshot) */}
-                        <button
-                          onClick={(e) => toggleSound(reel.id, index, e)}
-                          className="w-7 h-7 rounded-lg bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 border border-white/20"
-                          title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-                        >
-                          {isMuted ? (
-                            <VolumeX className="w-3.5 h-3.5 text-stone-300" />
-                          ) : (
-                            <Volume2 className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                          )}
-                        </button>
-                      </div>
-
-                      <p className="text-[10px] sm:text-[11px] font-medium text-stone-200 line-clamp-1 drop-shadow-sm mt-0.5">
-                        {reel.dishName}
-                      </p>
+                    {/* Clean Video Only - Zero text, zero Instagram handles, zero dark gradient */}
+                    <div className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={(e) => toggleSound(reel.id, index, e)}
+                        className="w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-all cursor-pointer border border-white/30 shadow-md backdrop-blur-xs"
+                        title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                      >
+                        {isMuted ? (
+                          <VolumeX className="w-4 h-4 text-stone-200" />
+                        ) : (
+                          <Volume2 className="w-4 h-4 text-amber-300 animate-pulse" />
+                        )}
+                      </button>
                     </div>
 
                   </div>
