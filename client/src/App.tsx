@@ -496,7 +496,7 @@ export function App() {
               try {
                 localStorage.setItem('ssoil_user', JSON.stringify(user));
               } catch (e) {}
-              setToastMessage(`Welcome, ${user.name}! Sign in successful ✨`);
+              setToastMessage(`Welcome, ${user.name}! Sign in successful`);
               if (user.role === 'admin') {
                 navigateTo('/admin');
               } else {
@@ -519,7 +519,7 @@ export function App() {
               try {
                 localStorage.setItem('ssoil_user', JSON.stringify(updated));
               } catch (e) {}
-              setToastMessage('Profile details updated successfully ✨');
+              setToastMessage('Profile details updated successfully');
             }}
             onSignOut={() => {
               setCurrentUser(null);

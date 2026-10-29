@@ -7,7 +7,6 @@ import {
   Sun,
   Droplets,
   Award,
-  Sparkles,
   Sprout,
 } from 'lucide-react';
 import { CRAFT_STAGES_DATA } from '../data/oilData';
@@ -188,7 +187,7 @@ export const CraftsmanshipVisualizer: React.FC = () => {
 
                 {/* Top Badge Overlay */}
                 <div className="absolute top-3.5 left-3.5 bg-amber-900/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-amber-200 border border-amber-700/50 shadow-xs flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-gold-400" />
+                  <ShieldCheck className="w-3 h-3 text-amber-300" />
                   <span>100% Traditional Mara Chekku</span>
                 </div>
 
@@ -225,8 +224,7 @@ export const CraftsmanshipVisualizer: React.FC = () => {
                 {currentStage.title}
               </h3>
 
-              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs sm:text-sm font-semibold text-amber-950 flex items-center gap-2">
-                <span>✨</span>
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs sm:text-sm font-semibold text-amber-950">
                 <span>{currentStage.tagline}</span>
               </div>
 

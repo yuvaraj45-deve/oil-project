@@ -345,7 +345,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
     setEditingCategory(null);
     contextUpdateCategory(updatedCategory);
-    showToast(`Category "${updatedCategory.title}" updated successfully! ✨`);
+    showToast(`Category "${updatedCategory.title}" updated successfully!`);
   };
 
   // ADD CATEGORY STATE & HANDLERS
@@ -527,7 +527,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
     setEditingProduct(null);
     await contextUpdateProduct(updatedProduct);
-    showToast(`Product "${updatedProduct.name}" updated successfully! ✨`);
+    showToast(`Product "${updatedProduct.name}" updated successfully!`);
   };
 
   // ADD PRODUCT STATE & HANDLERS
@@ -711,7 +711,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const handleSaveSettings = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     updateStoreSettings(settings);
-    showToast('Store settings saved! User pages updated instantly ✨');
+    showToast('Store settings saved! User pages updated instantly');
   };
 
   // -------------------------------------------------------------
@@ -731,7 +731,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const handleSaveFeaturedVideo = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     updateHomeFeaturedVideo(videoForm);
-    showToast('Homepage featured video updated successfully! 🎥✨');
+    showToast('Homepage featured video updated successfully!');
   };
 
   // Video File Uploader Handler
@@ -799,7 +799,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     };
     contextUpdateReel(updated);
     setEditingReel(null);
-    showToast(`Reel "${updated.dishName}" updated! ✨`);
+    showToast(`Reel "${updated.dishName}" updated!`);
   };
 
   // -------------------------------------------------------------
