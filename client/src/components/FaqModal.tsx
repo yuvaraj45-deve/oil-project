@@ -81,7 +81,7 @@ export const FaqModal: React.FC<FaqModalProps> = ({ isOpen, onClose, onShopOils 
       question:
         language === 'ta'
           ? 'மரச்செக்கு எண்ணெயின் ஆயுட்காலம் (Shelf Life) எவ்வளவு நாள்? எவ்வாறு சேமிப்பது?'
-          : 'What is the shelf life of PureVa Cold-Pressed Oils, and how should they be stored?',
+          : 'What is the shelf life of SS OIL Cold-Pressed Oils, and how should they be stored?',
       answer:
         language === 'ta'
           ? 'எண்ணெயில் ரசாயன பாதுகாப்பிகள் ஏதும் இல்லாததால், தயாரித்த தேதியிலிருந்து 9 முதல் 12 மாதங்கள் வரை அதன் தரம் மாறாமல் இருக்கும். நேரடி சூரிய ஒளி படாத, குளிர்ந்த உலர்ந்த இடத்தில் மூடியை இறுக்கமாக மூடி வைக்கவும்.'
@@ -144,7 +144,7 @@ export const FaqModal: React.FC<FaqModalProps> = ({ isOpen, onClose, onShopOils 
                   {language === 'ta' ? 'அடிக்கடி கேட்கப்படும் கேள்விகள் (FAQs)' : 'Frequently Asked Questions (FAQs)'}
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-400/20 text-gold-300 border border-gold-400/30">
-                  PureVa Help Desk
+                  SS OIL Help Desk
                 </span>
               </div>
               <p className="text-xs text-cream-200/70">

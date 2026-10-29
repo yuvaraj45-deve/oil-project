@@ -232,7 +232,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
         {/* Bottom Bar & Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400">
           <div>
-            © 2025 PureVa. {t('footer.copyright')}
+            © {new Date().getFullYear()} {settings.storeName || 'SS OIL'}. {t('footer.copyright')}
           </div>
 
           <div className="flex items-center space-x-6">

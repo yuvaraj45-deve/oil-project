@@ -598,7 +598,7 @@ export function App() {
             {/* 8. The Pure Difference (4 Quality Features) */}
             <PureDifference />
 
-            {/* 9. Make the Switch to PureVa Banner */}
+            {/* 9. Make the Switch to SS OIL Banner */}
             <MakeTheSwitchBanner onShopNow={() => navigateTo('/shop')} />
           </>
         )}

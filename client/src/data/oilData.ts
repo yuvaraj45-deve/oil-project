@@ -66,7 +66,7 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
     description: 'We inspect hand-sorted pods directly from organic farmer clusters. Peanuts are deshelled without steam heat; black sesame is double-sieved for dust purity.',
     metricLabel: 'Foreign Impurities',
     metricValue: '0.00%',
-    image: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1791187454624-e9e532bce9a2?auto=format&fit=crop&w=800&q=80'
   },
   {
     step: 2,
@@ -76,7 +76,7 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
     description: 'Vaagai wood absorbs heat naturally. As the heavy pestle circles at only 12 to 14 revolutions per minute, seeds release their nectar without frictional burning.',
     metricLabel: 'Extraction Heat',
     metricValue: '< 42°C',
-    image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1695221806387-5788c7aef4e2?auto=format&fit=crop&w=800&q=80'
   },
   {
     step: 3,
@@ -86,7 +86,7 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
     description: 'Instead of aggressive sulfuric acid washing or silica bleaching, freshly pressed SS OIL rests in covered food-grade glass vessels under natural warm sunlight.',
     metricLabel: 'Solvent Hexane Used',
     metricValue: 'Zero (0 ppm)',
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80'
   },
   {
     step: 4,
@@ -96,7 +96,7 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
     description: 'Every 500-liter pressing is independently tested for zero aflatoxin, low peroxide value (< 1.5 meq/kg), and rich natural Vitamin E tocopherols.',
     metricLabel: 'Purity Clearance',
     metricValue: '100% Certified',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1579165466949-3180a3d056d5?auto=format&fit=crop&w=800&q=80'
   },
   {
     step: 5,
@@ -106,7 +106,7 @@ export const CRAFT_STAGES_DATA: CraftStage[] = [
     description: 'Sealed immediately into UV-filtered amber glass jars, premium tins, and food-grade BPA-free vessels to lock in fragrant volatile aromatics.',
     metricLabel: 'Shelf Freshness',
     metricValue: '12 Months',
-    image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1550160770-005c21924d66?auto=format&fit=crop&w=800&q=80'
   }
 ];
 

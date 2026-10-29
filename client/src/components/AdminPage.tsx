@@ -828,7 +828,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `PureVa_Orders_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `SSOIL_Orders_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -4621,7 +4621,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
         {/* Footer */}
         <footer className="bg-white border-t border-stone-200 py-4 px-8 text-center text-xs text-stone-400 mt-auto">
-          PureVa • Salem Mara Chekku Mill Management Operating System • All rights reserved
+          SS OIL • Salem Mara Chekku Mill Management Operating System • All rights reserved
         </footer>
 
       </div>

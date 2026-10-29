@@ -24,7 +24,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Hero
     'hero.badge': '100% PURE • NATURAL • TRUSTED',
     'hero.title': 'Goodness of Nature in Every Drop',
-    'hero.subtitle': 'PureVa brings you the finest quality cooking oils, crafted from nature, for a healthier tomorrow.',
+    'hero.subtitle': 'SS OIL brings you the finest quality cooking oils, crafted from nature, for a healthier tomorrow.',
     'hero.exploreProducts': 'Explore Our Products',
 
     // Value Pillars
@@ -114,15 +114,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'viewAll.button': 'View All',
 
     // Promise of Purity
-    'promise.badge': 'ABOUT PUREVA',
+    'promise.badge': 'ABOUT SS OIL',
     'promise.title': 'Our Promise of Purity',
-    'promise.desc': 'At PureVa, we believe that good health starts with what you cook. That is why we bring you 100% pure, natural and unadulterated oils, sourced from the best farms and processed with care.',
+    'promise.desc': 'At SS OIL, we believe that good health starts with what you cook. That is why we bring you 100% pure, natural and unadulterated oils, sourced from the best farms and processed with care.',
     'promise.knowMore': 'Know More',
     'promise.quote': 'Real Oil. Real Goodness.',
     'promise.tagline': 'Pure. Healthy. Happy.',
 
     // Pure Difference
-    'diff.badge': 'WHY CHOOSE PUREVA',
+    'diff.badge': 'WHY CHOOSE SS OIL',
     'diff.title': 'The Pure Difference',
     'diff.f1.title': 'No Added Preservatives',
     'diff.f1.desc': 'Just pure goodness.',
@@ -135,7 +135,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Make the Switch Banner
     'switch.quote': 'Healthy Cooking, Happier Living',
-    'switch.title': 'Make the Switch to PureVa',
+    'switch.title': 'Make the Switch to SS OIL',
     'switch.desc': 'Better Oil. Better Health. A Brighter Future.',
     'switch.shopNow': 'Shop Now',
 
@@ -346,7 +346,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.mission.desc': 'To uphold honest farm-to-kitchen transparency, preserve traditional wood-pressing methods, and deliver premium edible oils at honest, accessible everyday prices.',
 
     // 4 Purity Pillars
-    'about.pillars.badge': 'THE PUREVA STANDARD',
+    'about.pillars.badge': 'THE SS OIL STANDARD',
     'about.pillars.title': 'What Makes Our Oils Stand Apart',
     'about.pillars.subtitle': 'From hand-selected seeds to natural sunlight sedimentation, our process guarantees unmatched purity.',
     'about.pill.1.title': 'Hand-Selected Native Seeds',

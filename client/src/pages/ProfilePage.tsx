@@ -186,7 +186,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
           <div className="flex items-center gap-2 text-xs text-stone-500">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>{language === 'ta' ? 'பியூர்வா நுகர்வோர் போர்டல்' : 'PureVa Verified Member Portal'}</span>
+            <span>{language === 'ta' ? 'SS OIL நுகர்வோர் போர்டல்' : 'SS OIL Verified Member Portal'}</span>
           </div>
         </div>
 
@@ -429,7 +429,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <h3 className="text-xl sm:text-2xl font-serif font-black text-forest-950 mt-0.5">
                   {activeTab === 'orders' && (language === 'ta' ? `உங்கள் ஆர்டர்கள் (${orders.length})` : `Your Orders (${orders.length})`)}
                   {activeTab === 'addresses' && (language === 'ta' ? `டெலிவரி முகவரிகள் (${addresses.length})` : `Saved Delivery Addresses (${addresses.length})`)}
-                  {activeTab === 'rewards' && (language === 'ta' ? 'பியூர்வா சலுகைப் புள்ளிகள்' : 'PureVa Loyalty & Purity Rewards')}
+                  {activeTab === 'rewards' && (language === 'ta' ? 'SS OIL சலுகைப் புள்ளிகள்' : 'SS OIL Loyalty & Purity Rewards')}
                   {activeTab === 'settings' && (language === 'ta' ? 'கணக்கு அமைப்புகள் & பாதுகாப்பு' : 'Account Settings & Security')}
                 </h3>
               </div>

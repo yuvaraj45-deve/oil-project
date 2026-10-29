@@ -26,7 +26,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
 
   return (
     <div className="bg-cream-50/50 min-h-screen pb-20 space-y-16">
-      {/* 1. Our Promise of Purity Section (ABOUT PUREVA) */}
+      {/* 1. Our Promise of Purity Section (ABOUT SS OIL) */}
       <PromiseOfPurity onKnowMore={handleScrollToHistory} />
 
       {/* 2. User Requested: Our History & Product Quality Section */}
@@ -39,11 +39,6 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-gold-400/10 rounded-full blur-3xl pointer-events-none" />
             
             <div className="relative z-10 space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/10 text-forest-900 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-forest-800" />
-                <span>PureVa 100% Pure & Natural</span>
-              </div>
-              
               <h3 className="text-2xl sm:text-3xl font-serif font-black text-forest-950 tracking-tight">
                 {language === 'ta'
                   ? 'உங்கள் குடும்ப ஆரோக்கியத்திற்கான தூய சமையல் எண்ணெய்கள்'
