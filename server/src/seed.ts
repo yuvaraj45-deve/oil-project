@@ -46,7 +46,7 @@ async function seed() {
       slug: 'groundnut-oil',
       name: 'Groundnut Oil',
       description: '100% Mara Chekku Peanut Oil',
-      image: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=800&q=80',
+      image: '/products/groundnut_oil.jpg',
     },
   });
 
