@@ -240,7 +240,7 @@ export const ReelsCarouselSection: React.FC = () => {
                     {/* Top Watermark (SS OIL SINCE 1966) */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-white pointer-events-none">
                       <div className="flex flex-col">
-                        <span className="font-serif text-xs font-bold text-white drop-shadow-md leading-none">
+                        <span className="font-serif text-xs font-black text-emerald-400 drop-shadow-md leading-none">
                           ss oil
                         </span>
                         <span className="text-[7px] font-bold tracking-widest text-amber-300 drop-shadow-sm uppercase mt-0.5">
