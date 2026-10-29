@@ -28,42 +28,7 @@ try {
     fs.writeFileSync(path.join(publicDir, 'hero_img_meta.json'), JSON.stringify({ width, height }));
   }
 
-  // Copy high-res artisan product bottle images on pure white isolated background (Zero background scene)
-  const productImages = {
-    'groundnut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/groundnut_oil_packshot_1793002980900.jpg',
-    'sunflower_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/sunflower_oil_packshot_1793003005862.jpg',
-    'sesame_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/sesame_oil_packshot_1793003027235.jpg',
-    'coconut_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/coconut_oil_packshot_1793003064012.jpg',
-    'mustard_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/mustard_oil_packshot_1793003085250.jpg',
-    'lamp_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/lamp_oil_packshot_1793003111836.jpg',
-    'rice_bran_oil.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/e347a522-bcec-40cb-b43d-a6babc8e170c/rice_bran_oil_product_1792733112941.jpg',
-  };
-  const productsDir = path.join(publicDir, 'products');
-  if (!fs.existsSync(productsDir)) {
-    fs.mkdirSync(productsDir, { recursive: true });
-  }
-  for (const [filename, srcPath] of Object.entries(productImages)) {
-    if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, path.join(productsDir, filename));
-    }
-  }
-
-  // Copy Gemedible-style full-width hero banners
-  const bannersDir = path.join(publicDir, 'banners');
-  if (!fs.existsSync(bannersDir)) {
-    fs.mkdirSync(bannersDir, { recursive: true });
-  }
-  const bannerImages = {
-    'gemedible_exact_hero_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_bottles_closeup_banner_1792997846092.jpg',
-    'groundnut_hero_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_groundnut_banner_1792994963327.jpg',
-    'smart_measuring_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_smart_measuring_banner_1792994982125.jpg',
-    'sesame_sunflower_banner.jpg': 'C:/Users/acer/.gemini/antigravity-ide/brain/157f7baa-e737-4406-9c5a-a6285e7975d6/gemedible_sesame_sunflower_banner_1792995006397.jpg',
-  };
-  for (const [filename, srcPath] of Object.entries(bannerImages)) {
-    if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, path.join(bannersDir, filename));
-    }
-  }
+  // Products and banners are managed locally in public/products and public/banners
 } catch (e) {
   console.error('Failed to copy mockup image:', e);
 }

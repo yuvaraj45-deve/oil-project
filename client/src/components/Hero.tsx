@@ -13,11 +13,11 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Slides matching the exact screenshot from gemedible.com
+  // Slides matching the flagship homepage layout
   const slides = [
     {
       id: 'conveyor-bottling',
-      bannerImage: '/banners/gemedible_exact_hero_banner.jpg',
+      bannerImage: '/banners/ssoil_bottling_hero_banner.jpg',
       headline: (
         <>
           {language === 'ta' ? (

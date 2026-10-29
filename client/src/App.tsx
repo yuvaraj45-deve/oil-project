@@ -7,7 +7,7 @@ import { OurProductRange } from './components/OurProductRange';
 import { FeaturedProducts } from './components/FeaturedProducts';
 import { PureDifference } from './components/PureDifference';
 import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
-import { GemsGoldQualityBanner } from './components/GemsGoldQualityBanner';
+import { SSOilQualityBanner } from './components/SSOilQualityBanner';
 import { HomeFeaturedVideoBanner } from './components/HomeFeaturedVideoBanner';
 import { ReelsCarouselSection } from './components/ReelsCarouselSection';
 import { CraftsmanshipVisualizer } from './components/CraftsmanshipVisualizer';
@@ -533,10 +533,10 @@ export function App() {
           />
         )}
 
-        {/* Route: / (Default Flagship Homepage - Gemedible Exact Layout) */}
+        {/* Route: / (Default Flagship Homepage) */}
         {(currentPath === '/' || currentPath === '') && (
           <>
-            {/* 1. Horizontal Standing Bottles Row (Matching gemedible.com screenshot) */}
+            {/* 1. Horizontal Standing Bottles Row */}
             <CategoryCircles
               onSelectCategory={(slug) => {
                 setSelectedCategory(slug);
@@ -558,13 +558,13 @@ export function App() {
             {/* 2. 4 Value Pillars: 100% Pure & Natural, Good for Health, Premium Quality, Sustainable */}
             <ValuePillars />
 
-            {/* Gem's Gold 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
-            <GemsGoldQualityBanner />
+            {/* SS OIL 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
+            <SSOilQualityBanner />
 
             {/* Homepage Featured Showcase Video (Configured dynamically from Admin Portal) */}
             <HomeFeaturedVideoBanner />
 
-            {/* Gem's Gold Community Reels & Kitchen Stories Carousel */}
+            {/* SS OIL Community Reels & Kitchen Stories Carousel */}
             <ReelsCarouselSection />
 
             {/* 4. Our Product Range & Categories: Pure Oils for a Healthier You */}

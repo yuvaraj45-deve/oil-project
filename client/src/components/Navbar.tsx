@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      {/* 1. TOP ANNOUNCEMENT GREY BAR (Exact match to gemedible.com screenshot) */}
+      {/* 1. TOP ANNOUNCEMENT GREY BAR */}
       {settings.announcementEnabled !== false && (
         <div className="bg-[#e2e2e2] text-stone-800 text-xs sm:text-[13px] font-normal py-2 px-4 sm:px-8 flex items-center justify-between border-b border-stone-300/80 select-none">
           <span className="tracking-wide">

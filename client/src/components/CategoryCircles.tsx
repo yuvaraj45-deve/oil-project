@@ -16,7 +16,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   onSelectCategory,
   selectedCategory,
 }) => {
-  // Standing bottles matching gemedible.com screenshot: Groundnut, Sunflower, Mustard, Lamp, Sesame, Coconut (Transparent PNGs)
+  // Standing bottles: Groundnut, Sunflower, Mustard, Lamp, Sesame, Coconut (Transparent PNGs)
   const categories: CategoryItem[] = [
     {
       id: 'groundnut',
@@ -87,7 +87,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
                 <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none group-hover:scale-110 transition-transform" />
               </div>
 
-              {/* Bottle Title Label - matching exact reddish-brown serif typography from gemedible screenshot */}
+              {/* Bottle Title Label - matching exact reddish-brown serif typography */}
               <span className={`mt-2.5 text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center transition-colors whitespace-nowrap ${
                 isSelected ? 'text-[#b32d2e] underline font-extrabold' : 'text-[#8b2b2b] group-hover:text-[#b32d2e]'
               }`}>

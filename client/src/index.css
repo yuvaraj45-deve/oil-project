@@ -154,7 +154,7 @@
   will-change: transform;
 }
 
-/* Continuous Right-to-Left Standing Bottles Marquee (Below Gem's Gold) */
+/* Continuous Right-to-Left Standing Bottles Marquee */
 @keyframes bottlesMarquee {
   0% {
     transform: translate3d(0, 0, 0);
