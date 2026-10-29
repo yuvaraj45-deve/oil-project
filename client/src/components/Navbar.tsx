@@ -147,6 +147,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {language === 'ta' ? 'தேடல்' : 'Search'}
                 </span>
               </button>
+
+              {/* Desktop Quick Nav: Home & About Us directly in header */}
+              <div className="hidden md:flex items-center gap-1 border-l border-stone-200 pl-3 ml-1">
+                <button
+                  onClick={() => onNavigate('/')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    currentPath === '/' || currentPath === ''
+                      ? 'bg-emerald-50 text-[#1e7e34] border border-emerald-200/80 shadow-2xs font-extrabold'
+                      : 'text-stone-700 hover:text-[#1e7e34] hover:bg-stone-50'
+                  }`}
+                >
+                  {language === 'ta' ? 'முகப்பு' : 'Home'}
+                </button>
+                <button
+                  onClick={() => onNavigate('/about')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    currentPath === '/about'
+                      ? 'bg-emerald-50 text-[#1e7e34] border border-emerald-200/80 shadow-2xs font-extrabold'
+                      : 'text-stone-700 hover:text-[#1e7e34] hover:bg-stone-50'
+                  }`}
+                >
+                  {language === 'ta' ? 'எங்களைப் பற்றி' : 'About Us'}
+                </button>
+              </div>
             </div>
 
             {/* CENTER BRAND LOGO: Dynamic Store Logo & Name */}
@@ -291,30 +315,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* SUB-NAV ROW: OUR STORY • SHOP ˅ • CONTACT • FAQs */}
-        {/* By default hidden; 3-line menu click panna varum; link click pannalo scroll pannalo moodikollum */}
+        {/* SUB-NAV ROW: HOME • ABOUT US • SHOP ˅ • CONTACT • FAQs */}
+        {/* Permanently visible on desktop; smoothly toggleable on mobile via 3-line hamburger menu */}
         <div
-          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out ${
+          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-b border-stone-200/80 shadow-2xs ${
             headingBarOpen
-              ? 'max-h-24 opacity-100 pb-3 sm:pb-3.5 -mt-1 sm:-mt-2 border-b border-stone-200/80 shadow-xs'
-              : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2'
+              ? 'max-h-96 opacity-100 pb-3.5 pt-1 -mt-1 sm:-mt-2 block'
+              : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2 md:max-h-24 md:opacity-100 md:pb-3 md:pt-0.5 md:pointer-events-auto md:block'
           }`}
         >
-          <nav className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-5 sm:gap-11 md:gap-14 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900">
-            {/* OUR STORY */}
+          <nav className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-4 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900">
+            {/* 1. HOME */}
+            <button
+              onClick={() => {
+                setHeadingBarOpen(false);
+                onNavigate('/');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
+                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
+              }`}
+            >
+              <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
+            </button>
+
+            {/* 2. ABOUT US */}
             <button
               onClick={() => {
                 setHeadingBarOpen(false);
                 onNavigate('/about');
               }}
-              className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
-                currentPath === '/about' ? 'text-[#b32d2e] font-extrabold' : ''
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
+                currentPath === '/about' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
               }`}
             >
-              {language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}
+              <span>{language === 'ta' ? 'எங்களைப் பற்றி' : 'ABOUT US'}</span>
             </button>
 
-            {/* SHOP with Dropdown */}
+            {/* 3. SHOP with Dropdown */}
             <div
               className="relative"
               ref={shopDropdownRef}
@@ -326,14 +363,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setHeadingBarOpen(false);
                   onNavigate('/shop');
                 }}
-                className={`flex items-center gap-1 hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
-                  currentPath === '/shop' ? 'text-[#b32d2e] font-extrabold' : ''
+                className={`flex items-center gap-1 hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 ${
+                  currentPath === '/shop' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
                 }`}
               >
-                <span>{language === 'ta' ? 'கடைகள்' : 'SHOP'}</span>
+                <span>{language === 'ta' ? 'அங்காடி' : 'SHOP'}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    shopDropdownOpen ? 'rotate-180 text-[#b32d2e]' : ''
+                    shopDropdownOpen ? 'rotate-180 text-[#1e7e34]' : ''
                   }`}
                 />
               </button>
@@ -348,7 +385,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onNavigate('/shop');
                       if (onNavigateCategory) onNavigateCategory('all');
                     }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-stone-800 hover:bg-stone-50 hover:text-[#b32d2e] transition-colors cursor-pointer border-b border-stone-100 mb-1"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-stone-800 hover:bg-emerald-50 hover:text-[#1e7e34] transition-colors cursor-pointer border-b border-stone-100 mb-1"
                   >
                     {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
                   </button>
@@ -361,7 +398,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         if (onNavigateCategory) onNavigateCategory(cat.slug);
                         else onNavigate(`/category/${cat.slug}`);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:bg-stone-50 hover:text-[#b32d2e] transition-colors cursor-pointer flex items-center justify-between"
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:bg-emerald-50 hover:text-[#1e7e34] transition-colors cursor-pointer flex items-center justify-between"
                     >
                       <span className="truncate">{cat.title}</span>
                       <span className="text-[10px] text-stone-400 font-normal shrink-0 ml-1">{cat.itemCount}</span>
@@ -371,27 +408,27 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* CONTACT */}
+            {/* 4. CONTACT */}
             <button
               onClick={() => {
                 setHeadingBarOpen(false);
                 onNavigate('/contact');
               }}
-              className={`hover:text-[#b32d2e] transition-colors cursor-pointer py-1 ${
-                currentPath === '/contact' ? 'text-[#b32d2e] font-extrabold' : ''
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 ${
+                currentPath === '/contact' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
               }`}
             >
-              {language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}
+              <span>{language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}</span>
             </button>
 
-            {/* FAQs */}
+            {/* 5. FAQs */}
             <button
               onClick={() => {
                 setHeadingBarOpen(false);
                 if (onOpenFaq) onOpenFaq();
                 else onNavigate('/faq');
               }}
-              className="hover:text-[#b32d2e] transition-colors cursor-pointer py-1"
+              className="hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5"
             >
               FAQs
             </button>
