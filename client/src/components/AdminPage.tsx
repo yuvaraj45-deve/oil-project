@@ -2977,6 +2977,158 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* SECTION: Homepage Quality Pillars Center Banner Photo */}
+              <div className="p-6 rounded-2xl border border-amber-200/90 bg-[#FFFDF5] space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-md">
+                      Quality Pillars Center Image • தர உத்தரவாதம் நடுப்பகுதி படம்
+                    </span>
+                    <h4 className="font-serif font-black text-lg text-stone-900 mt-1">
+                      Homepage 4 Quality Pillars Center Banner Photo
+                    </h4>
+                    <p className="text-xs text-stone-600">
+                      முகப்புப் பக்கத்தில் 4 தர அம்சங்களுக்கு நடுவே தோன்றும் பாட்டில் புகைப்படத்தை மாற்றவும் அல்லது புதிய படத்தைப் பதிவேற்றவும்.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Live on Homepage
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  {/* Left: Preview */}
+                  <div className="lg:col-span-4 flex flex-col items-center">
+                    <div className="relative rounded-3xl overflow-hidden shadow-sm max-w-[280px] w-full border border-amber-300/70 bg-[#FFF9D5] p-5 flex flex-col items-center justify-center">
+                      <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2">Live Preview</span>
+                      <div className="h-56 w-full flex items-center justify-center rounded-2xl overflow-hidden bg-white/60">
+                        <img
+                          src={settings.qualityBannerImage || '/quality_banner_bottles.jpg'}
+                          alt="Quality Pillars Center Preview"
+                          className="w-full h-full object-contain drop-shadow-md"
+                        />
+                      </div>
+                      <div className="mt-3 px-3 py-1 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span className="truncate max-w-[200px]">{settings.qualityBannerBadge || '100% Mara Chekku • SS OIL Heritage'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Upload & Controls */}
+                  <div className="lg:col-span-8 space-y-4">
+                    {/* Upload File from PC */}
+                    <div>
+                      <label className="block text-xs font-bold text-stone-800 mb-1.5">
+                        Upload New Photo from Computer (கம்ப்யூட்டரில் இருந்து படம் மாற்ற):
+                      </label>
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-xs font-bold cursor-pointer shadow-xs transition-all hover:border-amber-500">
+                        <Upload className="w-4 h-4 text-amber-700" />
+                        <span>Choose Photo (JPG, PNG, WebP)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageFileUpload(e, (url) => {
+                              setSettings((prev) => ({ ...prev, qualityBannerImage: url }));
+                              updateStoreSettings({ qualityBannerImage: url });
+                              showToast('Quality Pillars image updated and saved!');
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    {/* Image URL Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-stone-800 mb-1">
+                        Or Enter Direct Image URL (அல்லது இணைய முகவரி):
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={settings.qualityBannerImage || ''}
+                          onChange={(e) => setSettings((prev) => ({ ...prev, qualityBannerImage: e.target.value }))}
+                          placeholder="/quality_banner_bottles.jpg or https://..."
+                          className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateStoreSettings({ qualityBannerImage: settings.qualityBannerImage });
+                            showToast('Quality Pillars image URL saved!');
+                          }}
+                          className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                        >
+                          Save URL
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Badge Text Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-stone-800 mb-1">
+                        Bottom Badge Seal Text (கீழ் உள்ள பேட்ஜ் வாசகம்):
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={settings.qualityBannerBadge || ''}
+                          onChange={(e) => setSettings((prev) => ({ ...prev, qualityBannerBadge: e.target.value }))}
+                          placeholder="100% Mara Chekku • SS OIL Heritage"
+                          className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateStoreSettings({ qualityBannerBadge: settings.qualityBannerBadge });
+                            showToast('Badge seal text saved!');
+                          }}
+                          className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition-all border border-stone-300 cursor-pointer shadow-xs"
+                        >
+                          Update Badge
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Presets Quick Chooser */}
+                    <div>
+                      <span className="block text-[11px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
+                        Quick Select Presets (தயாராக உள்ள படங்கள்):
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { label: 'SS OIL Trio Packshot (Default)', url: '/quality_banner_bottles.jpg' },
+                          { label: 'Salem Bottling Line', url: '/craft_stage_bottling.jpg' },
+                          { label: 'Vaagai Mara Chekku Churn', url: '/craft_stage_churn.jpg' },
+                          { label: 'Sun-Cured Seeds', url: '/craft_stage_seeds.jpg' },
+                        ].map((preset) => (
+                          <button
+                            key={preset.url}
+                            type="button"
+                            onClick={() => {
+                              setSettings((prev) => ({ ...prev, qualityBannerImage: preset.url }));
+                              updateStoreSettings({ qualityBannerImage: preset.url });
+                              showToast(`Applied preset: ${preset.label}`);
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                              (settings.qualityBannerImage || '/quality_banner_bottles.jpg') === preset.url
+                                ? 'bg-amber-100 border-amber-600 text-amber-950 font-bold shadow-2xs'
+                                : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

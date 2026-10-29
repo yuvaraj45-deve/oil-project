@@ -1,8 +1,13 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStore } from '../context/StoreContext';
 
 export const GemsGoldQualityBanner: React.FC = () => {
   const { language } = useLanguage();
+  const { settings } = useStore();
+
+  const centerImage = settings.qualityBannerImage || '/quality_banner_bottles.jpg';
+  const badgeText = settings.qualityBannerBadge || (language === 'ta' ? '100% மரச்செக்கு • SS OIL பாரம்பரியம்' : '100% Mara Chekku • SS OIL Heritage');
 
   return (
     <section className="bg-[#FFF9D5] py-10 sm:py-14 overflow-hidden">
@@ -51,31 +56,18 @@ export const GemsGoldQualityBanner: React.FC = () => {
           {/* Center Column: SS OIL Authentic Cold-Pressed Bottles Presentation */}
           <div className="lg:col-span-4 flex justify-center order-first lg:order-none">
             <div className="relative rounded-3xl overflow-hidden shadow-sm max-w-[340px] w-full border border-amber-300/50 bg-gradient-to-b from-amber-50/80 via-white/40 to-amber-100/50 p-6 flex flex-col items-center justify-center group">
-              <div className="relative flex items-center justify-center h-64 sm:h-72 w-full">
-                {/* Bottle 1: Sesame (left, angled) */}
+              <div className="relative flex items-center justify-center h-64 sm:h-72 w-full rounded-2xl overflow-hidden">
                 <img
-                  src="/products/sesame_oil.png"
-                  alt="SS OIL Pure Sesame Oil"
-                  className="absolute left-3 bottom-2 h-48 sm:h-56 object-contain drop-shadow-xl -rotate-6 group-hover:-rotate-3 transition-transform duration-500 z-10"
-                />
-                {/* Bottle 2: Groundnut (center, prominent) */}
-                <img
-                  src="/products/groundnut_oil.png"
-                  alt="SS OIL Pure Groundnut Oil"
-                  className="relative h-56 sm:h-64 object-contain drop-shadow-2xl z-20 group-hover:scale-105 transition-transform duration-500"
-                />
-                {/* Bottle 3: Coconut (right, angled) */}
-                <img
-                  src="/products/coconut_oil.png"
-                  alt="SS OIL Pure Coconut Oil"
-                  className="absolute right-3 bottom-2 h-48 sm:h-56 object-contain drop-shadow-xl rotate-6 group-hover:rotate-3 transition-transform duration-500 z-10"
+                  src={centerImage}
+                  alt="SS OIL Pure Cold-Pressed Oils"
+                  className="w-full h-full object-contain drop-shadow-xl group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
               {/* Quality Seal Badge */}
               <div className="mt-3 px-3.5 py-1.5 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5 z-30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>100% Mara Chekku • SS OIL Heritage</span>
+                <span>{badgeText}</span>
               </div>
             </div>
           </div>

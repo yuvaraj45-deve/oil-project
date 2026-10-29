@@ -179,6 +179,8 @@ export interface StoreSettings {
   upiVpa: string;
   codEnabled: boolean;
   homepageProductsLimit?: number;
+  qualityBannerImage?: string;
+  qualityBannerBadge?: string;
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
@@ -204,6 +206,8 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   upiVpa: 'ssoil@icici',
   codEnabled: true,
   homepageProductsLimit: 4,
+  qualityBannerImage: '/quality_banner_bottles.jpg',
+  qualityBannerBadge: '100% Mara Chekku • SS OIL Heritage',
 };
 
 export interface HomeFeaturedVideo {
