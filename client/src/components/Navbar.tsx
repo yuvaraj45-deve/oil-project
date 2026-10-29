@@ -147,30 +147,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {language === 'ta' ? 'தேடல்' : 'Search'}
                 </span>
               </button>
-
-              {/* Desktop Quick Nav: Home & About Us directly in header */}
-              <div className="hidden md:flex items-center gap-1 border-l border-stone-200 pl-3 ml-1">
-                <button
-                  onClick={() => onNavigate('/')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    currentPath === '/' || currentPath === ''
-                      ? 'bg-emerald-50 text-[#1e7e34] border border-emerald-200/80 shadow-2xs font-extrabold'
-                      : 'text-stone-700 hover:text-[#1e7e34] hover:bg-stone-50'
-                  }`}
-                >
-                  {language === 'ta' ? 'முகப்பு' : 'Home'}
-                </button>
-                <button
-                  onClick={() => onNavigate('/about')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    currentPath === '/about'
-                      ? 'bg-emerald-50 text-[#1e7e34] border border-emerald-200/80 shadow-2xs font-extrabold'
-                      : 'text-stone-700 hover:text-[#1e7e34] hover:bg-stone-50'
-                  }`}
-                >
-                  {language === 'ta' ? 'எங்களைப் பற்றி' : 'About Us'}
-                </button>
-              </div>
             </div>
 
             {/* CENTER BRAND LOGO: Dynamic Store Logo & Name */}
