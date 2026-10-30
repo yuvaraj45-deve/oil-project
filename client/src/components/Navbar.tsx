@@ -52,19 +52,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   const accountDropdownRef = useRef<HTMLDivElement | null>(null);
   const shopDropdownRef = useRef<HTMLDivElement | null>(null);
 
-  // Heading Bar state:
-  // By default hidden. Clicking the 3-line icon next to search toggles the 'OUR STORY' heading bar.
-  // After scrolling, clicking the 3-line icon toggles the heading bar.
-  const [headingBarOpen, setHeadingBarOpen] = useState(false);
+  // Scroll detection & Heading Bar state:
+  // Starting-la mattum thaan heading bar irukanum; scroll pannathuku apram maraivil irukum.
+  // Scroll pannathuku apram 3line icon click panna heading bar vara vendum, thirumba click panna marayanum.
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolledHeadingOpen, setScrolledHeadingOpen] = useState(false);
+  const [topHeadingClosed, setTopHeadingClosed] = useState(false);
 
-  // Close heading bar automatically when user scrolls so it doesn't obstruct view
   useEffect(() => {
-    let lastScrollY = window.scrollY || 0;
+    let lastScroll = window.scrollY || 0;
     const handleScroll = () => {
-      const currentScrollY = window.scrollY || 0;
-      if (Math.abs(currentScrollY - lastScrollY) > 40) {
-        setHeadingBarOpen(false);
-        lastScrollY = currentScrollY;
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      const scrolled = scrollY > 25;
+      setIsScrolled(scrolled);
+      if (scrolled) {
+        if (Math.abs(scrollY - lastScroll) > 40) {
+          setScrolledHeadingOpen(false);
+          lastScroll = scrollY;
+        }
+      } else {
+        setScrolledHeadingOpen(false);
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -72,8 +79,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const toggleHeadingBar = () => {
-    setHeadingBarOpen((prev) => !prev);
+    if (isScrolled) {
+      setScrolledHeadingOpen((prev) => !prev);
+    } else {
+      setTopHeadingClosed((prev) => !prev);
+    }
   };
+
+  const showHeadingBar = isScrolled ? scrolledHeadingOpen : !topHeadingClosed;
 
   // Trigger pulse animation when cart count changes
   useEffect(() => {
@@ -121,18 +134,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             {/* LEFT ACTIONS: Hamburger Menu + Search */}
             <div className="flex items-center gap-3 sm:gap-4">
-              {/* Hamburger 3-Line Menu Toggle (Opens / Toggles the 'OUR STORY' Heading Bar) */}
+              {/* Hamburger 3-Line Menu Toggle */}
               <button
                 onClick={toggleHeadingBar}
                 aria-label="Toggle Navigation Bar"
                 className={`p-1.5 sm:p-2 -ml-1 rounded-xl transition-all cursor-pointer ${
-                  headingBarOpen
+                  showHeadingBar && isScrolled
                     ? 'text-[#b32d2e] bg-amber-50 ring-1 ring-amber-200'
                     : 'text-stone-900 hover:text-amber-700 hover:bg-stone-100'
                 }`}
-                title={headingBarOpen ? 'Close Navigation Bar' : 'Open Navigation Bar'}
+                title={showHeadingBar ? 'Close Navigation Bar' : 'Open Navigation Bar'}
               >
-                {headingBarOpen ? (
+                {showHeadingBar && isScrolled ? (
                   <X className="w-6 h-6 stroke-[2.2]" />
                 ) : (
                   <Menu className="w-6 h-6 stroke-[2.2]" />
@@ -286,20 +299,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* SUB-NAV ROW: OUR STORY • SHOP ˅ • CONTACT • FAQs */}
-        {/* By default hidden; 3-line menu click panna varum; link click pannalo scroll pannalo moodikollum */}
+        {/* SUB-NAV ROW: HOME • OUR STORY • SHOP ˅ • CONTACT • FAQs */}
+        {/* Starting-la irukum; scroll pannathuku apram maraivil irukum; 3-line click panna varum, thirumba click panna marayum */}
         <div
           className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-b border-stone-200/80 shadow-xs ${
-            headingBarOpen
+            showHeadingBar
               ? 'max-h-96 opacity-100 pb-3.5 pt-1 -mt-1 sm:-mt-2 block'
               : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2'
           }`}
         >
           <nav className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-4 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900">
-            {/* 1. OUR STORY */}
+            {/* 1. HOME */}
             <button
               onClick={() => {
-                setHeadingBarOpen(false);
+                if (isScrolled) setScrolledHeadingOpen(false);
+                onNavigate('/');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
+                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
+              }`}
+            >
+              <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
+            </button>
+
+            {/* 2. OUR STORY */}
+            <button
+              onClick={() => {
+                if (isScrolled) setScrolledHeadingOpen(false);
                 onNavigate('/about');
               }}
               className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
@@ -309,7 +335,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}</span>
             </button>
 
-            {/* 2. SHOP with Dropdown */}
+            {/* 3. SHOP with Dropdown */}
             <div
               className="relative"
               ref={shopDropdownRef}
@@ -318,7 +344,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <button
                 onClick={() => {
-                  setHeadingBarOpen(false);
+                  if (isScrolled) setScrolledHeadingOpen(false);
                   onNavigate('/shop');
                 }}
                 className={`flex items-center gap-1 hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 ${
@@ -339,7 +365,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     onClick={() => {
                       setShopDropdownOpen(false);
-                      setHeadingBarOpen(false);
+                      if (isScrolled) setScrolledHeadingOpen(false);
                       onNavigate('/shop');
                       if (onNavigateCategory) onNavigateCategory('all');
                     }}
@@ -352,7 +378,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       key={cat.id}
                       onClick={() => {
                         setShopDropdownOpen(false);
-                        setHeadingBarOpen(false);
+                        if (isScrolled) setScrolledHeadingOpen(false);
                         if (onNavigateCategory) onNavigateCategory(cat.slug);
                         else onNavigate(`/category/${cat.slug}`);
                       }}
@@ -368,7 +394,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* 4. CONTACT */}
             <button
               onClick={() => {
-                setHeadingBarOpen(false);
+                if (isScrolled) setScrolledHeadingOpen(false);
                 onNavigate('/contact');
               }}
               className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 ${
@@ -378,29 +404,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}</span>
             </button>
 
-            {/* 4. FAQs */}
+            {/* 5. FAQs */}
             <button
               onClick={() => {
-                setHeadingBarOpen(false);
+                if (isScrolled) setScrolledHeadingOpen(false);
                 if (onOpenFaq) onOpenFaq();
                 else onNavigate('/faq');
               }}
               className="hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5"
             >
               FAQs
-            </button>
-
-            {/* 5. HOME */}
-            <button
-              onClick={() => {
-                setHeadingBarOpen(false);
-                onNavigate('/');
-              }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
-                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
-              }`}
-            >
-              <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
             </button>
           </nav>
         </div>
