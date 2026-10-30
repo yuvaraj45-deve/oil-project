@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface FeaturedProductsProps {
   onAddToCart: (product: Product, packSize: string) => void;
@@ -29,6 +30,15 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   // State to track which product currently has the pack selector overlay open (when buying)
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
+  const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
+
+  useEffect(() => {
+    const handleFavChange = (e: any) => {
+      setFavoritesList(e.detail || getFavorites());
+    };
+    window.addEventListener('ssoil_favorites_updated', handleFavChange);
+    return () => window.removeEventListener('ssoil_favorites_updated', handleFavChange);
+  }, []);
 
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
   const filteredProducts =
@@ -234,6 +244,22 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                       <span>{t('prod.details')}</span>
                     </button>
                   </div>
+
+                  {/* Favorite Heart Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(product.id);
+                    }}
+                    className={`absolute bottom-3 right-3 p-2 rounded-full transition-all cursor-pointer shadow-md z-10 ${
+                      favoritesList.includes(product.id)
+                        ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
+                        : 'bg-white/95 text-stone-500 hover:text-red-500 hover:bg-white'
+                    }`}
+                    title={favoritesList.includes(product.id) ? 'In Favorites' : 'Add to Favorites'}
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${favoritesList.includes(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                  </button>
                 </div>
 
                 {/* Card Details */}

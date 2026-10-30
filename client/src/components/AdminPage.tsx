@@ -963,14 +963,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <span className="w-2 h-2 rounded-full bg-red-500 absolute top-1.5 right-1.5 ring-2 ring-white" />
             </button>
 
-            {/* Admin Avatar Pill */}
-            <div className="flex items-center gap-2 pl-2 border-l border-stone-200">
-              <div className="w-8 h-8 rounded-full bg-[#132c19] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                A
+            {/* Admin Avatar Pill & Quick Logout */}
+            <div className="flex items-center gap-2.5 pl-2 border-l border-stone-200">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#132c19] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  A
+                </div>
+                <div className="hidden sm:block text-left">
+                  <div className="text-xs font-bold text-stone-800 leading-tight">Admin</div>
+                  <div className="text-[10px] text-stone-400">Super Admin</div>
+                </div>
               </div>
-              <span className="hidden sm:inline text-xs font-bold text-stone-800">
-                Admin ˇ
-              </span>
+              <button
+                onClick={() => {
+                  if (onLogout) onLogout();
+                  else if (onBackToStore) onBackToStore();
+                  else window.location.href = '/';
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                title="Sign out of Admin Portal"
+              >
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
             </div>
           </div>
         </header>
@@ -2879,12 +2894,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             onChange={(e) => onUpdateOrderStatus(ord.id, e.target.value as PlacedOrder['orderStatus'])}
                             className="px-2.5 py-1 rounded-xl text-xs font-bold border border-stone-300 bg-white cursor-pointer focus:outline-none focus:border-[#1e7e34]"
                           >
-                            <option value="PENDING">PENDING</option>
                             <option value="PROCESSING">PROCESSING</option>
+                            <option value="PACKED">PACKED</option>
                             <option value="SHIPPED">SHIPPED</option>
                             <option value="DELIVERED">DELIVERED</option>
                             <option value="CANCELLED">CANCELLED</option>
                           </select>
+                          {ord.cancelReason && (
+                            <div className="mt-1 text-[10px] text-red-700 bg-red-50 px-2 py-0.5 rounded-lg border border-red-200 font-medium max-w-[200px]">
+                              Reason: {ord.cancelReason}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}

@@ -16,43 +16,43 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   onSelectCategory,
   selectedCategory,
 }) => {
-  // Standing bottles: Groundnut, Sunflower, Mustard, Lamp, Sesame, Coconut (Transparent PNGs)
+  // Standing bottles: Groundnut, Sunflower, Mustard, Lamp, Sesame, Coconut (SS OIL pure bottles)
   const categories: CategoryItem[] = [
     {
       id: 'groundnut',
       name: 'Groundnut Oil',
       slug: 'groundnut-oil',
-      image: '/products/groundnut_oil.png',
+      image: '/products/groundnut_oil.jpg',
     },
     {
       id: 'sunflower',
       name: 'Sunflower Oil',
       slug: 'cooking-oil',
-      image: '/products/sunflower_oil.png',
+      image: '/products/sunflower_oil.jpg',
     },
     {
       id: 'mustard',
       name: 'Mustard Oil',
       slug: 'cooking-oil',
-      image: '/products/mustard_oil.png',
+      image: '/products/mustard_oil.jpg',
     },
     {
       id: 'lamp',
       name: 'Lamp Oil',
       slug: 'pooja-special',
-      image: '/products/lamp_oil.png',
+      image: '/products/lamp_oil.jpg',
     },
     {
       id: 'sesame',
       name: 'Sesame Oil',
       slug: 'sesame-oil',
-      image: '/products/sesame_oil.png',
+      image: '/products/sesame_oil.jpg',
     },
     {
       id: 'coconut',
       name: 'Coconut Oil',
       slug: 'coconut-oil',
-      image: '/products/coconut_oil.png',
+      image: '/products/coconut_oil.jpg',
     },
   ];
 

@@ -144,6 +144,8 @@ export interface PlacedOrder {
   totalAmount: number;
   createdAt: string;
   items: OrderItemRecord[];
+  cancelReason?: string;
+  cancelledAt?: string;
 }
 
 export interface UserProfile {

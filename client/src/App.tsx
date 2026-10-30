@@ -137,98 +137,128 @@ export function App() {
   const [lastPlacedOrder, setLastPlacedOrder] = useState<PlacedOrder | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Live Orders List with initial seed data
-  const [orders, setOrders] = useState<PlacedOrder[]>([
-    {
-      id: 'ord_1',
-      orderNumber: 'SSOIL-2026-1042',
-      customerName: 'Ramesh Sundaram',
-      customerEmail: 'ramesh.sundaram@gmail.com',
-      customerPhone: '9842145620',
-      shippingAddress: '42, Meyyanur Main Road, Salem, Tamil Nadu - 636004',
-      city: 'Salem',
-      pincode: '636004',
-      paymentMethod: 'UPI',
-      paymentStatus: 'PAID',
-      orderStatus: 'SHIPPED',
-      subtotal: 680,
-      shippingFee: 0,
-      totalAmount: 680,
-      createdAt: '2026-10-21T14:30:00.000Z',
-      items: [
-        {
-          productId: 'ss-sesame-1000',
-          productName: 'Wood-Pressed Gingelly (Sesame) Oil',
-          packSize: '1 Litre Bottle',
-          quantity: 2,
-          unitPrice: 395,
-          subtotal: 790,
-        },
-      ],
-    },
-    {
-      id: 'ord_2',
-      orderNumber: 'SSOIL-2026-1088',
-      customerName: 'Anitha Vijay',
-      customerEmail: 'anitha.vijay@yahoo.co.in',
-      customerPhone: '9789234110',
-      shippingAddress: '15, 2nd Avenue, Anna Nagar, Chennai, Tamil Nadu - 600040',
-      city: 'Chennai',
-      pincode: '600040',
-      paymentMethod: 'CARD',
-      paymentStatus: 'PAID',
-      orderStatus: 'PACKED',
-      subtotal: 570,
-      shippingFee: 0,
-      totalAmount: 570,
-      createdAt: '2026-10-21T18:15:00.000Z',
-      items: [
-        {
-          productId: 'prod_coconut',
-          productName: 'Pure Cold-Pressed Coconut Oil (Chekku)',
-          packSize: '1 Litre Bottle',
-          quantity: 1,
-          unitPrice: 380,
-          subtotal: 380,
-        },
-        {
-          productId: 'prod_sesame',
-          productName: 'Traditional Mara Chekku Sesame (Gingelly) Oil',
-          packSize: '500ml Bottle',
-          quantity: 1,
-          unitPrice: 190,
-          subtotal: 190,
-        },
-      ],
-    },
-    {
-      id: 'ord_3',
-      orderNumber: 'SSOIL-2026-1120',
-      customerName: 'Karthik Muthusamy',
-      customerEmail: 'karthik.m@outlook.com',
-      customerPhone: '9443219087',
-      shippingAddress: '78, Race Course Road, Coimbatore, Tamil Nadu - 641018',
-      city: 'Coimbatore',
-      pincode: '641018',
-      paymentMethod: 'COD',
-      paymentStatus: 'PENDING',
-      orderStatus: 'PROCESSING',
-      subtotal: 850,
-      shippingFee: 0,
-      totalAmount: 850,
-      createdAt: '2026-10-22T08:45:00.000Z',
-      items: [
-        {
-          productId: 'prod_ghee',
-          productName: 'A2 Desi Cow Bilona Cultured Ghee',
-          packSize: '500ml Glass Jar',
-          quantity: 1,
-          unitPrice: 850,
-          subtotal: 850,
-        },
-      ],
-    },
-  ]);
+  // Live Orders List with initial seed data and localStorage persistence
+  const [orders, setOrders] = useState<PlacedOrder[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_orders');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        id: 'ord_1',
+        orderNumber: 'SSOIL-2026-1042',
+        customerName: 'Ramesh Sundaram',
+        customerEmail: 'ramesh.sundaram@gmail.com',
+        customerPhone: '9842145620',
+        shippingAddress: '42, Meyyanur Main Road, Salem, Tamil Nadu - 636004',
+        city: 'Salem',
+        pincode: '636004',
+        paymentMethod: 'UPI',
+        paymentStatus: 'PAID',
+        orderStatus: 'SHIPPED',
+        subtotal: 680,
+        shippingFee: 0,
+        totalAmount: 680,
+        createdAt: '2026-10-21T14:30:00.000Z',
+        items: [
+          {
+            productId: 'ss-sesame-1000',
+            productName: 'Wood-Pressed Gingelly (Sesame) Oil',
+            packSize: '1 Litre Bottle',
+            quantity: 2,
+            unitPrice: 395,
+            subtotal: 790,
+          },
+        ],
+      },
+      {
+        id: 'ord_2',
+        orderNumber: 'SSOIL-2026-1088',
+        customerName: 'Anitha Vijay',
+        customerEmail: 'anitha.vijay@yahoo.co.in',
+        customerPhone: '9789234110',
+        shippingAddress: '15, 2nd Avenue, Anna Nagar, Chennai, Tamil Nadu - 600040',
+        city: 'Chennai',
+        pincode: '600040',
+        paymentMethod: 'CARD',
+        paymentStatus: 'PAID',
+        orderStatus: 'PACKED',
+        subtotal: 570,
+        shippingFee: 0,
+        totalAmount: 570,
+        createdAt: '2026-10-21T18:15:00.000Z',
+        items: [
+          {
+            productId: 'prod_coconut',
+            productName: 'Pure Cold-Pressed Coconut Oil (Chekku)',
+            packSize: '1 Litre Bottle',
+            quantity: 1,
+            unitPrice: 380,
+            subtotal: 380,
+          },
+          {
+            productId: 'prod_sesame',
+            productName: 'Traditional Mara Chekku Sesame (Gingelly) Oil',
+            packSize: '500ml Bottle',
+            quantity: 1,
+            unitPrice: 190,
+            subtotal: 190,
+          },
+        ],
+      },
+      {
+        id: 'ord_3',
+        orderNumber: 'SSOIL-2026-1120',
+        customerName: 'Karthik Muthusamy',
+        customerEmail: 'karthik.m@outlook.com',
+        customerPhone: '9443219087',
+        shippingAddress: '78, Race Course Road, Coimbatore, Tamil Nadu - 641018',
+        city: 'Coimbatore',
+        pincode: '641018',
+        paymentMethod: 'COD',
+        paymentStatus: 'PENDING',
+        orderStatus: 'PROCESSING',
+        subtotal: 850,
+        shippingFee: 0,
+        totalAmount: 850,
+        createdAt: '2026-10-22T08:45:00.000Z',
+        items: [
+          {
+            productId: 'prod_ghee',
+            productName: 'A2 Desi Cow Bilona Cultured Ghee',
+            packSize: '500ml Glass Jar',
+            quantity: 1,
+            unitPrice: 850,
+            subtotal: 850,
+          },
+        ],
+      },
+    ];
+  });
+
+  // Sync orders to localStorage on any change
+  useEffect(() => {
+    try {
+      localStorage.setItem('ssoil_orders', JSON.stringify(orders));
+    } catch (e) {}
+  }, [orders]);
+
+  // Handle Order Cancellation with Reason
+  const handleCancelOrder = (orderId: string, reason: string, note?: string) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              orderStatus: 'CANCELLED' as const,
+              cancelReason: reason,
+              cancelledAt: new Date().toISOString(),
+            }
+          : o
+      )
+    );
+    setToastMessage(`Order cancelled: "${reason}"`);
+  };
 
   // Cart helper functions
   const handleAddToCart = (product: Product, packSize: string, quantity = 1) => {
@@ -369,7 +399,8 @@ export function App() {
           } catch (e) {}
           setCurrentUser(null);
           setToastMessage('Admin signed out successfully.');
-          navigateTo('/');
+          // Unconditional hard redirect to root storefront so it NEVER stays on /admin
+          window.location.href = '/';
         }}
       />
     );
@@ -514,6 +545,7 @@ export function App() {
             currentUser={currentUser}
             orders={orders}
             onNavigate={navigateTo}
+            onCancelOrder={handleCancelOrder}
             onUpdateUser={(updated) => {
               setCurrentUser(updated);
               try {
@@ -623,7 +655,7 @@ export function App() {
         onNavigate={navigateTo}
       />
 
-      {/* Interactive Cart Drawer */}
+      {/* Interactive Cart Drawer with Cart, Favorites & Orders Tabs */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -632,6 +664,9 @@ export function App() {
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
         onProceedToCheckout={handleProceedToCheckout}
+        orders={orders}
+        onCancelOrder={handleCancelOrder}
+        onAddToCart={handleAddToCart}
       />
 
       {/* Instant Checkout Modal */}

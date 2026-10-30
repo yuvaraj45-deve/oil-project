@@ -13,10 +13,12 @@ import {
   ShieldCheck,
   Sparkles,
   ChevronRight,
-  Plus
+  Plus,
+  XCircle,
 } from 'lucide-react';
 import { PlacedOrder, UserProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { CancelOrderModal } from '../components/CancelOrderModal';
 
 interface ProfilePageProps {
   currentUser: UserProfile | null;
@@ -25,6 +27,7 @@ interface ProfilePageProps {
   onUpdateUser: (updatedUser: UserProfile) => void;
   onSignOut: () => void;
   onShopOils?: () => void;
+  onCancelOrder?: (orderId: string, reason: string, note?: string) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -34,9 +37,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUpdateUser,
   onSignOut,
   onShopOils,
+  onCancelOrder,
 }) => {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'rewards' | 'settings'>('orders');
+  const [cancellingOrder, setCancellingOrder] = useState<PlacedOrder | null>(null);
 
   // Editable Profile States
   const [isEditing, setIsEditing] = useState(false);
@@ -563,6 +568,38 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         </div>
                       </div>
 
+                      {/* CANCELLED Details Box */}
+                      {order.orderStatus === 'CANCELLED' && (
+                        <div className="mt-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-xs space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold text-red-700">
+                            <XCircle className="w-4 h-4" />
+                            <span>{language === 'ta' ? 'ஆர்டர் ரத்து செய்யப்பட்டது' : 'Order Cancelled'}</span>
+                          </div>
+                          <div className="text-xs text-red-800">
+                            <strong>{language === 'ta' ? 'காரணம்:' : 'Reason:'}</strong>{' '}
+                            <span>{order.cancelReason || 'Cancelled by customer'}</span>
+                          </div>
+                          {order.cancelledAt && (
+                            <div className="text-[10px] text-stone-400">
+                              {new Date(order.cancelledAt).toLocaleString('en-IN')}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ACTIVE ORDER: CANCEL BUTTON */}
+                      {(order.orderStatus === 'PROCESSING' || order.orderStatus === 'PACKED') && onCancelOrder && (
+                        <div className="mt-4 pt-3 border-t border-stone-200 flex justify-end">
+                          <button
+                            onClick={() => setCancellingOrder(order)}
+                            className="px-4 py-2 rounded-xl border border-red-300 hover:bg-red-50 text-red-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <XCircle className="w-4 h-4 text-red-600" />
+                            <span>{language === 'ta' ? 'ஆர்டரை ரத்து செய்' : 'Cancel Order'}</span>
+                          </button>
+                        </div>
+                      )}
+
                     </div>
                   ))
                 )}
@@ -773,6 +810,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
 
       </div>
+
+      {/* Cancellation Reason Modal */}
+      {cancellingOrder && onCancelOrder && (
+        <CancelOrderModal
+          isOpen={!!cancellingOrder}
+          onClose={() => setCancellingOrder(null)}
+          order={cancellingOrder}
+          onConfirmCancel={(orderId, reason, note) => {
+            onCancelOrder(orderId, reason, note);
+            setCancellingOrder(null);
+          }}
+        />
+      )}
     </div>
   );
 };
