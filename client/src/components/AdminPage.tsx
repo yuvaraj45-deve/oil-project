@@ -3030,8 +3030,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           className="w-full h-full object-contain drop-shadow-md"
                         />
                       </div>
-                      <div className="mt-3 px-3 py-1 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <div className="mt-3 px-3 py-1 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm">
                         <span className="truncate max-w-[200px]">{settings.qualityBannerBadge || '100% Mara Chekku • SS OIL Heritage'}</span>
                       </div>
                     </div>

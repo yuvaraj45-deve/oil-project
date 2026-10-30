@@ -186,8 +186,7 @@ export const CraftsmanshipVisualizer: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent" />
 
                 {/* Top Badge Overlay */}
-                <div className="absolute top-3.5 left-3.5 bg-amber-900/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-amber-200 border border-amber-700/50 shadow-xs flex items-center gap-1.5">
-                  <ShieldCheck className="w-3 h-3 text-amber-300" />
+                <div className="absolute top-3.5 left-3.5 bg-amber-900/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-amber-200 border border-amber-700/50 shadow-xs">
                   <span>100% Traditional Mara Chekku</span>
                 </div>
 

@@ -463,8 +463,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
 
-                    <div className="flex items-center justify-center gap-2 text-[11px] text-stone-500">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <div className="flex items-center justify-center text-[11px] text-stone-500">
                       <span>
                         {language === 'ta'
                           ? '100% தூய மரச்செக்கு இயற்கை எண்ணெய்'

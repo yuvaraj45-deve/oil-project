@@ -174,9 +174,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               
               {/* Badges */}
               <div className="absolute top-5 left-5 z-10 flex flex-col gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-forest-950 text-gold-300 shadow-sm border border-gold-500/30 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                  <span>100% Mara Chekku</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-forest-950 text-gold-300 shadow-sm border border-gold-500/30">
+                  100% Mara Chekku
                 </span>
                 {product.badge && (
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs self-start">
