@@ -35,6 +35,7 @@ interface CartDrawerProps {
   // Extended for Orders & Favorites tabs
   orders?: PlacedOrder[];
   onCancelOrder?: (orderId: string, reason: string, note?: string) => void;
+  onStartCancelOrder?: (order: PlacedOrder) => void;
   onAddToCart?: (product: Product, packSize: string, quantity?: number) => void;
   initialTab?: 'cart' | 'favorites' | 'orders';
 }
@@ -49,6 +50,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onProceedToCheckout,
   orders = [],
   onCancelOrder,
+  onStartCancelOrder,
   onAddToCart,
   initialTab = 'cart',
 }) => {
@@ -747,7 +749,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         {canCancel && onCancelOrder && (
                           <div className="pt-1">
                             <button
-                              onClick={() => setCancellingOrder(order)}
+                              onClick={() => {
+                                if (onStartCancelOrder) {
+                                  onClose();
+                                  onStartCancelOrder(order);
+                                } else {
+                                  setCancellingOrder(order);
+                                }
+                              }}
                               className="w-full py-2 px-3 rounded-xl border border-red-300 hover:bg-red-50 text-red-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                             >
                               <XCircle className="w-3.5 h-3.5 text-red-600" />

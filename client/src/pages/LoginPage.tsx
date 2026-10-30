@@ -16,7 +16,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onOpenAdmin,
   initialMode = 'login',
 }) => {
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isRegister, setIsRegister] = useState(initialMode === 'register');
 
   // Input states
@@ -134,21 +134,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-[85vh] bg-stone-50 flex flex-col justify-center items-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFFDF7] via-stone-50 to-[#FFF9E6] flex flex-col justify-center items-center px-4 py-8 sm:py-12 relative overflow-hidden">
       
-      {/* Back to Home Button */}
-      <div className="w-full max-w-sm mb-4">
+      {/* Decorative Warm Ambient Glows */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full bg-amber-100/50 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-emerald-100/30 blur-3xl pointer-events-none" />
+
+      {/* Top Bar: Back to Home + Language Toggle */}
+      <div className="w-full max-w-sm mb-4 flex items-center justify-between relative z-10">
         <button
           onClick={() => onNavigate('/')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white px-3 py-1.5 rounded-xl border border-stone-200/80 shadow-2xs transition-all cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{language === 'ta' ? 'முகப்பிற்குத் திரும்பு' : 'Back to Home'}</span>
+          <ArrowLeft className="w-4 h-4 text-forest-900" />
+          <span>{language === 'ta' ? 'முகப்பிற்குத் திரும்பு' : 'Back to Store'}</span>
         </button>
+
+        <div className="flex items-center gap-1 bg-white/80 border border-stone-200/80 p-0.5 rounded-xl shadow-2xs text-[11px] font-bold">
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+              language === 'en' ? 'bg-forest-950 text-white shadow-2xs' : 'text-stone-600 hover:text-stone-950'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('ta')}
+            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+              language === 'ta' ? 'bg-forest-950 text-white shadow-2xs' : 'text-stone-600 hover:text-stone-950'
+            }`}
+          >
+            தமிழ்
+          </button>
+        </div>
       </div>
 
       {/* Unified Single Login Box */}
-      <div className="w-full max-w-sm bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8">
+      <div className="w-full max-w-sm bg-white rounded-3xl border border-stone-200/90 shadow-xl p-6 sm:p-8 relative z-10 backdrop-blur-md">
         
         {/* Brand Header */}
         <div className="text-center mb-6">

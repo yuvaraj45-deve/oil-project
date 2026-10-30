@@ -28,6 +28,7 @@ interface ProfilePageProps {
   onSignOut: () => void;
   onShopOils?: () => void;
   onCancelOrder?: (orderId: string, reason: string, note?: string) => void;
+  onStartCancelOrder?: (order: PlacedOrder) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -38,6 +39,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onSignOut,
   onShopOils,
   onCancelOrder,
+  onStartCancelOrder,
 }) => {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'rewards' | 'settings'>('orders');
@@ -582,7 +584,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                       {(order.orderStatus === 'PROCESSING' || order.orderStatus === 'PACKED') && onCancelOrder && (
                         <div className="mt-4 pt-3 border-t border-stone-200 flex justify-end">
                           <button
-                            onClick={() => setCancellingOrder(order)}
+                            onClick={() => {
+                              if (onStartCancelOrder) {
+                                onStartCancelOrder(order);
+                              } else {
+                                setCancellingOrder(order);
+                              }
+                            }}
                             className="px-4 py-2 rounded-xl border border-red-300 hover:bg-red-50 text-red-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                           >
                             <XCircle className="w-4 h-4 text-red-600" />

@@ -47,6 +47,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
+import { CancelOrderPage } from './pages/CancelOrderPage';
 
 export function App() {
   const { products, categories, settings } = useStore();
@@ -257,6 +258,15 @@ export function App() {
     setToastMessage(`Order cancelled: "${reason}"`);
   };
 
+  // Dedicated Order Cancellation State & Navigation
+  const [orderToCancel, setOrderToCancel] = useState<PlacedOrder | null>(null);
+
+  const handleStartCancelOrder = (order: PlacedOrder) => {
+    setOrderToCancel(order);
+    setIsCartOpen(false);
+    navigateTo(`/cancel-order/${order.id}`);
+  };
+
   // Cart helper functions
   const handleAddToCart = (product: Product, packSize: string, quantity = 1) => {
     setCartItems((prevItems) => {
@@ -414,6 +424,63 @@ export function App() {
     );
   }
 
+  // Dedicated Standalone Full-Page Route for /login (No storefront navbar/footer clutter)
+  if (currentPath === '/login' || currentPath === '/login/') {
+    return (
+      <LoginPage
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          try {
+            localStorage.setItem('ssoil_user', JSON.stringify(user));
+          } catch (e) {}
+          if (user.role === 'admin') {
+            setIsAdminUnlocked(true);
+            try {
+              sessionStorage.setItem('pureva_admin_unlocked', 'true');
+            } catch (e) {}
+            setToastMessage(`Welcome back, ${user.name}!`);
+            navigateTo('/admin');
+          } else {
+            setToastMessage(`Welcome, ${user.name}! Sign in successful`);
+            navigateTo('/');
+          }
+        }}
+        onNavigate={navigateTo}
+        onOpenAdmin={() => navigateTo('/admin')}
+      />
+    );
+  }
+
+  // Dedicated Standalone Full-Page Route for /cancel-order
+  const isCancelOrderRoute = currentPath.startsWith('/cancel-order');
+  if (isCancelOrderRoute) {
+    const cancelOrderId = currentPath.replace('/cancel-order', '').replace(/^\//, '');
+    const resolvedOrderToCancel =
+      orderToCancel ||
+      orders.find((o) => o.id === cancelOrderId || o.orderNumber === cancelOrderId) ||
+      orders.find((o) => o.orderStatus === 'PROCESSING' || o.orderStatus === 'PACKED') ||
+      orders[0] ||
+      null;
+
+    return (
+      <CancelOrderPage
+        order={resolvedOrderToCancel}
+        onConfirmCancel={(orderId, reason, note) => {
+          handleCancelOrder(orderId, reason, note);
+        }}
+        onBack={() => {
+          navigateTo('/');
+          setIsCartOpen(true);
+        }}
+        onNavigate={navigateTo}
+        onViewOrders={() => {
+          navigateTo('/');
+          setIsCartOpen(true);
+        }}
+      />
+    );
+  }
+
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -528,31 +595,6 @@ export function App() {
         {/* Route: /contact */}
         {currentPath === '/contact' && <ContactPage />}
 
-        {/* Route: /login */}
-        {currentPath === '/login' && (
-          <LoginPage
-            onLoginSuccess={(user) => {
-              setCurrentUser(user);
-              try {
-                localStorage.setItem('ssoil_user', JSON.stringify(user));
-              } catch (e) {}
-              if (user.role === 'admin') {
-                setIsAdminUnlocked(true);
-                try {
-                  sessionStorage.setItem('pureva_admin_unlocked', 'true');
-                } catch (e) {}
-                setToastMessage(`Welcome back, ${user.name}! Admin Portal Unlocked 🛡️`);
-                navigateTo('/admin');
-              } else {
-                setToastMessage(`Welcome, ${user.name}! Sign in successful`);
-                navigateTo('/');
-              }
-            }}
-            onNavigate={navigateTo}
-            onOpenAdmin={() => navigateTo('/admin')}
-          />
-        )}
-
         {/* Route: /profile (Dedicated Standalone Customer Profile Page) */}
         {currentPath === '/profile' && (
           <ProfilePage
@@ -560,6 +602,7 @@ export function App() {
             orders={orders}
             onNavigate={navigateTo}
             onCancelOrder={handleCancelOrder}
+            onStartCancelOrder={handleStartCancelOrder}
             onUpdateUser={(updated) => {
               setCurrentUser(updated);
               try {
@@ -673,6 +716,7 @@ export function App() {
         onProceedToCheckout={handleProceedToCheckout}
         orders={orders}
         onCancelOrder={handleCancelOrder}
+        onStartCancelOrder={handleStartCancelOrder}
         onAddToCart={handleAddToCart}
       />
 
