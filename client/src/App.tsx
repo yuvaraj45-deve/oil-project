@@ -28,9 +28,7 @@ import { QuickDock } from './components/QuickDock';
 import { Toast } from './components/Toast';
 import { CheckoutModal } from './components/CheckoutModal';
 import { OrderSuccessModal } from './components/OrderSuccessModal';
-import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { AdminPage } from './components/AdminPage';
-import { AdminLoginGate } from './components/AdminLoginGate';
 import { ProfileModal } from './components/ProfileModal';
 import { FaqModal } from './components/FaqModal';
 import { Product, CartItem, PlacedOrder, UserProfile } from './types';
@@ -135,7 +133,6 @@ export function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
   const [lastPlacedOrder, setLastPlacedOrder] = useState<PlacedOrder | null>(null);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   // Live Orders List with initial seed data and localStorage persistence
   const [orders, setOrders] = useState<PlacedOrder[]>(() => {
@@ -365,22 +362,31 @@ export function App() {
     setToastMessage(`Order status updated to ${newStatus}`);
   };
 
-  // Dedicated Full-Page Route for /admin (PROTECTED: Requires Email ID and Password!)
+  // Dedicated Full-Page Route for /admin (PROTECTED: Unified Single Login Page)
   if (currentPath === '/admin' || currentPath === '/admin/') {
-    // If not explicitly unlocked with Email ID and Password, display the AdminLoginGate!
+    // If not explicitly unlocked with Admin ID and Password, display the Single Unified LoginPage!
     if (!isAdminUnlocked || !currentUser || currentUser.role !== 'admin') {
       return (
-        <AdminLoginGate
-          onLoginSuccess={(adminUser) => {
-            setCurrentUser(adminUser);
-            setIsAdminUnlocked(true);
+        <LoginPage
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
             try {
-              sessionStorage.setItem('pureva_admin_unlocked', 'true');
-              localStorage.setItem('ssoil_user', JSON.stringify(adminUser));
+              localStorage.setItem('ssoil_user', JSON.stringify(user));
             } catch (e) {}
-            setToastMessage(`Welcome back, ${adminUser.name}! Admin Portal Unlocked 🛡️`);
+            if (user.role === 'admin') {
+              setIsAdminUnlocked(true);
+              try {
+                sessionStorage.setItem('pureva_admin_unlocked', 'true');
+              } catch (e) {}
+              setToastMessage(`Welcome back, ${user.name}! Admin Portal Unlocked 🛡️`);
+              navigateTo('/admin');
+            } else {
+              setToastMessage(`Welcome, ${user.name}! Sign in successful`);
+              navigateTo('/');
+            }
           }}
-          onBackToStore={() => navigateTo('/')}
+          onNavigate={navigateTo}
+          onOpenAdmin={() => navigateTo('/admin')}
         />
       );
     }
@@ -527,10 +533,15 @@ export function App() {
               try {
                 localStorage.setItem('ssoil_user', JSON.stringify(user));
               } catch (e) {}
-              setToastMessage(`Welcome, ${user.name}! Sign in successful`);
               if (user.role === 'admin') {
+                setIsAdminUnlocked(true);
+                try {
+                  sessionStorage.setItem('pureva_admin_unlocked', 'true');
+                } catch (e) {}
+                setToastMessage(`Welcome back, ${user.name}! Admin Portal Unlocked 🛡️`);
                 navigateTo('/admin');
               } else {
+                setToastMessage(`Welcome, ${user.name}! Sign in successful`);
                 navigateTo('/');
               }
             }}
@@ -681,15 +692,7 @@ export function App() {
       <OrderSuccessModal
         order={lastPlacedOrder}
         onClose={() => setIsOrderSuccessOpen(false)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-      />
-
-      {/* Mill Store Admin Dashboard Modal */}
-      <AdminDashboardModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        orders={orders}
-        onUpdateOrderStatus={handleUpdateOrderStatus}
+        onViewOrders={() => setIsCartOpen(true)}
       />
 
       {/* Product Quick View Modal */}

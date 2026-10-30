@@ -34,3 +34,4 @@ export const toggleFavorite = (productId: string): boolean => {
 export const isFavorite = (productId: string): boolean => {
   return getFavorites().includes(productId);
 };
+

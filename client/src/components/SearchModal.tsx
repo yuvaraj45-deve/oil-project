@@ -109,42 +109,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
           {/* Results Area */}
           <div className="p-5 max-h-96 overflow-y-auto space-y-3">
-            {/* 🔐 SECRET ADMIN PORTAL CARD - Only shows when query is 'admin' */}
-            {query.trim().toLowerCase() === 'admin' && (
-              <div
-                onClick={() => {
-                  onOpenAdmin();
-                  onClose();
-                }}
-                className="p-4 rounded-2xl bg-gradient-to-r from-forest-950 via-forest-900 to-forest-950 text-cream-100 border-2 border-gold-400 shadow-xl cursor-pointer hover:scale-[1.01] transition-all flex items-center justify-between group animate-in fade-in zoom-in-95 duration-200"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center border border-gold-500/40 shrink-0">
-                    <ShieldCheck className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-serif font-bold text-sm text-gold-300 tracking-wide">
-                        SS OIL Mill Admin Portal
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-400 text-forest-950 flex items-center gap-1">
-                        <Lock className="w-2.5 h-2.5" /> Secret Access
-                      </span>
-                    </div>
-                    <p className="text-xs text-cream-200/70 mt-0.5">
-                      Store KPIs, live orders management, inventory stock, and GC-MS quality reports.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-4 py-2 rounded-xl bg-gold-500 text-forest-950 font-bold text-xs flex items-center gap-1.5 group-hover:bg-gold-400 transition-colors shadow-md shrink-0">
-                  <span>Enter Dashboard</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </div>
-            )}
-
-            {filtered.length === 0 && query.trim() !== '' && query.trim().toLowerCase() !== 'admin' ? (
+            {filtered.length === 0 && query.trim() !== '' ? (
               <div className="text-center py-8 text-stone-500 text-sm">
                 {language === 'ta'
                   ? `"${query}" தொடர்பாக எந்த எண்ணெயும் கிடைக்கவில்லை. நல்லெண்ணெய் அல்லது தேங்காய் எண்ணெய் எனத் தேடிப் பார்க்கவும்.`

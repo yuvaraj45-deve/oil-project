@@ -246,12 +246,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               {language === 'ta' ? 'டெலிவரி & திருப்புதல்' : 'Shipping & Returns'}
             </a>
             <button
-              onClick={() => handleLinkClick('/admin')}
-              className="text-stone-400 hover:text-gold-400 transition-colors cursor-pointer text-xs font-medium"
-            >
-              {language === 'ta' ? 'அட்மின் போர்டல்' : 'Admin Portal'}
-            </button>
-            <button
               onClick={scrollToTop}
               className="p-2 rounded-full bg-forest-900 text-gold-400 hover:bg-gold-500 hover:text-forest-950 transition-colors ml-2 cursor-pointer"
               title="Back to Top"

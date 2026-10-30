@@ -17,13 +17,13 @@ import { useLanguage } from '../context/LanguageContext';
 interface OrderSuccessModalProps {
   order: PlacedOrder | null;
   onClose: () => void;
-  onOpenAdmin: () => void;
+  onViewOrders?: () => void;
 }
 
 export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   order,
   onClose,
-  onOpenAdmin,
+  onViewOrders,
 }) => {
   const { language } = useLanguage();
   if (!order) return null;
@@ -164,12 +164,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             <button
               onClick={() => {
                 onClose();
-                onOpenAdmin();
+                if (onViewOrders) onViewOrders();
               }}
               className="py-3 px-4 rounded-xl bg-cream-200 hover:bg-cream-300 text-forest-950 font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border border-cream-300"
             >
               <Package className="w-4 h-4 text-forest-800" />
-              <span>{language === 'ta' ? 'அட்மின் டாஷ்போர்டு' : 'View in Admin Dashboard'}</span>
+              <span>{language === 'ta' ? 'என் ஆர்டர்கள்' : 'View My Orders'}</span>
             </button>
           </div>
 

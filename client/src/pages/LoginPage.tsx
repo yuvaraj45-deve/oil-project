@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -21,7 +21,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   // Input states
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -33,14 +33,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     e.preventDefault();
     setErrorMessage(null);
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanId = emailOrId.trim();
     const cleanPass = password.trim();
 
-    if (!cleanEmail || !cleanPass) {
+    if (!cleanId || !cleanPass) {
       setErrorMessage(
         language === 'ta'
-          ? 'மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும்.'
-          : 'Please enter both email and password.'
+          ? 'பயனர் ஐடி மற்றும் கடவுச்சொல்லை உள்ளிடவும்.'
+          : 'Please enter both User ID and password.'
       );
       return;
     }
@@ -55,83 +55,102 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(true);
 
     setTimeout(() => {
-      // 1. Check Admin Credentials
-      const adminEmails = ['admin@pureva.com', 'admin@ssoil.com', 'admin@gmail.com', 'admin'];
-      const adminPasswords = ['admin', 'admin123', 'pureva123', 'admin@123'];
+      const lowerId = cleanId.toLowerCase();
 
-      const isAdmin =
-        !isRegister &&
-        (adminEmails.includes(cleanEmail) || cleanEmail.startsWith('admin')) &&
-        adminPasswords.includes(cleanPass);
+      // 1. Check Admin Credentials (admin / admin123, ssoil123, etc.)
+      const adminIds = ['admin', 'admin@ssoil.com', 'admin@pureva.com', 'admin@gmail.com', 'ssoil_admin', 'ssoiladmin'];
+      const adminPasswords = ['admin', 'admin123', 'pureva123', 'admin@123', 'ssoil123', 'ssoil', 'admin2026'];
 
-      if (isAdmin) {
-        try {
-          sessionStorage.setItem('pureva_admin_unlocked', 'true');
-        } catch (e) {}
+      const isAdminAttempt = !isRegister && (adminIds.includes(lowerId) || lowerId.startsWith('admin'));
 
-        const adminUser: UserProfile = {
-          id: 'usr_admin',
-          name: 'PureVa Admin',
-          email: cleanEmail.includes('@') ? cleanEmail : 'admin@pureva.com',
-          phone: '1800 425 7764',
-          role: 'admin',
-          memberTier: 'Platinum Member',
-          purityPoints: 9999,
-        };
+      if (isAdminAttempt) {
+        if (adminPasswords.includes(cleanPass)) {
+          try {
+            sessionStorage.setItem('pureva_admin_unlocked', 'true');
+          } catch (e) {}
 
-        setIsLoading(false);
-        onLoginSuccess(adminUser);
-        if (onOpenAdmin) {
-          onOpenAdmin();
+          const adminUser: UserProfile = {
+            id: 'usr_admin',
+            name: 'SS OIL Admin',
+            email: cleanId.includes('@') ? cleanId : 'admin@ssoil.com',
+            phone: '1800 425 7764',
+            role: 'admin',
+            memberTier: 'Platinum Member',
+            purityPoints: 9999,
+          };
+
+          try {
+            localStorage.setItem('ssoil_user', JSON.stringify(adminUser));
+          } catch (e) {}
+
+          setIsLoading(false);
+          onLoginSuccess(adminUser);
+          if (onOpenAdmin) {
+            onOpenAdmin();
+          } else {
+            onNavigate('/admin');
+          }
+          return;
         } else {
-          onNavigate('/admin');
+          setIsLoading(false);
+          setErrorMessage(
+            language === 'ta'
+              ? 'தவறான Admin கடவுச்சொல். Admin ID-க்கான சரியான கடவுச்சொல்லை உள்ளிடவும்.'
+              : 'Invalid Admin password. Please enter correct admin credentials.'
+          );
+          return;
         }
-        return;
       }
 
       // 2. Normal Customer Login / Register
       let displayName = name.trim();
       if (!displayName) {
-        if (cleanEmail.includes('@')) {
-          const raw = cleanEmail.split('@')[0];
+        if (cleanId.includes('@')) {
+          const raw = cleanId.split('@')[0];
           displayName = raw.charAt(0).toUpperCase() + raw.slice(1);
         } else {
-          displayName = cleanEmail.charAt(0).toUpperCase() + cleanEmail.slice(1);
+          displayName = cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
         }
       }
 
       const customerUser: UserProfile = {
         id: `usr_${Date.now()}`,
         name: displayName,
-        email: cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@gmail.com`,
+        email: cleanId.includes('@') ? cleanId : `${lowerId.replace(/\s+/g, '')}@gmail.com`,
         phone: '98421 45620',
         role: 'customer',
         memberTier: 'Gold Member',
         purityPoints: isRegister ? 100 : 240,
       };
 
+      try {
+        localStorage.setItem('ssoil_user', JSON.stringify(customerUser));
+      } catch (e) {}
+
       setIsLoading(false);
       onLoginSuccess(customerUser);
       onNavigate('/');
-    }, 400);
+    }, 350);
   };
 
   const handleQuickDemo = (type: 'customer' | 'admin') => {
     if (type === 'admin') {
-      setEmail('admin@pureva.com');
+      setEmailOrId('admin');
       setPassword('admin123');
       setIsRegister(false);
+      setErrorMessage(null);
     } else {
-      setEmail('customer@pureva.com');
+      setEmailOrId('user@ssoil.com');
       setPassword('user123');
       setIsRegister(false);
+      setErrorMessage(null);
     }
   };
 
   return (
     <div className="min-h-[85vh] bg-stone-50 flex flex-col justify-center items-center px-4 py-12">
       
-      {/* Back button */}
+      {/* Back to Home Button */}
       <div className="w-full max-w-sm mb-4">
         <button
           onClick={() => onNavigate('/')}
@@ -142,7 +161,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         </button>
       </div>
 
-      {/* Simple Login Box */}
+      {/* Unified Single Login Box */}
       <div className="w-full max-w-sm bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8">
         
         {/* Brand Header */}
@@ -155,20 +174,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <h1 className="text-2xl font-bold text-stone-900">
             {isRegister
               ? language === 'ta'
-                ? 'புதிய கணக்கு'
+                ? 'புதிய பயனர் கணக்கு'
                 : 'Create Account'
               : language === 'ta'
-              ? 'உள்நுழைவு'
-              : 'Login'}
+              ? 'உள்நுழைவு (Sign In)'
+              : 'Sign In'}
           </h1>
-          <p className="text-xs text-stone-500 mt-1">
+          <p className="text-xs text-stone-500 mt-1 leading-relaxed">
             {isRegister
               ? language === 'ta'
-                ? 'புதிய கணக்கை உருவாக்க விவரங்களை உள்ளிடவும்'
-                : 'Sign up to start ordering fresh pure oils'
+                ? 'புதிய வாடிக்கையாளர் கணக்கை உருவாக்க விவரங்களை உள்ளிடவும்'
+                : 'Sign up to start ordering fresh Mara Chekku oils'
               : language === 'ta'
-              ? 'உங்கள் மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும்'
-              : 'Enter your email and password to continue'}
+              ? 'பயனர்கள் User ID & பாஸ்வேர்டையும், நிர்வாகிகள் Admin ID & பாஸ்வேர்டையும் உள்ளிடவும்'
+              : 'Enter User ID & Password (Admins enter Admin ID & Password)'}
           </p>
         </div>
 
@@ -180,14 +199,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
           {/* Name field (Only for Register) */}
           {isRegister && (
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
-                {language === 'ta' ? 'பெயர்' : 'Full Name'}
+                {language === 'ta' ? 'முழுப் பெயர்' : 'Full Name'}
               </label>
               <input
                 type="text"
@@ -200,18 +219,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
           )}
 
-          {/* Email / Username Field */}
+          {/* User ID / Email Address */}
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1">
-              {language === 'ta' ? 'மின்னஞ்சல்' : 'Email Address'}
+              {language === 'ta' ? 'பயனர் ஐடி / மின்னஞ்சல்' : 'User ID / Email'}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
+                value={emailOrId}
+                onChange={(e) => setEmailOrId(e.target.value)}
+                placeholder={
+                  language === 'ta'
+                    ? 'User ID அல்லது Email (எ.கா: admin அல்லது user)'
+                    : 'User ID or Email (e.g. admin or username)'
+                }
                 required
                 className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all"
               />
@@ -301,24 +324,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           )}
         </div>
 
-        {/* Subtle Quick Demo Helpers */}
-        <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-400">
-          <span>Quick fill:</span>
+        {/* Quick Fill Helpers */}
+        <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
+          <span>{language === 'ta' ? 'விரைவு தேர்வு:' : 'Quick Fill:'}</span>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => handleQuickDemo('customer')}
-              className="text-stone-600 hover:text-forest-950 hover:underline cursor-pointer font-medium"
+              className="px-2 py-1 rounded bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors cursor-pointer font-medium flex items-center gap-1"
             >
-              User
+              <User className="w-3 h-3 text-stone-500" />
+              <span>User</span>
             </button>
-            <span>•</span>
             <button
               type="button"
               onClick={() => handleQuickDemo('admin')}
-              className="text-amber-700 hover:text-amber-900 hover:underline cursor-pointer font-bold"
+              className="px-2 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100 transition-colors cursor-pointer font-bold flex items-center gap-1"
             >
-              Admin
+              <ShieldCheck className="w-3 h-3 text-amber-600" />
+              <span>Admin</span>
             </button>
           </div>
         </div>
