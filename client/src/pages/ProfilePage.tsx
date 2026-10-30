@@ -239,15 +239,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 </div>
 
                 <div className="pt-2 flex items-center gap-2">
-                  {currentUser.role === 'admin' && (
-                    <button
-                      onClick={() => onNavigate('/admin')}
-                      className="flex-1 py-2 px-3 rounded-xl bg-gold-400 hover:bg-gold-300 text-forest-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Admin Console</span>
-                    </button>
-                  )}
                   <button
                     onClick={() => setIsEditing(!isEditing)}
                     className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-cream-100 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/20"

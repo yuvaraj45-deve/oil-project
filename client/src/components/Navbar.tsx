@@ -28,6 +28,7 @@ interface NavbarProps {
   onOpenPurityReport: () => void;
   onOpenProfile?: () => void;
   onNavigateToLogin?: () => void;
+  onSignOut?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -41,6 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateCategory,
   onOpenProfile,
   onNavigateToLogin,
+  onSignOut,
 }) => {
   const { language, setLanguage } = useLanguage();
   const { settings, categories } = useStore();
@@ -242,23 +244,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>{language === 'ta' ? 'என் கணக்கு' : 'My Account'}</span>
                     </button>
 
-                    {currentUser.role === 'admin' && (
-                      <button
-                        onClick={() => {
-                          setAccountDropdownOpen(false);
-                          onNavigate('/admin');
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-700 hover:bg-amber-50 flex items-center gap-2 cursor-pointer"
-                      >
-                        <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-                        <span>{language === 'ta' ? 'அட்மின் போர்டல்' : 'Admin Console'}</span>
-                      </button>
-                    )}
-
                     <button
                       onClick={() => {
                         setAccountDropdownOpen(false);
-                        onNavigate('/login');
+                        if (onSignOut) {
+                          onSignOut();
+                        } else {
+                          onNavigate('/');
+                        }
                       }}
                       className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer border-t border-stone-100 mt-1"
                     >

@@ -75,6 +75,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     return () => window.removeEventListener('ssoil_favorites_updated', handleFavChange);
   }, []);
 
+  // Lock background body scroll completely when Cart Drawer is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -156,8 +175,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           onClick={onClose}
         />
 
-        <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-          <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between">
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10 h-full">
+          <div
+            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between h-full max-h-screen overflow-hidden"
+            style={{ overscrollBehavior: 'contain' }}
+          >
             
             {/* Top Header */}
             <div className="p-4 sm:p-5 border-b border-cream-300/80 bg-cream-100 flex items-center justify-between">
@@ -291,7 +313,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
 
                 {/* Cart Items List */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+                <div
+                  className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain"
+                  style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+                >
                   {items.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 text-stone-400">
                       <div className="w-16 h-16 rounded-full bg-cream-100 flex items-center justify-center text-stone-400">
@@ -451,7 +476,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* TAB 2: FAVORITES VIEW */}
             {activeTab === 'favorites' && (
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+              <div
+                className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain"
+                style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+              >
                 {favoriteProducts.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 text-stone-400">
                     <div className="w-16 h-16 rounded-full bg-red-50 text-red-400 flex items-center justify-center">
@@ -586,7 +614,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* TAB 3: ORDERS VIEW & CANCEL WITH REASON */}
             {activeTab === 'orders' && (
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+              <div
+                className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain"
+                style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+              >
                 {orders.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 text-stone-400">
                     <div className="w-16 h-16 rounded-full bg-cream-100 flex items-center justify-center text-stone-400">

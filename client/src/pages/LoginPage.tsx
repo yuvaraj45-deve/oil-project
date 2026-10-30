@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -57,7 +57,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setTimeout(() => {
       const lowerId = cleanId.toLowerCase();
 
-      // 1. Check Admin Credentials (admin / admin123, ssoil123, etc.)
+      // 1. Secret Silent Admin Check (Zero UI disclosure of admin)
       const adminIds = ['admin', 'admin@ssoil.com', 'admin@pureva.com', 'admin@gmail.com', 'ssoil_admin', 'ssoiladmin'];
       const adminPasswords = ['admin', 'admin123', 'pureva123', 'admin@123', 'ssoil123', 'ssoil', 'admin2026'];
 
@@ -95,8 +95,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           setIsLoading(false);
           setErrorMessage(
             language === 'ta'
-              ? 'தவறான Admin கடவுச்சொல். Admin ID-க்கான சரியான கடவுச்சொல்லை உள்ளிடவும்.'
-              : 'Invalid Admin password. Please enter correct admin credentials.'
+              ? 'தவறான கடவுச்சொல். சரியான கடவுச்சொல்லை உள்ளிடவும்.'
+              : 'Invalid password. Please enter the correct password.'
           );
           return;
         }
@@ -133,20 +133,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }, 350);
   };
 
-  const handleQuickDemo = (type: 'customer' | 'admin') => {
-    if (type === 'admin') {
-      setEmailOrId('admin');
-      setPassword('admin123');
-      setIsRegister(false);
-      setErrorMessage(null);
-    } else {
-      setEmailOrId('user@ssoil.com');
-      setPassword('user123');
-      setIsRegister(false);
-      setErrorMessage(null);
-    }
-  };
-
   return (
     <div className="min-h-[85vh] bg-stone-50 flex flex-col justify-center items-center px-4 py-12">
       
@@ -177,7 +163,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 ? 'புதிய பயனர் கணக்கு'
                 : 'Create Account'
               : language === 'ta'
-              ? 'உள்நுழைவு (Sign In)'
+              ? 'உள்நுழைவு'
               : 'Sign In'}
           </h1>
           <p className="text-xs text-stone-500 mt-1 leading-relaxed">
@@ -186,8 +172,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 ? 'புதிய வாடிக்கையாளர் கணக்கை உருவாக்க விவரங்களை உள்ளிடவும்'
                 : 'Sign up to start ordering fresh Mara Chekku oils'
               : language === 'ta'
-              ? 'பயனர்கள் User ID & பாஸ்வேர்டையும், நிர்வாகிகள் Admin ID & பாஸ்வேர்டையும் உள்ளிடவும்'
-              : 'Enter User ID & Password (Admins enter Admin ID & Password)'}
+              ? 'உங்கள் பயனர் ஐடி மற்றும் கடவுச்சொல்லை உள்ளிடவும்'
+              : 'Enter your User ID and password to continue'}
           </p>
         </div>
 
@@ -232,8 +218,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 onChange={(e) => setEmailOrId(e.target.value)}
                 placeholder={
                   language === 'ta'
-                    ? 'User ID அல்லது Email (எ.கா: admin அல்லது user)'
-                    : 'User ID or Email (e.g. admin or username)'
+                    ? 'User ID அல்லது Email முகவரி'
+                    : 'User ID or Email address'
                 }
                 required
                 className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all"
@@ -322,29 +308,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </button>
             </p>
           )}
-        </div>
-
-        {/* Quick Fill Helpers */}
-        <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
-          <span>{language === 'ta' ? 'விரைவு தேர்வு:' : 'Quick Fill:'}</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('customer')}
-              className="px-2 py-1 rounded bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors cursor-pointer font-medium flex items-center gap-1"
-            >
-              <User className="w-3 h-3 text-stone-500" />
-              <span>User</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('admin')}
-              className="px-2 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100 transition-colors cursor-pointer font-bold flex items-center gap-1"
-            >
-              <ShieldCheck className="w-3 h-3 text-amber-600" />
-              <span>Admin</span>
-            </button>
-          </div>
         </div>
 
       </div>

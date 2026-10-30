@@ -362,6 +362,18 @@ export function App() {
     setToastMessage(`Order status updated to ${newStatus}`);
   };
 
+  // Global Unconditional Sign Out Handler (Never stays on the same page, completely resets to root homepage)
+  const handleGlobalSignOut = () => {
+    setIsAdminUnlocked(false);
+    try {
+      sessionStorage.removeItem('pureva_admin_unlocked');
+      localStorage.removeItem('ssoil_user');
+    } catch (e) {}
+    setCurrentUser(null);
+    setToastMessage('Signed out successfully.');
+    window.location.href = '/';
+  };
+
   // Dedicated Full-Page Route for /admin (PROTECTED: Unified Single Login Page)
   if (currentPath === '/admin' || currentPath === '/admin/') {
     // If not explicitly unlocked with Admin ID and Password, display the Single Unified LoginPage!
@@ -397,17 +409,7 @@ export function App() {
         orders={orders}
         onUpdateOrderStatus={handleUpdateOrderStatus}
         onBackToStore={() => navigateTo('/')}
-        onLogout={() => {
-          setIsAdminUnlocked(false);
-          try {
-            sessionStorage.removeItem('pureva_admin_unlocked');
-            localStorage.removeItem('ssoil_user');
-          } catch (e) {}
-          setCurrentUser(null);
-          setToastMessage('Admin signed out successfully.');
-          // Unconditional hard redirect to root storefront so it NEVER stays on /admin
-          window.location.href = '/';
-        }}
+        onLogout={handleGlobalSignOut}
       />
     );
   }
@@ -427,6 +429,7 @@ export function App() {
         onOpenFaq={() => setIsFaqOpen(true)}
         onOpenProfile={() => navigateTo('/profile')}
         onNavigateToLogin={() => navigateTo('/login')}
+        onSignOut={handleGlobalSignOut}
         onNavigateCategory={(cat) => {
           setSelectedCategory(cat);
           navigateTo(`/category/${cat}`);
@@ -564,14 +567,7 @@ export function App() {
               } catch (e) {}
               setToastMessage('Profile details updated successfully');
             }}
-            onSignOut={() => {
-              setCurrentUser(null);
-              try {
-                localStorage.removeItem('ssoil_user');
-              } catch (e) {}
-              setToastMessage('You have been signed out.');
-              navigateTo('/');
-            }}
+            onSignOut={handleGlobalSignOut}
             onShopOils={() => navigateTo('/shop')}
           />
         )}
