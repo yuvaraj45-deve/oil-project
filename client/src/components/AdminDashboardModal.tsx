@@ -107,7 +107,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-cream-200/70">
-                Salem Mara Chekku Mill • Live Inventory & Dispatch Controller
+                SS OIL Mara Chekku Mill • Live Inventory & Dispatch Controller
               </p>
             </div>
           </div>
@@ -396,7 +396,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     Official GC-MS Gas Chromatography Purity Logs
                   </h4>
                   <p className="text-xs text-stone-500">
-                    Spectrometric purity analysis for Salem mill batches (FSSAI & NABL accredited)
+                    Spectrometric purity analysis for authentic mill batches (FSSAI & NABL accredited)
                   </p>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">

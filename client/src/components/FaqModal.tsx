@@ -97,7 +97,7 @@ export const FaqModal: React.FC<FaqModalProps> = ({ isOpen, onClose, onShopOils 
       answer:
         language === 'ta'
           ? 'சேலம் மில்லிலிருந்து அதே நாளில் பிரெஷ்ஷாக பேக் செய்யப்பட்டு அனுப்பப்படுகிறது. தமிழகத்தின் அனைத்து மாவட்டங்களுக்கும் 24 முதல் 48 மணி நேரத்திற்குள் விநியோகிக்கப்படுகிறது. ₹499-க்கு மேல் ஆர்டர் செய்தால் இலவச டெலிவரி!'
-          : 'All orders are dispatched fresh directly from our Salem mill within 24 hours. Delivery across Tamil Nadu takes 1–2 business days, and other states take 3–4 business days. Free shipping on all orders above ₹499.',
+          : 'All orders are dispatched fresh directly from our central mill within 24 hours. Delivery across Tamil Nadu takes 1–2 business days, and other states take 3–4 business days. Free shipping on all orders above ₹499.',
     },
     {
       id: 'faq_6',

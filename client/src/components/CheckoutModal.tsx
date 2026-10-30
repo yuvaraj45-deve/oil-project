@@ -507,7 +507,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <p className="text-[11px] text-stone-500 leading-relaxed">
                 {language === 'ta'
                   ? 'மதியம் 2:00 மணிக்குள் பெறப்படும் ஆர்டர்கள் சேலம் ஆலையிலிருந்து அன்றைய தினமே நேரடியாக அனுப்பி வைக்கப்படும்.'
-                  : 'Orders placed before 2:00 PM are packed in tamper-proof tins/bottles and dispatched the same day from our Salem mill.'}
+                  : 'Orders placed before 2:00 PM are packed in tamper-proof tins/bottles and dispatched the same day from our central mill.'}
               </p>
               <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold pt-1">
                 <Clock className="w-3 h-3" />

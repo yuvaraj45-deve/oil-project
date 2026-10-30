@@ -26,7 +26,7 @@ export const MillJourneyPage: React.FC<MillJourneyPageProps> = ({ onShopOils }) 
           <p className="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed font-light">
             {language === 'ta'
               ? 'சேலம் மில்லில் இயற்கை விதைகள் 14 RPM மெதுவான சுழற்சியில் வாகை மர உலக்கையால் எந்த ஒரு வெப்பமோ, ரசாயனமோ இன்றி எவ்வாறு சொட்டு சொட்டாக வடிக்கப்படுகிறது என்பதை காணுங்கள்.'
-              : 'Step inside our Salem mill and witness how raw sun-dried farmer pods are slowly cold-churned at 14 RPM using Vaagai wood mortars without artificial heat or chemical solvents.'}
+              : 'Step inside our wood-pressing mill and witness how raw sun-dried farmer pods are slowly cold-churned at 14 RPM using Vaagai wood mortars without artificial heat or chemical solvents.'}
           </p>
         </div>
       </div>

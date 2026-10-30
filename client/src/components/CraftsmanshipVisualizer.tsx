@@ -16,7 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 const STAGE_HIGHLIGHTS: Record<number, { en: string[]; ta: string[] }> = {
   1: {
     en: [
-      'Hand-sorted native pods directly sourced from organic farmer clusters in Salem',
+      'Hand-sorted native pods directly sourced from regional organic farmer clusters',
       'Zero moisture, naturally sun-cured on open village mats without artificial heat',
       'Double-sieved to eliminate dust, dirt, and hollow kernels (0.00% foreign impurities)',
     ],
@@ -64,7 +64,7 @@ const STAGE_HIGHLIGHTS: Record<number, { en: string[]; ta: string[] }> = {
   },
   5: {
     en: [
-      'Untouched, hands-free hygienic bottling directly at our Salem mill',
+      'Untouched, hands-free hygienic bottling directly at our central mill',
       'UV-tinted containers shield delicate unrefined nutrients from harsh sunlight degradation',
       'Airtight hermetic sealing locks in the fresh mill fragrance for 12 months shelf-life',
     ],

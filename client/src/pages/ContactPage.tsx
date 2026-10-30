@@ -107,7 +107,7 @@ export const ContactPage: React.FC = () => {
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="font-serif font-bold text-xl text-forest-950">
-                  {language === 'ta' ? 'செய்தி சேலம் ஆலைக்கு அனுப்பப்பட்டது!' : 'Message Sent to Salem Mill Desk!'}
+                  {language === 'ta' ? 'செய்தி வாடிக்கையாளர் பிரிவுக்கு அனுப்பப்பட்டது!' : 'Message Sent to Customer Desk!'}
                 </h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
                   {language === 'ta'

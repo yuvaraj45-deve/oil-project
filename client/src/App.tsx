@@ -48,6 +48,9 @@ import { ProfilePage } from './pages/ProfilePage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { CancelOrderPage } from './pages/CancelOrderPage';
+import { ShippingReturnsPage } from './pages/ShippingReturnsPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
 
 export function App() {
   const { products, categories, settings } = useStore();
@@ -613,6 +616,21 @@ export function App() {
             onSignOut={handleGlobalSignOut}
             onShopOils={() => navigateTo('/shop')}
           />
+        )}
+
+        {/* Route: /shipping-returns (Shipping, Returns & Exchange) */}
+        {currentPath === '/shipping-returns' && (
+          <ShippingReturnsPage onNavigate={navigateTo} />
+        )}
+
+        {/* Route: /privacy-policy (Privacy Policy) */}
+        {(currentPath === '/privacy-policy' || currentPath === '/privacy') && (
+          <PrivacyPolicyPage onNavigate={navigateTo} />
+        )}
+
+        {/* Route: /terms-of-service (Terms of Service) */}
+        {(currentPath === '/terms-of-service' || currentPath === '/terms') && (
+          <TermsOfServicePage onNavigate={navigateTo} />
         )}
 
         {/* Route: / (Default Flagship Homepage) */}

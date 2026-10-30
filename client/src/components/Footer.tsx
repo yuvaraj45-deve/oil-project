@@ -43,8 +43,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-forest-900/80">
           
-          {/* Brand Info (Col 1-4) */}
-          <div className="lg:col-span-4 space-y-4">
+          {/* Brand Info (Col 1-3) */}
+          <div className="lg:col-span-3 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/40 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                 {settings.logoUrl ? (
@@ -102,7 +102,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             </div>
           </div>
 
-          {/* Quick Links (Col 5-6) */}
+          {/* Quick Links (Col 4-5) */}
           <div className="lg:col-span-2 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
               {language === 'ta' ? 'விரைவு இணைப்புகள்' : 'Quick Links'}
@@ -146,17 +146,17 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             </ul>
           </div>
 
-          {/* Product Categories (Col 7-8) - Dynamically loaded from Admin state */}
-          <div className="lg:col-span-3 space-y-3">
+          {/* Product Categories (Col 6-7) */}
+          <div className="lg:col-span-2 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
-              {language === 'ta' ? 'எண்ணெய் வகைகள்' : 'Product Categories'}
+              {language === 'ta' ? 'எண்ணெய் வகைகள்' : 'Categories'}
             </h4>
             <ul className="space-y-2 text-sm text-stone-300">
               {categories.slice(0, 5).map((cat) => (
                 <li key={cat.id}>
                   <button
                     onClick={() => onSelectCategory(cat.slug)}
-                    className="hover:text-gold-400 transition-colors text-left truncate max-w-full"
+                    className="hover:text-gold-400 transition-colors text-left truncate max-w-full cursor-pointer"
                   >
                     {cat.title}
                   </button>
@@ -165,18 +165,51 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             </ul>
           </div>
 
-          {/* Contact Information Placeholders (Col 9-12) */}
+          {/* RESOURCES Column (Col 8-9) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
+              RESOURCES
+            </h4>
+            <ul className="space-y-2 text-sm text-stone-300">
+              <li>
+                <button
+                  onClick={() => handleLinkClick('/shipping-returns')}
+                  className="hover:text-gold-400 transition-colors cursor-pointer text-left leading-snug"
+                >
+                  {language === 'ta' ? 'டெலிவரி, திருப்புதல் & மாற்றுதல்' : 'Shipping, Returns & Exchange'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleLinkClick('/privacy-policy')}
+                  className="hover:text-gold-400 transition-colors cursor-pointer text-left leading-snug"
+                >
+                  {language === 'ta' ? 'தனியுரிமைக் கொள்கை' : 'Privacy Policy'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleLinkClick('/terms-of-service')}
+                  className="hover:text-gold-400 transition-colors cursor-pointer text-left leading-snug"
+                >
+                  {language === 'ta' ? 'சேவை விதிமுறைகள்' : 'Terms of Service'}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Information (Col 10-12) */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif text-base font-bold text-white tracking-wide border-b border-forest-900 pb-2">
-              {language === 'ta' ? 'தொடர்பு & மில் அலுவலகம்' : 'Contact & Mill Desk'}
+              {language === 'ta' ? 'தொடர்பு & ஆலை அலுவலகம்' : 'Contact & Mill Desk'}
             </h4>
             <div className="space-y-3 text-sm text-stone-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 mt-1 shrink-0" />
                 <span className="leading-snug">
                   {settings.millAddress || (language === 'ta'
-                    ? 'SS OIL மில் & பேக்கிங் பிரிவு, எண் 42 செக்கு தெரு, தொழிற்பேட்டை, சேலம், தமிழ்நாடு – 636004'
-                    : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004')}
+                    ? 'SS OIL மில் & பேக்கிங் பிரிவு, எண் 42 செக்கு தெரு, தொழிற்பேட்டை, தமிழ்நாடு – 636004'
+                    : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Tamil Nadu – 636004')}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
@@ -236,15 +269,24 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
           </div>
 
           <div className="flex items-center space-x-6">
-            <a href="#privacy" className="hover:text-gold-400 transition-colors">
+            <button
+              onClick={() => handleLinkClick('/privacy-policy')}
+              className="hover:text-gold-400 transition-colors cursor-pointer text-xs"
+            >
               {t('footer.privacy')}
-            </a>
-            <a href="#terms" className="hover:text-gold-400 transition-colors">
+            </button>
+            <button
+              onClick={() => handleLinkClick('/terms-of-service')}
+              className="hover:text-gold-400 transition-colors cursor-pointer text-xs"
+            >
               {t('footer.terms')}
-            </a>
-            <a href="#shipping" className="hover:text-gold-400 transition-colors">
-              {language === 'ta' ? 'டெலிவரி & திருப்புதல்' : 'Shipping & Returns'}
-            </a>
+            </button>
+            <button
+              onClick={() => handleLinkClick('/shipping-returns')}
+              className="hover:text-gold-400 transition-colors cursor-pointer text-xs"
+            >
+              {language === 'ta' ? 'டெலிவரி, திருப்புதல் & மாற்றுதல்' : 'Shipping, Returns & Exchange'}
+            </button>
             <button
               onClick={scrollToTop}
               className="p-2 rounded-full bg-forest-900 text-gold-400 hover:bg-gold-500 hover:text-forest-950 transition-colors ml-2 cursor-pointer"

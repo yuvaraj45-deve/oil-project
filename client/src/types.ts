@@ -195,7 +195,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   announcementEnabled: true,
   phone: '+91 98765 43210',
   email: 'care@ssoil.in',
-  millAddress: 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004',
+  millAddress: 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Tamil Nadu – 636004',
   millHours: 'Mon – Sat: 9:00 AM – 7:30 PM IST',
   fssaiLicense: '',
   currency: 'INR (₹)',

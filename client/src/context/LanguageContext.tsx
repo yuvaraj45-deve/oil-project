@@ -90,11 +90,11 @@ export const translations: Record<Language, Record<string, string>> = {
     // Featured Products (4 items + View All)
     'prod.badge': 'POPULAR PRODUCTS',
     'prod.title': 'Our Pure Oils & Products',
-    'prod.subtitle': 'Freshly cold-pressed in Salem, 100% unadulterated, lab-tested with airtight food-grade bottling.',
+    'prod.subtitle': 'Freshly cold-pressed in our authentic mill, 100% unadulterated, lab-tested with airtight food-grade bottling.',
     'prod.filter': 'Filter:',
     'prod.filterAll': 'All Oils',
     'prod.pure': '100% Pure',
-    'prod.mill': 'Salem Mill',
+    'prod.mill': 'Heritage Wood-Pressed Mill',
     'prod.details': 'Details',
     'prod.labTested': 'Lab Tested',
     'prod.available': 'Available:',
@@ -145,7 +145,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.terms': 'Terms & Conditions',
 
     // Shop Page
-    'shop.badge': 'Direct from Salem Mill',
+    'shop.badge': 'Direct from Heritage Wood-Pressed Mill',
     'shop.title': 'Our Cold-Pressed & Mara Chekku Collection',
     'shop.subtitle': 'Every bottle is slow-churned without artificial heat or chemical bleaching. Choose pure wood-pressed sesame, virgin coconut, and everyday healthy oils.',
     'shop.searchPlaceholder': 'Search oils by name or dish...',
@@ -186,12 +186,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.stat.families': 'Happy Families',
 
     // Contact Page
-    'contact.badge': 'Customer & Wholesale Desk',
-    'contact.title': 'Connect with Our Salem Mill',
-    'contact.subtitle': 'Have questions about our cold-press process, bulk 15L catering tins, or direct farmer sourcing? Our mill desk is here to assist you.',
-    'contact.officeTitle': 'Salem Mill & Head Office',
+    'contact.badge': 'Customer Support & Wholesale Desk',
+    'contact.title': 'Connect with Our Heritage Mill',
+    'contact.subtitle': 'Have questions about our cold-press process, bulk 15L catering tins, or direct farmer sourcing? Our customer desk is here to assist you.',
+    'contact.officeTitle': 'Central Mill & Registered Office',
     'contact.locationTitle': 'Mill Location',
-    'contact.locationDesc': 'SS OIL Mills & Packing Facility, No. 42 Chekku Street, Industrial Estate, Salem, Tamil Nadu – 636004',
+    'contact.locationDesc': 'SS OIL Mills & Packing Facility, No. 42 Chekku Street, Industrial Estate, Tamil Nadu – 636004',
     'contact.phoneTitle': 'Phone & WhatsApp',
     'contact.phoneHours': 'Mon – Sat: 9:00 AM – 7:30 PM IST',
     'contact.emailTitle': 'Email Enquiries',
@@ -205,8 +205,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'contact.typeBulk': 'Bulk & Catering Supply',
     'contact.typeDist': 'Distribution / Dealership',
     'contact.formMessage': 'Your Message / Inquiry',
-    'contact.formSubmit': 'Send Message to Mill',
-    'contact.success': 'Thank you! Your message has been dispatched to our Salem mill desk.',
+    'contact.formSubmit': 'Send Message to Mill Desk',
+    'contact.success': 'Thank you! Your message has been dispatched to our customer desk.',
 
     // Cart Drawer
     'cart.title': 'Your Shopping Cart',
@@ -290,7 +290,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Checkout Modal
     'checkout.title': 'Instant Checkout',
-    'checkout.subtitle': 'Direct Salem mill dispatch to your doorstep',
+    'checkout.subtitle': 'Direct fresh mill dispatch to your doorstep',
     'checkout.step1': '1. Delivery Address',
     'checkout.step2': '2. Payment Mode',
     'checkout.name': 'Full Name',
@@ -497,7 +497,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.terms': 'விதிமுறைகள் & நிபந்தனைகள்',
 
     // Shop Page
-    'shop.badge': 'நேரடி சேலம் ஆலைத் தயாரிப்பு',
+    'shop.badge': 'நேரடி பாரம்பரிய மரச்செக்கு ஆலைத் தயாரிப்பு',
     'shop.title': 'மரச்செக்கு & தூய சமையல் எண்ணெய் வகைகள்',
     'shop.subtitle': 'செயற்கை வெப்பமும் ரசாயன நிறமூட்டிகளும் இன்றி மெதுவாக ஆட்டப்பட்ட தூய எண்ணெய்கள். மரச்செக்கு நல்லெண்ணெய், கடலை எண்ணெய், தேங்காய் எண்ணெய் மற்றும் சமையல் எண்ணெய்களைத் தேர்ந்தெடுங்கள்.',
     'shop.searchPlaceholder': 'எண்ணெய் பெயர் அல்லது உணவு மூலம் தேட...',
@@ -520,9 +520,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'shop.mrp': 'அசல் விலை',
 
     // About Page & Section
-    'about.heritageBadge': 'சேலம் பாரம்பரியம் • தொடக்கம் 1984',
+    'about.heritageBadge': 'மரச்செக்கு பாரம்பரியம் • தொடக்கம் 1984',
     'about.heroTitle': 'நான்கு தலைமுறை பாரம்பரிய மரச்செக்கு தூய்மை',
-    'about.heroDesc': 'சேலத்தில் ஒரு சிறிய வாகை மரச்செக்கில் தொடங்கப்பட்டு, இன்று குடும்பங்களின் நன்மதிப்பைப் பெற்றுள்ள தூய பாரம்பரிய எண்ணெய் ஆலை.',
+    'about.heroDesc': 'ஒரு சிறிய பாரம்பரிய வாகை மரச்செக்கில் தொடங்கப்பட்டு, இன்று குடும்பங்களின் நன்மதிப்பைப் பெற்றுள்ள தூய பாரம்பரிய எண்ணெய் ஆலை.',
     'about.storyBadge': 'SS OIL பற்றி',
     'about.storyTitle': 'தலைமுறை தலைமுறையாக நேர்மையுடன் ஆட்டப்படும் தூய எண்ணெய்',
     'about.storyP1': 'உண்மையான சமையல் உண்மையான தூய எண்ணெயிலிருந்து தொடங்குகிறது என்ற நம்பிக்கையுடன், பாரம்பரிய மரச்செக்கு முறையை பாதுகாத்து வருகிறோம். வாகை மர உரலில் குறைவான வேகத்தில் ஆட்டுவதால் எண்ணெயின் இயல்பான சத்துக்களும் மணமும் முழுமையாகப் பாதுகாக்கப்படுகின்றன.',
@@ -538,12 +538,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.stat.families': 'மகிழ்ச்சியான குடும்பங்கள்',
 
     // Contact Page
-    'contact.badge': 'வாடிக்கையாளர் & மொத்த விற்பனை தொடர்பு',
-    'contact.title': 'எங்கள் சேலம் ஆலையை தொடர்பு கொள்ளவும்',
+    'contact.badge': 'வாடிக்கையாளர் ஆதரவு & மொத்த விற்பனை பிரிவு',
+    'contact.title': 'எங்கள் பாரம்பரிய ஆலையை தொடர்பு கொள்ளவும்',
     'contact.subtitle': 'எண்ணெய் தயாரிப்பு முறை, மொத்த 15L டின் ஆர்டர்கள் அல்லது விவசாயிகளிடம் கொள்முதல் குறித்த கேள்விகளுக்கு எங்கள் அலுவலகம் உதவ தயாராக உள்ளது.',
-    'contact.officeTitle': 'சேலம் ஆலை & தலைமை அலுவலகம்',
+    'contact.officeTitle': 'தலைமை ஆலை & பதிவு செய்யப்பட்ட அலுவலகம்',
     'contact.locationTitle': 'ஆலை முகவரி',
-    'contact.locationDesc': 'SS OIL மில்ஸ் & பேக்கிங் யூனிட், எண். 42 செக்கு தெரு, சிட்கோ தொழிற்பேட்டை, சேலம், தமிழ்நாடு – 636004',
+    'contact.locationDesc': 'SS OIL மில்ஸ் & பேக்கிங் யூனிட், எண். 42 செக்கு தெரு, சிட்கோ தொழிற்பேட்டை, தமிழ்நாடு – 636004',
     'contact.phoneTitle': 'தொலைபேசி & வாட்ஸ்அப்',
     'contact.phoneHours': 'திங்கள் – சனி: காலை 9:00 – இரவு 7:30 வரை',
     'contact.emailTitle': 'மின்னஞ்சல் முகவரி',
@@ -558,7 +558,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'contact.typeDist': 'விநியோகஸ்தர் / டீலர்ஷிப்',
     'contact.formMessage': 'உங்கள் செய்தி / விவரங்கள்',
     'contact.formSubmit': 'செய்தியை அனுப்பவும்',
-    'contact.success': 'நன்றி! உங்கள் செய்தி எங்கள் சேலம் ஆலைக்கு அனுப்பப்பட்டது.',
+    'contact.success': 'நன்றி! உங்கள் செய்தி எங்கள் வாடிக்கையாளர் பிரிவுக்கு அனுப்பப்பட்டது.',
 
     // Cart Drawer
     'cart.title': 'உங்கள் ஷாப்பிங் கார்ட்',

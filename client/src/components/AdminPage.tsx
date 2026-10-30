@@ -402,7 +402,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       image: newCatImage || '/products/sesame_oil.jpg',
       itemCount: `${newCatAssignedProductIds.length} Varieties`,
       badge: newCatBadge.trim() || 'New Arrival',
-      highlightText: 'Fresh Salem Mill Production',
+      highlightText: 'Fresh Mara Chekku Mill Production',
     };
 
     await contextAddCategory(newCategory);
@@ -4793,7 +4793,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
         {/* Footer */}
         <footer className="bg-white border-t border-stone-200 py-4 px-8 text-center text-xs text-stone-400 mt-auto">
-          SS OIL • Salem Mara Chekku Mill Management Operating System • All rights reserved
+          SS OIL • Mara Chekku Mill Management Operating System • All rights reserved
         </footer>
 
       </div>

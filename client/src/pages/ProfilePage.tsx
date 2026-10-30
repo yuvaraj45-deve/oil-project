@@ -451,7 +451,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     <ShoppingBag className="w-12 h-12 text-stone-300 mx-auto mb-3" />
                     <h3 className="font-serif text-lg font-bold text-stone-800">No Orders Placed Yet</h3>
                     <p className="text-stone-500 text-xs mt-1 max-w-sm mx-auto">
-                      Experience traditional Salem Mara Chekku purity. Browse our cold pressed sesame, coconut, and everyday pure oils.
+                      Experience traditional Mara Chekku purity. Browse our cold pressed sesame, coconut, and everyday pure oils.
                     </p>
                     <button
                       onClick={() => onNavigate('/shop')}
@@ -753,7 +753,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     <div className="p-4 rounded-2xl bg-stone-50 border border-stone-100">
                       <Sparkles className="w-5 h-5 text-gold-600 mb-2" />
                       <span className="text-xs font-bold text-stone-900 block">Priority Wood Pressing</span>
-                      <span className="text-[11px] text-stone-500 mt-0.5 block">Direct fresh-churn allocation from our Salem vaagai wood churners.</span>
+                      <span className="text-[11px] text-stone-500 mt-0.5 block">Direct fresh-churn allocation from our authentic vaagai wood churners.</span>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-stone-50 border border-stone-100">

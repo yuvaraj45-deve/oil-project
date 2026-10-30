@@ -206,7 +206,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
               {/* Organic Origin Seal */}
               <div className="mt-4 pt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-                <span className="font-serif italic">Salem Wood Mill Production • Since 1966</span>
+                <span className="font-serif italic">Mara Chekku Wood Mill Production • Since 1966</span>
                 <span className="font-mono text-emerald-700 font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Pure Native Grade</span>
@@ -272,7 +272,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
                 <div className="flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{language === 'ta' ? 'கையிருப்பு உள்ளது' : 'In Stock - Fresh Salem Mill Batch'}</span>
+                  <span>{language === 'ta' ? 'கையிருப்பு உள்ளது - புதிய ஆலை பேட்ச்' : 'In Stock - Fresh Mill Batch'}</span>
                 </div>
               </div>
             </div>

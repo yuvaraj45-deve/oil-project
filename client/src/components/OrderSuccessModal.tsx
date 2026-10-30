@@ -110,7 +110,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               <p className="text-stone-500 text-[10px]">
                 {language === 'ta'
                   ? 'சேலம் மரச்செக்கு மில்லில் இருந்து நேரடி பாதுகாப்பு சீலுடன் அனுப்பப்படுகிறது.'
-                  : 'Dispatched from Salem Mara Chekku Mill with tamper-proof seal.'}
+                  : 'Dispatched from Mara Chekku Mill with tamper-proof seal.'}
               </p>
             </div>
           </div>
