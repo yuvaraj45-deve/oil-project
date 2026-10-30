@@ -42,11 +42,6 @@ export const TermsOfServicePage: React.FC<TermsOfServicePageProps> = ({ onNaviga
       <section className="bg-forest-950 text-cream-100 py-12 sm:py-16 border-b border-forest-900 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-gold-500/10 blur-3xl pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-forest-900 text-gold-300 border border-gold-500/30 text-xs font-bold uppercase tracking-wider">
-            <Scale className="w-3.5 h-3.5 text-gold-400" />
-            <span>{language === 'ta' ? 'சட்டப்பூர்வ வெளிப்படைத்தன்மை' : 'Fair Terms & Transparency'}</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-serif font-black tracking-tight text-white">
             {language === 'ta' ? 'சேவை விதிமுறைகள் & நிபந்தனைகள்' : 'Terms of Service'}
           </h1>

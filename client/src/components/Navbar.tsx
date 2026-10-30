@@ -59,10 +59,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Close heading bar automatically when user scrolls so it doesn't obstruct view
   useEffect(() => {
+    let lastScrollY = window.scrollY || 0;
     const handleScroll = () => {
-      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-      if (scrollY > 15) {
+      const currentScrollY = window.scrollY || 0;
+      if (Math.abs(currentScrollY - lastScrollY) > 40) {
         setHeadingBarOpen(false);
+        lastScrollY = currentScrollY;
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -284,30 +286,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* SUB-NAV ROW: HOME • ABOUT US • SHOP ˅ • CONTACT • FAQs */}
-        {/* Permanently visible on desktop; smoothly toggleable on mobile via 3-line hamburger menu */}
+        {/* SUB-NAV ROW: OUR STORY • SHOP ˅ • CONTACT • FAQs */}
+        {/* By default hidden; 3-line menu click panna varum; link click pannalo scroll pannalo moodikollum */}
         <div
-          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-b border-stone-200/80 shadow-2xs ${
+          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-b border-stone-200/80 shadow-xs ${
             headingBarOpen
               ? 'max-h-96 opacity-100 pb-3.5 pt-1 -mt-1 sm:-mt-2 block'
-              : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2 md:max-h-24 md:opacity-100 md:pb-3 md:pt-0.5 md:pointer-events-auto md:block'
+              : 'max-h-0 opacity-0 pb-0 pointer-events-none -mt-2'
           }`}
         >
           <nav className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-4 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900">
-            {/* 1. HOME */}
-            <button
-              onClick={() => {
-                setHeadingBarOpen(false);
-                onNavigate('/');
-              }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
-                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
-              }`}
-            >
-              <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
-            </button>
-
-            {/* 2. ABOUT US */}
+            {/* 1. OUR STORY */}
             <button
               onClick={() => {
                 setHeadingBarOpen(false);
@@ -317,10 +306,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 currentPath === '/about' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
               }`}
             >
-              <span>{language === 'ta' ? 'எங்களைப் பற்றி' : 'ABOUT US'}</span>
+              <span>{language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}</span>
             </button>
 
-            {/* 3. SHOP with Dropdown */}
+            {/* 2. SHOP with Dropdown */}
             <div
               className="relative"
               ref={shopDropdownRef}
@@ -389,7 +378,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}</span>
             </button>
 
-            {/* 5. FAQs */}
+            {/* 4. FAQs */}
             <button
               onClick={() => {
                 setHeadingBarOpen(false);
@@ -399,6 +388,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5"
             >
               FAQs
+            </button>
+
+            {/* 5. HOME */}
+            <button
+              onClick={() => {
+                setHeadingBarOpen(false);
+                onNavigate('/');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 ${
+                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-b-2 border-[#1e7e34]' : ''
+              }`}
+            >
+              <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
             </button>
           </nav>
         </div>
