@@ -97,19 +97,6 @@ export const ContactPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Certifications Badge */}
-            <div className="bg-forest-950 p-5 rounded-3xl text-cream-100 border border-forest-900 space-y-2 text-xs">
-              <div className="flex items-center gap-2 text-gold-400 font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{language === 'ta' ? 'சட்டப்பூர்வ தர அங்கீகாரம் & FSSAI' : 'Statutory Compliance & FSSAI'}</span>
-              </div>
-              <p className="text-[11px] text-cream-200/70 leading-relaxed">
-                {language === 'ta'
-                  ? 'மத்திய உரிமம்: 1242000000001 • அக்மார்க் சான்றளிக்கப்பட்ட தரம் • பாரம்பரிய தூய வாகை மரச்செக்கு முறை.'
-                  : 'Central License: 1242000000001 • Agmark Certified Quality • Pure Vaagai Chekku Extraction Standard.'}
-              </p>
-            </div>
           </div>
 
           {/* Right: Interactive Message & Wholesale Form (7 cols) */}

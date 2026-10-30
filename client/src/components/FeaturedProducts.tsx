@@ -117,10 +117,6 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         
         {/* Section Title */}
         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/10 text-forest-900 text-xs font-bold uppercase tracking-wider mb-2">
-            <Droplets className="w-3.5 h-3.5 text-forest-800" />
-            <span>{t('prod.badge')}</span>
-          </div>
           <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
             {t('prod.title')}
           </h2>

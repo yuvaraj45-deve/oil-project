@@ -33,11 +33,7 @@ export const HistoryAndQuality: React.FC = () => {
               <History className="w-6 h-6 sm:w-8 sm:h-8 text-amber-700" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>{language === 'ta' ? 'பாரம்பரிய தொடக்கம்' : 'Generational Heritage'}</span>
-              </div>
-              <h3 className="text-2xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight mt-1">
+              <h3 className="text-2xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
                 {t('about.history.title')}
               </h3>
             </div>
@@ -100,11 +96,7 @@ export const HistoryAndQuality: React.FC = () => {
               <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-700" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-[11px] font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{language === 'ta' ? '100% தூய தரம்' : '100% Quality Assurance'}</span>
-              </div>
-              <h3 className="text-2xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight mt-1">
+              <h3 className="text-2xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
                 {t('about.quality.title')}
               </h3>
             </div>
@@ -177,10 +169,6 @@ export const HistoryAndQuality: React.FC = () => {
             <p className="text-cream-200 text-sm sm:text-base leading-relaxed">
               {t('about.vision.desc')}
             </p>
-          </div>
-          <div className="pt-6 mt-6 border-t border-white/10 text-xs text-gold-300 font-semibold flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{language === 'ta' ? 'ஆரோக்கியமான குடும்பங்களே எங்கள் இலக்கு' : 'Healthier Families for Generations'}</span>
           </div>
         </div>
 

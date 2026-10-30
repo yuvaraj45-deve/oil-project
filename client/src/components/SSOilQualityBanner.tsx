@@ -7,7 +7,6 @@ export const SSOilQualityBanner: React.FC = () => {
   const { settings } = useStore();
 
   const centerImage = settings.qualityBannerImage || '/quality_banner_bottles.jpg';
-  const badgeText = settings.qualityBannerBadge || (language === 'ta' ? '100% மரச்செக்கு • SS OIL பாரம்பரியம்' : '100% Mara Chekku • SS OIL Heritage');
 
   return (
     <section className="bg-[#FFF9D5] py-10 sm:py-14 overflow-hidden">
@@ -62,12 +61,6 @@ export const SSOilQualityBanner: React.FC = () => {
                   alt="SS OIL Pure Cold-Pressed Oils"
                   className="w-full h-full object-contain drop-shadow-xl group-hover:scale-105 transition-transform duration-500"
                 />
-              </div>
-
-              {/* Quality Seal Badge */}
-              <div className="mt-3 px-3.5 py-1.5 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5 z-30">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>{badgeText}</span>
               </div>
             </div>
           </div>
