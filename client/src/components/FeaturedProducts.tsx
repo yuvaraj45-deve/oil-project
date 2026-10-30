@@ -209,27 +209,6 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-105 transition-transform duration-500"
                   />
 
-                  {/* Badge */}
-                  {product.badge && (
-                    <div className="absolute top-4 left-4">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-forest-900 text-gold-300 shadow-sm">
-                        {getBadgeName(product.badge, language)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Lab Certificate Link Pill */}
-                  {product.labReport && (
-                    <button
-                      onClick={() => onViewLabReport(product)}
-                      className="absolute top-4 right-4 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-forest-900 backdrop-blur-xs hover:bg-gold-500 hover:text-forest-950 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
-                      title="View Lab Analysis Certificate"
-                    >
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                      <span>{t('prod.labTested')}</span>
-                    </button>
-                  )}
-
                   {/* Quick View Button Hover Overlay */}
                   <div className="absolute inset-0 bg-forest-950/20 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <button

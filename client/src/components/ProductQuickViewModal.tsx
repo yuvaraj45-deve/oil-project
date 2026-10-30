@@ -105,23 +105,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                   alt={productName}
                   className="w-full h-full object-cover"
                 />
-                {product.badge && (
-                  <div className="absolute top-3 left-3 bg-forest-900 text-gold-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
-                    {getBadgeName(product.badge)}
-                  </div>
-                )}
               </div>
-
-              {/* Lab Report Quick CTA Button */}
-              {product.labReport && onViewLabReport && (
-                <button
-                  onClick={() => onViewLabReport(product)}
-                  className="mt-3 w-full py-2 px-3 rounded-xl bg-forest-900 hover:bg-forest-800 text-gold-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{t('quickview.inspectLab')}</span>
-                </button>
-              )}
             </div>
 
             {/* Right Information Section */}

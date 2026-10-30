@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Droplets,
   Flame,
+  FlaskConicalOff,
   Sparkles,
   Clock,
   Truck,
@@ -17,7 +18,6 @@ import {
   Plus,
   Minus,
   Award,
-  Zap,
 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -104,10 +104,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     setTimeout(() => setIsAddedAnimation(false), 1600);
   };
 
-  const handleBuyNowClick = () => {
-    onBuyNow(product, selectedPack, quantity);
-  };
-
   // Name and tagline localization
   const productName =
     language === 'ta' && t(`prod.${product.id}.name`)
@@ -172,28 +168,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {/* Main Photo Card */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-md relative overflow-hidden group">
               
-              {/* Badges */}
-              <div className="absolute top-5 left-5 z-10 flex flex-col gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-forest-950 text-gold-300 shadow-sm border border-gold-500/30">
-                  100% Mara Chekku
-                </span>
-                {product.badge && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs self-start">
-                    {product.badge}
-                  </span>
-                )}
-              </div>
-
-              {/* Lab Certificate Shortcut Pill */}
-              <button
-                onClick={() => onViewLabReport(product)}
-                className="absolute top-5 right-5 z-10 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer"
-                title="View Laboratory Certificate"
-              >
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>{language === 'ta' ? 'ஆய்வக சான்றிதழ்' : 'Lab Certified'}</span>
-              </button>
-
               {/* Product Image */}
               <div className="aspect-square w-full max-w-md mx-auto flex items-center justify-center p-4">
                 <img
@@ -228,7 +202,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </div>
 
               <div className="bg-white p-3.5 rounded-2xl border border-stone-200/80 text-center space-y-1 shadow-2xs">
-                <Sparkles className="w-5 h-5 text-gold-600 mx-auto" />
+                <FlaskConicalOff className="w-5 h-5 text-emerald-600 mx-auto" />
                 <h5 className="font-bold text-[11px] text-stone-900">Zero Chemical</h5>
                 <p className="text-[10px] text-stone-500">No Solvents / Hexane</p>
               </div>
@@ -378,15 +352,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   )}
                 </button>
               </div>
-
-              {/* Instant Buy Now Button */}
-              <button
-                onClick={handleBuyNowClick}
-                className="w-full py-3.5 px-6 rounded-2xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-forest-950 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer font-serif"
-              >
-                <Zap className="w-4 h-4 fill-forest-950 text-forest-950" />
-                <span>{language === 'ta' ? 'உடனடியாக வாங்கவும் (Buy Now)' : 'Instant Buy Now • Checkout'}</span>
-              </button>
             </div>
 
             {/* Official Lab Certificate CTA */}

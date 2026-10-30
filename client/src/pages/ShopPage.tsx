@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Eye, X, ShieldCheck, Heart, Star, Droplets, Check } from 'lucide-react';
+import { Search, ShoppingBag, X, Heart, Star, Check } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
@@ -338,54 +338,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
                   )}
 
-                  {/* Product Image & Badges */}
-                  <div className="relative h-60 sm:h-64 overflow-hidden bg-[#FAF8F5] p-3 flex items-center justify-center">
+                  {/* Product Image Showcase */}
+                  <div
+                    onClick={() => onQuickView(product)}
+                    className="relative h-60 sm:h-64 overflow-hidden bg-[#FAF8F5] p-4 flex items-center justify-center cursor-pointer"
+                  >
                     <img
                       src={resolvedImage}
                       alt={productName}
-                      className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-sm"
                     />
 
-                    {/* Clean Compact Badge */}
-                    <div className="absolute top-3.5 left-3.5">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-forest-950 text-gold-300 shadow-sm">
-                        {getBadgeName(product.badge || 'Mara Chekku', language)}
-                      </span>
-                    </div>
-
-                    {/* Lab Purity Certificate Link */}
-                    {product.labReport && (
-                      <button
-                        onClick={() => onViewLabReport(product)}
-                        className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full text-[9px] font-bold bg-white/95 text-forest-900 backdrop-blur-xs hover:bg-gold-500 hover:text-forest-950 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
-                        title="View Certified Lab Analysis"
-                      >
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        <span>{t('prod.labTested')}</span>
-                      </button>
-                    )}
-
-                    {/* Quick View Button Hover Overlay */}
-                    <div className="absolute inset-0 bg-forest-950/20 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => onQuickView(product)}
-                        className="px-3.5 py-1.5 rounded-xl bg-white text-forest-900 font-semibold text-xs shadow-md hover:bg-cream-100 flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-forest-700" />
-                        <span>{t('prod.details')}</span>
-                      </button>
-                    </div>
-
-                    {/* Favorite Heart Button */}
+                    {/* Minimalist Favorite Heart Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleFavorite(product.id);
                       }}
-                      className={`absolute bottom-3 right-3 p-2 rounded-full transition-all cursor-pointer shadow-md z-10 ${
+                      className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all cursor-pointer shadow-sm z-10 ${
                         favoritesList.includes(product.id)
                           ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
-                          : 'bg-white/95 text-stone-500 hover:text-red-500 hover:bg-white'
+                          : 'bg-white/90 text-stone-400 hover:text-red-500 hover:bg-white'
                       }`}
                       title={favoritesList.includes(product.id) ? 'In Favorites' : 'Add to Favorites'}
                     >
@@ -393,35 +366,28 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     </button>
                   </div>
 
-                  {/* Card Details */}
+                  {/* Card Details: Clean, Spacious & Neat */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div>
-                      {/* Purity & Category Header */}
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-bold text-forest-900 bg-forest-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-forest-900/10">
-                          <Droplets className="w-2.5 h-2.5 text-gold-600" />
-                          {t('prod.pure')}
+                    <div onClick={() => onQuickView(product)} className="cursor-pointer space-y-1.5">
+                      {/* Rating & Origin Tag */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[11px] font-semibold text-stone-500">
+                          {defaultPack}
                         </span>
                         <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
-                          <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                          <span className="text-stone-800 text-[11px]">{product.rating || 4.9}</span>
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                          <span className="text-stone-800 text-xs">{product.rating || 4.9}</span>
                         </div>
                       </div>
 
                       {/* Product Name */}
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
+                      <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-amber-800 transition-colors line-clamp-1">
                         {productName}
                       </h3>
-                      <p className="text-xs text-stone-500 line-clamp-2 mt-1">
-                        {productTagline}
-                      </p>
 
-                      {/* Available sizes */}
-                      <p className="text-[11px] text-stone-400 mt-2.5 flex items-center gap-1">
-                        <span>{t('prod.available')}</span>
-                        <span className="font-medium text-stone-600">
-                          {language === 'ta' ? '500மி.லி, 1லி, 2லி, 5லி' : '500ml, 1L, 2L, 5L'}
-                        </span>
+                      {/* Short Tagline */}
+                      <p className="text-xs text-stone-500 line-clamp-1">
+                        {productTagline}
                       </p>
                     </div>
 
@@ -429,7 +395,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                       <div>
                         {baseOriginalPrice && baseOriginalPrice > basePrice && (
-                          <span className="text-[11px] line-through text-stone-400 block">
+                          <span className="text-[11px] line-through text-stone-400 block -mb-0.5">
                             ₹{baseOriginalPrice}
                           </span>
                         )}
@@ -440,10 +406,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
                       <button
                         onClick={() => setBuyingProductId(product.id)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
                           isJustAdded
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-forest-950 hover:bg-forest-900 text-white'
+                            : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
                         }`}
                       >
                         {isJustAdded ? (

@@ -408,23 +408,6 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 key={product.id}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 hover:border-amber-400 shadow-soft hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
               >
-                {/* Top Badge & Lab Link */}
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF3EA] text-[#8B2522] border border-[#8B2522]/20">
-                    {product.badge || '100% Mara Chekku'}
-                  </span>
-                  {product.labReport && (
-                    <button
-                      onClick={() => onViewLabReport(product)}
-                      className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
-                      title="View Lab Analysis Certificate"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{language === 'ta' ? 'ஆய்வக சான்றிதழ்' : 'Lab Certificate'}</span>
-                    </button>
-                  )}
-                </div>
-
                 {/* Clickable Product Image */}
                 <div
                   onClick={() => onSelectProduct(product)}
@@ -520,14 +503,14 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* Action Buttons: Add to Cart & Buy Now */}
-                <div className="grid grid-cols-2 gap-2.5">
+                {/* Action Button: Add to Cart */}
+                <div>
                   <button
                     onClick={() => handleAddClick(product)}
-                    className={`w-full py-2.5 px-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                    className={`w-full py-2.5 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
                       isAdded
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-stone-100 hover:bg-stone-200 text-stone-900 border-stone-300/80 shadow-2xs'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-forest-950 hover:bg-forest-900 text-white'
                     }`}
                   >
                     {isAdded ? (
@@ -537,18 +520,10 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="w-3.5 h-3.5" />
+                        <ShoppingBag className="w-3.5 h-3.5 text-gold-400" />
                         <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
                       </>
                     )}
-                  </button>
-
-                  <button
-                    onClick={() => handleBuyClick(product)}
-                    className="w-full py-2.5 px-3 rounded-2xl bg-[#b32d2e] hover:bg-[#942021] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg cursor-pointer active:scale-98"
-                  >
-                    <Zap className="w-3.5 h-3.5 fill-white" />
-                    <span>{language === 'ta' ? 'உடனே வாங்கு' : 'Buy Now'}</span>
                   </button>
                 </div>
 
