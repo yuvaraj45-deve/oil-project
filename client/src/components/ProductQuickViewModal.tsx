@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText } from 'lucide-react';
+import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText, Edit } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -8,6 +8,7 @@ interface ProductQuickViewModalProps {
   onClose: () => void;
   onAddToCart: (product: Product, packSize: string, quantity: number) => void;
   onViewLabReport?: (product: Product) => void;
+  onViewDetails?: (product: Product) => void;
 }
 
 export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
@@ -15,6 +16,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   onClose,
   onAddToCart,
   onViewLabReport,
+  onViewDetails,
 }) => {
   if (!product) return null;
 
@@ -87,6 +89,21 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
       <div className="min-h-screen px-4 text-center flex items-center justify-center p-4">
         <div className="inline-block w-full max-w-3xl my-8 text-left align-middle transition-all transform bg-white rounded-3xl shadow-2xl overflow-hidden relative border border-cream-300">
           
+          {/* Edit Product button */}
+          {onViewDetails && (
+            <button
+              onClick={() => {
+                onClose();
+                onViewDetails(product);
+              }}
+              className="absolute top-4 right-14 z-20 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 transition-colors cursor-pointer text-xs font-bold inline-flex items-center gap-1 shadow-2xs"
+              title="Open product page to edit price, photo, or details"
+            >
+              <Edit className="w-3.5 h-3.5 text-amber-700" />
+              <span>{language === 'ta' ? 'எடிட் (Edit)' : 'Edit Product'}</span>
+            </button>
+          )}
+
           {/* Close button */}
           <button
             onClick={onClose}

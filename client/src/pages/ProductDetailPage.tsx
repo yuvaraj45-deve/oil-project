@@ -18,6 +18,10 @@ import {
   Plus,
   Minus,
   Award,
+  Edit,
+  X,
+  Upload,
+  Save,
 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -44,7 +48,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onSelectProduct,
 }) => {
   const { language, t } = useLanguage();
-  const { products: storeProducts, settings } = useStore();
+  const { products: storeProducts, settings, updateProduct, categories: storeCategories } = useStore();
   const effectiveAllProducts = storeProducts && storeProducts.length > 0 ? storeProducts : allProducts;
   // Pick live product from store so admin edits to price, stock, or description reflect immediately
   const product = effectiveAllProducts.find((p) => p.id === initialProduct.id || p.slug === initialProduct.slug) || initialProduct;
@@ -52,6 +56,109 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [quantity, setQuantity] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<'benefits' | 'craft' | 'lab'>('benefits');
   const [isAddedAnimation, setIsAddedAnimation] = useState<boolean>(false);
+
+  // Product Direct Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState(product.name);
+  const [editTamilName, setEditTamilName] = useState(product.tamilName || '');
+  const [editPrice, setEditPrice] = useState<number>(product.price);
+  const [editOriginalPrice, setEditOriginalPrice] = useState<number>(product.originalPrice || product.price);
+  const [editTagline, setEditTagline] = useState(product.tagline || '');
+  const [editCategory, setEditCategory] = useState(product.category);
+  const [editImage, setEditImage] = useState(product.image);
+  const [editInStock, setEditInStock] = useState(product.inStock);
+  const [editDescription, setEditDescription] = useState(product.description || '');
+  const [editBadge, setEditBadge] = useState(product.badge || '');
+  const [editDefaultPack, setEditDefaultPack] = useState(product.defaultPack || '1 Litre Bottle');
+  const [editPackSizes, setEditPackSizes] = useState<string[]>(product.packSizes || ['1 Litre Bottle']);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editToast, setEditToast] = useState<string | null>(null);
+
+  const openEditModal = () => {
+    setEditName(product.name);
+    setEditTamilName(product.tamilName || '');
+    setEditPrice(product.price);
+    setEditOriginalPrice(product.originalPrice || product.price);
+    setEditTagline(product.tagline || '');
+    setEditCategory(product.category);
+    setEditImage(product.image);
+    setEditInStock(product.inStock);
+    setEditDescription(product.description || '');
+    setEditBadge(product.badge || '');
+    setEditDefaultPack(product.defaultPack || '1 Litre Bottle');
+    setEditPackSizes(product.packSizes && product.packSizes.length > 0 ? product.packSizes : ['1 Litre Bottle']);
+    setIsEditModalOpen(true);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 600;
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          setEditImage(canvas.toDataURL('image/jpeg', 0.85));
+        } else {
+          setEditImage(uploadEvent.target?.result as string);
+        }
+      };
+      img.src = uploadEvent.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleTogglePackSize = (pack: string) => {
+    setEditPackSizes((prev) =>
+      prev.includes(pack) ? prev.filter((p) => p !== pack) : [...prev, pack]
+    );
+  };
+
+  const handleSaveProductEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim()) return;
+    setIsSavingEdit(true);
+    try {
+      const matchedCat = storeCategories?.find((c) => c.slug === editCategory);
+      const updated: Product = {
+        ...product,
+        name: editName.trim(),
+        tamilName: editTamilName.trim() || undefined,
+        price: Number(editPrice),
+        originalPrice: Number(editOriginalPrice) || Number(editPrice),
+        tagline: editTagline.trim(),
+        category: editCategory,
+        categoryName: matchedCat?.title || product.categoryName,
+        image: editImage,
+        inStock: editInStock,
+        badge: editBadge || undefined,
+        defaultPack: editDefaultPack,
+        packSizes: editPackSizes.length > 0 ? editPackSizes : [editDefaultPack],
+        description: editDescription.trim(),
+      };
+      await updateProduct(updated);
+      setIsEditModalOpen(false);
+      setEditToast(language === 'ta' ? 'பொருள் விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன! ✨' : 'Product updated successfully! ✨');
+      setTimeout(() => setEditToast(null), 3500);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   // Helper to calculate price by pack size
   const getPackPrice = (basePrice: number, pack: string): number => {
@@ -146,13 +253,25 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <span className="font-bold text-forest-950 truncate max-w-[200px] sm:max-w-xs">{productName}</span>
           </nav>
 
-          <button
-            onClick={() => onNavigate('/shop')}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-forest-900 text-stone-700 hover:text-forest-950 font-bold transition-all text-xs cursor-pointer bg-stone-50 hover:bg-white shadow-2xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>{language === 'ta' ? 'முந்தைய பக்கம்' : 'Back to Store'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openEditModal}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold transition-all text-xs cursor-pointer shadow-2xs"
+              title="Edit Product Details"
+            >
+              <Edit className="w-3.5 h-3.5 text-amber-700" />
+              <span>{language === 'ta' ? 'பொருளை திருத்து (Edit)' : 'Edit Product'}</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('/shop')}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-forest-900 text-stone-700 hover:text-forest-950 font-bold transition-all text-xs cursor-pointer bg-stone-50 hover:bg-white shadow-2xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{language === 'ta' ? 'முந்தைய பக்கம்' : 'Back to Store'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -223,9 +342,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             
             {/* Category Pill & Title */}
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-stone-100 text-stone-700 border border-stone-200 inline-block mb-3">
-                {product.categoryName || product.category}
-              </span>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-stone-100 text-stone-700 border border-stone-200 inline-block">
+                  {product.categoryName || product.category}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={openEditModal}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                  title="Edit product price, photo, or name"
+                >
+                  <Edit className="w-3.5 h-3.5 text-amber-700" />
+                  <span>{language === 'ta' ? 'விலை / விவரம் எடிட்' : 'Edit Details'}</span>
+                </button>
+              </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-forest-950 tracking-tight leading-tight">
                 {productName}
@@ -612,6 +743,262 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         </div>
 
       </div>
+
+      {/* Toast Notification */}
+      {editToast && (
+        <div className="fixed top-20 right-6 z-[80] bg-forest-950 text-gold-300 px-4 py-3 rounded-2xl shadow-2xl border border-gold-500/30 text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{editToast}</span>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                  Quick Product Editor
+                </span>
+                <h3 className="font-serif font-black text-xl text-forest-950 mt-1">
+                  {language === 'ta' ? `பொருள் திருத்துதல்: ${product.name}` : `Edit Product: ${product.name}`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-stone-400 hover:text-stone-600 p-2 rounded-xl hover:bg-stone-100 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProductEdit} className="space-y-4 text-xs">
+              
+              {/* Product Names */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Product Name (ஆங்கிலப் பெயர்) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Tamil Title (தமிழ் பெயர்)
+                  </label>
+                  <input
+                    type="text"
+                    value={editTamilName}
+                    onChange={(e) => setEditTamilName(e.target.value)}
+                    placeholder="e.g. மரச்செக்கு கடலை எண்ணெய்"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Selling Price (விற்பனை விலை ₹) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50 font-bold text-forest-950"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Original Price / MRP (அசல் விலை ₹)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editOriginalPrice}
+                    onChange={(e) => setEditOriginalPrice(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50 text-stone-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Category (பிரிவு)
+                  </label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50 font-bold cursor-pointer"
+                  >
+                    {(storeCategories && storeCategories.length > 0 ? storeCategories : [
+                      { slug: 'sesame-oil', title: 'Sesame Oil' },
+                      { slug: 'groundnut-oil', title: 'Groundnut Oil' },
+                      { slug: 'coconut-oil', title: 'Coconut Oil' },
+                      { slug: 'cooking-oil', title: 'Everyday Cooking Oil' },
+                      { slug: 'pooja-special', title: 'Pooja Deepam Oil' },
+                      { slug: 'a2-desi-ghee', title: 'A2 Desi Cow Ghee' },
+                      { slug: 'palm-jaggery-special', title: 'Palm Jaggery' },
+                    ]).map((cat) => (
+                      <option key={cat.slug} value={cat.slug}>
+                        {cat.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Tagline */}
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">
+                  Tagline / Short Summary (சுருக்கக் குறிப்பு)
+                </label>
+                <input
+                  type="text"
+                  value={editTagline}
+                  onChange={(e) => setEditTagline(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50"
+                />
+              </div>
+
+              {/* Photo Upload & Image Path */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-2.5">
+                <label className="block font-bold text-stone-800">
+                  Product Image (தயாரிப்பு படம் மாற்றவும்):
+                </label>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-stone-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                    <img
+                      src={editImage}
+                      alt="Preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editImage}
+                        onChange={(e) => setEditImage(e.target.value)}
+                        placeholder="Image URL or path (e.g. /products/sesame_oil.jpg)"
+                        className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs bg-white focus:outline-none focus:border-forest-900 font-mono"
+                      />
+                      <label className="px-3 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 shadow-xs">
+                        <Upload className="w-3.5 h-3.5 text-gold-400" />
+                        <span>Upload from PC</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    </div>
+                    <span className="text-[10px] text-stone-500 block">
+                      JPG, PNG அல்லது WebP படங்களை உங்கள் கம்ப்யூட்டரில் இருந்து பதிவேற்றலாம்.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pack Sizes & Stock Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Available Pack Sizes (கிடைக்கும் அளவுகள்)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can', '15 Litre Tin'].map((p) => {
+                      const isChecked = editPackSizes.includes(p);
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => handleTogglePackSize(p)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border cursor-pointer ${
+                            isChecked
+                              ? 'bg-forest-950 text-gold-300 border-forest-950'
+                              : 'bg-stone-50 text-stone-600 border-stone-200 hover:border-stone-400'
+                          }`}
+                        >
+                          {isChecked ? '✓ ' : '+ '}{p}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Stock Status (இருப்பு விவரம்)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setEditInStock(!editInStock)}
+                    className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                      editInStock
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-red-50 text-red-800 border-red-300'
+                    }`}
+                  >
+                    <span>{editInStock ? 'In Stock (கையிருப்பு உள்ளது)' : 'Out of Stock (இருப்பு இல்லை)'}</span>
+                    <span className={`w-3 h-3 rounded-full ${editInStock ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">
+                  Description / Process (தயாரிப்பு விளக்கம்)
+                </label>
+                <textarea
+                  rows={3}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:outline-none focus:border-forest-900 bg-stone-50 resize-none"
+                />
+              </div>
+
+              {/* Modal Action Buttons */}
+              <div className="pt-3 border-t border-stone-100 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl border border-stone-300 text-stone-700 font-bold hover:bg-stone-50 cursor-pointer"
+                >
+                  Cancel (ரத்து)
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEdit}
+                  className="flex-1 py-3 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4 text-gold-300" />
+                  <span>{isSavingEdit ? 'Saving...' : 'Save Changes (சேமிக்க)'}</span>
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

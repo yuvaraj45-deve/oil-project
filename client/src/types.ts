@@ -90,6 +90,8 @@ export interface Category {
   itemCount: string;
   badge: string;
   highlightText: string;
+  tamilTitle?: string;
+  badgeTa?: string;
 }
 
 export interface CartItem {

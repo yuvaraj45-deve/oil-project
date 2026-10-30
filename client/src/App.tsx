@@ -754,6 +754,10 @@ export function App() {
         product={quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
         onAddToCart={handleAddToCart}
+        onViewDetails={(p) => {
+          setQuickViewProduct(null);
+          handleOpenProduct(p);
+        }}
         onViewLabReport={(p) => {
           setQuickViewProduct(null);
           setSelectedLabReportProduct(p);

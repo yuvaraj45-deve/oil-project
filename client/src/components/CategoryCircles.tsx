@@ -1,4 +1,6 @@
 import React from 'react';
+import { useStore } from '../context/StoreContext';
+import { CATEGORIES_DATA } from '../data/oilData';
 
 interface CategoryItem {
   id: string;
@@ -16,48 +18,22 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   onSelectCategory,
   selectedCategory,
 }) => {
-  // Standing bottles: Groundnut, Sunflower, Mustard, Lamp, Sesame, Coconut (SS OIL pure bottles)
-  const categories: CategoryItem[] = [
-    {
-      id: 'groundnut',
-      name: 'Groundnut Oil',
-      slug: 'groundnut-oil',
-      image: '/products/groundnut_oil.jpg?v=ssoil',
-    },
-    {
-      id: 'sunflower',
-      name: 'Sunflower Oil',
-      slug: 'cooking-oil',
-      image: '/products/sunflower_oil.jpg?v=ssoil',
-    },
-    {
-      id: 'mustard',
-      name: 'Mustard Oil',
-      slug: 'cooking-oil',
-      image: '/products/mustard_oil.jpg?v=ssoil',
-    },
-    {
-      id: 'lamp',
-      name: 'Lamp Oil',
-      slug: 'pooja-special',
-      image: '/products/lamp_oil.jpg?v=ssoil',
-    },
-    {
-      id: 'sesame',
-      name: 'Sesame Oil',
-      slug: 'sesame-oil',
-      image: '/products/sesame_oil.jpg?v=ssoil',
-    },
-    {
-      id: 'coconut',
-      name: 'Coconut Oil',
-      slug: 'coconut-oil',
-      image: '/products/coconut_oil.jpg?v=ssoil',
-    },
-  ];
+  const { categories: storeCategories } = useStore();
+  const sourceCats = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
 
-  // Duplicate categories for continuous seamless infinite loop
-  const marqueeCategories = [...categories, ...categories];
+  // Dynamically map all categories (including newly added categories from Admin)
+  const categories: CategoryItem[] = sourceCats.map((c) => ({
+    id: c.id,
+    name: c.title,
+    slug: c.slug,
+    image: c.image || '/products/sesame_oil.jpg',
+  }));
+
+  // Duplicate categories for continuous seamless infinite marquee loop
+  const marqueeCategories =
+    categories.length < 8
+      ? [...categories, ...categories, ...categories]
+      : [...categories, ...categories];
 
   return (
     <div className="w-full bg-white border-b border-stone-200/90 py-5 sm:py-7 overflow-hidden select-none relative">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Droplets } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { CATEGORIES_DATA } from '../data/oilData';
 
 interface CategoryItem {
   id: string;
@@ -22,7 +23,7 @@ interface OurProductRangeProps {
 
 export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct }) => {
   const { language, t } = useLanguage();
-  const { products } = useStore();
+  const { products, categories: storeCategories } = useStore();
   const [activeGroup, setActiveGroup] = useState<string>('all');
 
   const getStartingPrice = (slug: string, fallback: string) => {
@@ -33,111 +34,90 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
     return `₹${minPrice}`;
   };
 
-  const categories: CategoryItem[] = [
-    {
-      id: 'groundnut',
-      name: 'Groundnut Oil',
+  const rawCategories = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
+
+  const PRESET_METADATA: Record<string, Partial<CategoryItem>> = {
+    'groundnut-oil': {
       tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
-      slug: 'groundnut-oil',
-      image: '/products/groundnut_oil.jpg?v=ssoil',
       badge: 'Wood-Pressed',
       badgeTa: 'மரச்செக்கு',
       benefit: 'Rich in natural Vitamin E, heart-healthy MUFA & authentic aroma',
       startingPrice: '₹180',
       group: 'wood-pressed',
     },
-    {
-      id: 'sesame',
-      name: 'Sesame (Gingelly) Oil',
+    'sesame-oil': {
       tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
-      slug: 'sesame-oil',
-      image: '/products/sesame_oil.jpg?v=ssoil',
       badge: 'Bestseller',
       badgeTa: 'அதிக விற்பனை',
       benefit: 'Slow-pressed with palm jaggery, high in calcium & sesamol antioxidants',
       startingPrice: '₹210',
       group: 'wood-pressed',
     },
-    {
-      id: 'coconut',
-      name: 'Virgin Coconut Oil',
+    'coconut-oil': {
       tamilName: 'பாரம்பரிய தேங்காய் எண்ணெய்',
-      slug: 'coconut-oil',
-      image: '/products/coconut_oil.jpg?v=ssoil',
       badge: 'Raw Cold-Pressed',
       badgeTa: 'மரச்செக்கு',
       benefit: 'Sulphur-free sun-dried copra, 64% Lauric Acid for cooking, hair & skin',
       startingPrice: '₹170',
       group: 'wood-pressed',
     },
-    {
-      id: 'sunflower',
-      name: 'Sunflower Cooking Oil',
-      tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
-      slug: 'cooking-oil',
-      image: '/products/sunflower_oil.jpg?v=ssoil',
+    'cooking-oil': {
+      tamilName: 'தூய சமையல் எண்ணெய்',
       badge: 'Light & Pure',
       badgeTa: 'லேசானது & தூயது',
       benefit: 'Light non-sticky texture, rich in Vitamin E with high smoke point',
       startingPrice: '₹115',
       group: 'cooking',
     },
-    {
-      id: 'ricebran',
-      name: 'Heart-Care Rice Bran Oil',
-      tamilName: 'தூய தவிட்டு எண்ணெய்',
-      slug: 'cooking-oil',
-      image: '/products/rice_bran_oil.jpg?v=ssoil',
-      badge: 'Heart Care',
-      badgeTa: 'இதய நலம்',
-      benefit: '10,000+ ppm natural Oryzanol clinically balanced for cholesterol care',
-      startingPrice: '₹110',
-      group: 'cooking',
-    },
-    {
-      id: 'lamp',
-      name: 'Pooja Deepam Oil',
+    'pooja-special': {
       tamilName: 'பஞ்ச தீப பூஜை எண்ணெய்',
-      slug: 'pooja-special',
-      image: 'https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=600&q=85',
       badge: 'Temple Pooja',
       badgeTa: 'பூஜை சிறப்பு',
       benefit: 'Traditional 5 sacred oils blend for divine prosperity and positive aura',
       startingPrice: '₹140',
       group: 'pooja',
     },
-    {
-      id: 'ghee',
-      name: 'A2 Cultured Cow Ghee',
+    'a2-desi-ghee': {
       tamilName: 'நாட்டு மாட்டு நெய் (பிலோனா)',
-      slug: 'a2-desi-ghee',
-      image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=600&q=85',
       badge: 'Bilona Churned',
       badgeTa: 'பிலோனா நெய்',
       benefit: 'Made from cultured A2 curd churned with traditional wooden bilona',
       startingPrice: '₹450',
       group: 'ghee-jaggery',
     },
-    {
-      id: 'jaggery',
-      name: 'Palm Jaggery (Karupatti)',
+    'palm-jaggery-special': {
       tamilName: 'உடன்குடி பனை கருப்பட்டி',
-      slug: 'palm-jaggery-special',
-      image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=600&q=85',
       badge: 'Native Pure',
       badgeTa: 'இயற்கை தூய்மை',
       benefit: '100% natural unrefined palm nectar rich in plant iron & minerals',
       startingPrice: '₹160',
       group: 'ghee-jaggery',
     },
-  ];
+  };
+
+  // Dynamically map all categories so newly added categories in Admin appear live on the homepage
+  const categories: CategoryItem[] = rawCategories.map((c) => {
+    const meta = PRESET_METADATA[c.slug] || {};
+    return {
+      id: c.id || c.slug,
+      name: c.title,
+      tamilName: c.tamilTitle || meta.tamilName || c.title,
+      slug: c.slug,
+      image: c.image || '/products/sesame_oil.jpg',
+      badge: c.badge || meta.badge || '100% Pure',
+      badgeTa: c.badgeTa || meta.badgeTa || c.badge || '100% தூய்மை',
+      benefit: c.subtitle || meta.benefit || 'Traditional cold-pressed authentic extraction',
+      startingPrice: meta.startingPrice || '₹150',
+      group: (meta.group as any) || 'all',
+    };
+  });
 
   const filterTabs = [
     { id: 'all', label: t('range.tab.all'), count: categories.length },
-    { id: 'wood-pressed', label: t('range.tab.woodPressed'), count: 3 },
-    { id: 'cooking', label: t('range.tab.cooking'), count: 2 },
-    { id: 'pooja', label: t('range.tab.pooja'), count: 1 },
-    { id: 'ghee-jaggery', label: t('range.tab.gheeJaggery'), count: 2 },
+    { id: 'wood-pressed', label: t('range.tab.woodPressed'), count: categories.filter(c => c.group === 'wood-pressed').length },
+    { id: 'cooking', label: t('range.tab.cooking'), count: categories.filter(c => c.group === 'cooking').length },
+    { id: 'pooja', label: t('range.tab.pooja'), count: categories.filter(c => c.group === 'pooja').length },
+    { id: 'ghee-jaggery', label: t('range.tab.gheeJaggery'), count: categories.filter(c => c.group === 'ghee-jaggery').length },
   ];
 
   const filteredCategories = categories.filter((cat) => {
@@ -179,9 +159,12 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
         {/* Product Categories Grid (Clean Single Presentation) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
           {filteredCategories.map((item) => {
-            const displayName = language === 'ta' ? t(`cat.${item.id}.name`) : item.name;
-            const displayBenefit = t(`cat.${item.id}.benefit`);
-            const displayBadge = language === 'ta' ? item.badgeTa : item.badge;
+            const displayName =
+              language === 'ta' && (item.tamilName || t(`cat.${item.id}.name`))
+                ? (item.tamilName || t(`cat.${item.id}.name`))
+                : item.name;
+            const displayBenefit = (language === 'ta' && t(`cat.${item.id}.benefit`)) || item.benefit;
+            const displayBadge = language === 'ta' ? (item.badgeTa || item.badge) : item.badge;
 
             return (
               <div
