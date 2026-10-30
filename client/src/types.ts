@@ -183,6 +183,7 @@ export interface StoreSettings {
   homepageProductsLimit?: number;
   qualityBannerImage?: string;
   qualityBannerBadge?: string;
+  homepageProductIds?: string[];
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
@@ -210,6 +211,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   homepageProductsLimit: 4,
   qualityBannerImage: '/quality_banner_bottles.jpg',
   qualityBannerBadge: '100% Mara Chekku • SS OIL Heritage',
+  homepageProductIds: ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'],
 };
 
 export interface HomeFeaturedVideo {

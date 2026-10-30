@@ -26,7 +26,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   maxProducts,
 }) => {
   const { language, t } = useLanguage();
-  const { products } = useStore();
+  const { products, settings } = useStore();
   // State to track which product currently has the pack selector overlay open (when buying)
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
@@ -41,12 +41,30 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   }, []);
 
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
-  const filteredProducts =
-    selectedCategory === 'all'
-      ? sourceProducts
-      : sourceProducts.filter((p) => p.category === selectedCategory);
 
-  const displayedProducts = maxProducts ? filteredProducts.slice(0, maxProducts) : filteredProducts;
+  // Curated Homepage 4 Products logic:
+  // When browsing 'all', use the 4 products configured in Admin settings (settings.homepageProductIds)
+  let displayedProducts: Product[];
+  if (selectedCategory === 'all') {
+    const configuredIds =
+      settings?.homepageProductIds && settings.homepageProductIds.length > 0
+        ? settings.homepageProductIds
+        : ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'];
+
+    const matched = configuredIds
+      .map((id) => sourceProducts.find((p) => p.id === id))
+      .filter((p): p is Product => Boolean(p));
+
+    if (matched.length < (maxProducts || 4)) {
+      const remaining = sourceProducts.filter((p) => !matched.some((m) => m.id === p.id));
+      displayedProducts = [...matched, ...remaining].slice(0, maxProducts || 4);
+    } else {
+      displayedProducts = matched.slice(0, maxProducts || 4);
+    }
+  } else {
+    const filtered = sourceProducts.filter((p) => p.category === selectedCategory);
+    displayedProducts = maxProducts ? filtered.slice(0, maxProducts) : filtered;
+  }
 
   const formatPack = (pack: string, lang: string) => {
     if (lang !== 'ta') return pack;
