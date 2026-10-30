@@ -9,7 +9,6 @@ import { PureDifference } from './components/PureDifference';
 import { MakeTheSwitchBanner } from './components/MakeTheSwitchBanner';
 import { SSOilQualityBanner } from './components/SSOilQualityBanner';
 import { HomeFeaturedVideoBanner } from './components/HomeFeaturedVideoBanner';
-import { ReelsCarouselSection } from './components/ReelsCarouselSection';
 import { CraftsmanshipVisualizer } from './components/CraftsmanshipVisualizer';
 import { PurityComparison } from './components/PurityComparison';
 import { HealthyRecipesSection } from './components/HealthyRecipesSection';
@@ -661,11 +660,8 @@ export function App() {
             {/* SS OIL 4 Quality Pillars (Quality You Can Count On, Honest Processing, Sourcing, Indian Cooking) */}
             <SSOilQualityBanner />
 
-            {/* Homepage Featured Showcase Video (Configured dynamically from Admin Portal) */}
+            {/* Homepage Featured Showcase Video (Configured dynamically from Admin Portal - Only 1 single video) */}
             <HomeFeaturedVideoBanner />
-
-            {/* SS OIL Community Reels & Kitchen Stories Carousel */}
-            <ReelsCarouselSection />
 
             {/* 4. Our Product Range & Categories: Pure Oils for a Healthier You */}
             <OurProductRange
