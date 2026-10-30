@@ -3210,7 +3210,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         type="text"
                         value={videoForm.videoUrl}
                         onChange={(e) => setVideoForm((prev) => ({ ...prev, videoUrl: e.target.value }))}
-                        placeholder={videoForm.videoType === 'youtube' ? 'Paste YouTube link (e.g. https://www.youtube.com/watch?v=...)' : 'Enter video path or upload from PC (e.g. /videos/reel_1.mp4)'}
+                        placeholder={videoForm.videoType === 'youtube' ? 'Paste YouTube link (e.g. https://www.youtube.com/watch?v=...)' : 'Enter video path or upload from PC (e.g. /videos/heritage_video.mp4)'}
                         className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white font-mono"
                       />
 
@@ -3226,29 +3226,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           />
                         </label>
                       )}
-                    </div>
-
-                    {/* Fast 1-Click Presets */}
-                    <div className="flex items-center gap-1.5 pt-1 flex-wrap">
-                      <span className="text-[11px] text-stone-500 font-medium">Quick Replace Presets:</span>
-                      {[
-                        { label: 'Reel 1 (Cooking)', url: '/videos/reel_1.mp4' },
-                        { label: 'Reel 2 (Groundnut)', url: '/videos/reel_2.mp4' },
-                        { label: 'Reel 3 (Palm Jaggery)', url: '/videos/reel_3.mp4' },
-                      ].map((p) => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          onClick={() => setVideoForm((prev) => ({ ...prev, videoUrl: p.url, videoType: 'mp4' }))}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                            videoForm.videoUrl === p.url
-                              ? 'bg-forest-950 text-gold-300 border-forest-950'
-                              : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                          }`}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
                     </div>
                   </div>
 
