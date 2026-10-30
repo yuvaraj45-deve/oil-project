@@ -39,7 +39,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       name: 'Groundnut Oil',
       tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
       slug: 'groundnut-oil',
-      image: '/products/groundnut_oil.jpg',
+      image: '/products/groundnut_oil.jpg?v=ssoil',
       badge: 'Wood-Pressed',
       badgeTa: 'மரச்செக்கு',
       benefit: 'Rich in natural Vitamin E, heart-healthy MUFA & authentic aroma',
@@ -51,7 +51,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       name: 'Sesame (Gingelly) Oil',
       tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
       slug: 'sesame-oil',
-      image: '/products/sesame_oil.jpg',
+      image: '/products/sesame_oil.jpg?v=ssoil',
       badge: 'Bestseller',
       badgeTa: 'அதிக விற்பனை',
       benefit: 'Slow-pressed with palm jaggery, high in calcium & sesamol antioxidants',
@@ -63,7 +63,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       name: 'Virgin Coconut Oil',
       tamilName: 'பாரம்பரிய தேங்காய் எண்ணெய்',
       slug: 'coconut-oil',
-      image: '/products/coconut_oil.jpg',
+      image: '/products/coconut_oil.jpg?v=ssoil',
       badge: 'Raw Cold-Pressed',
       badgeTa: 'மரச்செக்கு',
       benefit: 'Sulphur-free sun-dried copra, 64% Lauric Acid for cooking, hair & skin',
@@ -75,7 +75,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       name: 'Sunflower Cooking Oil',
       tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
       slug: 'cooking-oil',
-      image: '/products/sunflower_oil.jpg',
+      image: '/products/sunflower_oil.jpg?v=ssoil',
       badge: 'Light & Pure',
       badgeTa: 'லேசானது & தூயது',
       benefit: 'Light non-sticky texture, rich in Vitamin E with high smoke point',
@@ -87,7 +87,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       name: 'Heart-Care Rice Bran Oil',
       tamilName: 'தூய தவிட்டு எண்ணெய்',
       slug: 'cooking-oil',
-      image: '/products/rice_bran_oil.jpg',
+      image: '/products/rice_bran_oil.jpg?v=ssoil',
       badge: 'Heart Care',
       badgeTa: 'இதய நலம்',
       benefit: '10,000+ ppm natural Oryzanol clinically balanced for cholesterol care',
@@ -165,22 +165,13 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
             <button
               key={tab.id}
               onClick={() => setActiveGroup(tab.id)}
-              className={`px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeGroup === tab.id
                   ? 'bg-forest-950 text-white shadow-md'
                   : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
               }`}
             >
               <span>{tab.label}</span>
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full ${
-                  activeGroup === tab.id
-                    ? 'bg-gold-500 text-forest-950'
-                    : 'bg-stone-200 text-stone-600'
-                }`}
-              >
-                {tab.count}
-              </span>
             </button>
           ))}
         </div>

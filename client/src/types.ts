@@ -246,7 +246,7 @@ export const DEFAULT_HOME_FEATURED_VIDEO: HomeFeaturedVideo = {
   tamilTitle: 'மரச்செக்கு பாரம்பரியம்: நேரடி வாகை மரச்செக்கு ஆலை தயாரிப்பு முறை',
   subtitle: 'Watch how native seeds are crushed cold in Vaagai wood pestles without artificial heat or chemical solvents.',
   tamilSubtitle: 'பாரம்பரிய முறையில் வாகை மர உரலில் நாட்டு விதைகளை பிழிந்து தூய எண்ணெய் தயாரிக்கும் நேரடி காட்சி.',
-  badge: 'Salem Mill Heritage 🎥',
+  badge: '',
   videoUrl: '/videos/reel_1.mp4',
   videoType: 'mp4',
   posterUrl: '/products/sesame_oil.jpg',

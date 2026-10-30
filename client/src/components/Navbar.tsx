@@ -370,7 +370,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:bg-emerald-50 hover:text-[#1e7e34] transition-colors cursor-pointer flex items-center justify-between"
                     >
                       <span className="truncate">{cat.title}</span>
-                      <span className="text-[10px] text-stone-400 font-normal shrink-0 ml-1">{cat.itemCount}</span>
                     </button>
                   ))}
                 </div>

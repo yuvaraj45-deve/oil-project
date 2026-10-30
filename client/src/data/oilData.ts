@@ -155,8 +155,8 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'groundnut-oil',
     title: 'Groundnut Oil',
     subtitle: 'Traditional Wood-Pressed Peanut Oil',
-    image: '/products/groundnut_oil.jpg',
-    itemCount: '4 Varieties',
+    image: '/products/groundnut_oil.jpg?v=ssoil',
+    itemCount: '',
     badge: 'Wood-Pressed',
     highlightText: 'Vaagai Mara Chekku'
   },
@@ -165,8 +165,8 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'sesame-oil',
     title: 'Sesame Oil',
     subtitle: 'Traditional Gingelly Oil with Palm Jaggery',
-    image: '/products/sesame_oil.jpg',
-    itemCount: '4 Varieties',
+    image: '/products/sesame_oil.jpg?v=ssoil',
+    itemCount: '',
     badge: 'Authentic Gingelly',
     highlightText: 'Wood-Pressed with Palm Jaggery'
   },
@@ -175,8 +175,8 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'coconut-oil',
     title: 'Coconut Oil',
     subtitle: 'Cold-Pressed Virgin Copra Oil',
-    image: '/products/coconut_oil.jpg',
-    itemCount: '4 Varieties',
+    image: '/products/coconut_oil.jpg?v=ssoil',
+    itemCount: '',
     badge: '100% Virgin Pure',
     highlightText: 'Sulphur-Free Sun-Dried Copra'
   },
@@ -186,7 +186,7 @@ export const CATEGORIES_DATA: Category[] = [
     title: 'Cooking Oil',
     subtitle: 'Everyday Light & Healthy Blends',
     image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
-    itemCount: '6 Varieties',
+    itemCount: '',
     badge: 'Daily Essential',
     highlightText: 'Chemical-Free & High Smoke Point'
   },
@@ -195,8 +195,8 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'sunflower-oil',
     title: 'Sunflower Oil',
     subtitle: 'Light & Pure Micro-Filtered Oil',
-    image: '/products/sunflower_oil.jpg',
-    itemCount: '3 Varieties',
+    image: '/products/sunflower_oil.jpg?v=ssoil',
+    itemCount: '',
     badge: 'Light & Pure',
     highlightText: 'Vitamin E Enriched'
   },
@@ -205,8 +205,8 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'ricebran-oil',
     title: 'Rice Bran Oil',
     subtitle: 'Heart-Care Oil with Gamma Oryzanol',
-    image: '/products/rice_bran_oil.jpg',
-    itemCount: '3 Varieties',
+    image: '/products/rice_bran_oil.jpg?v=ssoil',
+    itemCount: '',
     badge: 'Heart Care',
     highlightText: '10,000+ ppm Oryzanol'
   },
@@ -216,7 +216,7 @@ export const CATEGORIES_DATA: Category[] = [
     title: 'Pooja Deepam Oil',
     subtitle: 'Sacred 5-Oil Blend with Sugandha Herbs',
     image: 'https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80',
-    itemCount: '2 Varieties',
+    itemCount: '',
     badge: 'Temple Pooja',
     highlightText: 'Divine Sugandha Fragrance'
   },
@@ -226,7 +226,7 @@ export const CATEGORIES_DATA: Category[] = [
     title: 'A2 Desi Cow Ghee',
     subtitle: 'Hand-Churned Danedaar Bilona Ghee',
     image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80',
-    itemCount: '3 Varieties',
+    itemCount: '',
     badge: 'Bilona Pure',
     highlightText: 'Native Cow Milk'
   },
@@ -236,7 +236,7 @@ export const CATEGORIES_DATA: Category[] = [
     title: 'Palm Jaggery',
     subtitle: 'Pure Udangudi Karupatti Block',
     image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
-    itemCount: '2 Varieties',
+    itemCount: '',
     badge: 'Native Pure',
     highlightText: 'Rich in Natural Iron'
   }
@@ -256,7 +256,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 289,
     packSizes: ['500 ml Bottle', '1 Litre Bottle', '2 Litre Bottle', '5 Litre Can'],
     defaultPack: '1 Litre Bottle',
-    image: '/products/sesame_oil.jpg',
+    image: '/products/sesame_oil.jpg?v=ssoil',
     badge: 'Wood-Pressed',
     description: 'Extracted from clean black sesame seeds blended with organic palm jaggery (Karupatti) to tame bitterness. Celebrated for rich sesamol antioxidants, culinary flavour, and holistic wellness.',
     benefits: [
@@ -296,7 +296,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 215,
     packSizes: ['500 ml Bottle', '1 Litre Glass Jar', '2 Litre Can', '5 Litre Can'],
     defaultPack: '1 Litre Glass Jar',
-    image: '/products/coconut_oil.jpg',
+    image: '/products/coconut_oil.jpg?v=ssoil',
     badge: '100% Pure',
     description: 'Extracted from naturally sun-dried coconut copra sourced directly from coastal farms. Absolutely chemical-free, transparent with a silky texture and heavenly coconut fragrance.',
     benefits: [
@@ -376,7 +376,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 310,
     packSizes: ['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Tin'],
     defaultPack: '1 Litre Bottle',
-    image: '/products/groundnut_oil.jpg',
+    image: '/products/groundnut_oil.jpg?v=ssoil',
     badge: 'Wood-Pressed',
     description: 'Crafted from hand-sorted organic peanuts crushed slowly in Vaagai wood mortars. High smoke point ideal for crispy South Indian frying with zero cholesterol.',
     benefits: [
@@ -416,7 +416,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 164,
     packSizes: ['500 ml Bottle', '1 Litre Bottle', '5 Litre Can'],
     defaultPack: '1 Litre Bottle',
-    image: '/products/sunflower_oil.jpg',
+    image: '/products/sunflower_oil.jpg?v=ssoil',
     badge: 'Light & Pure',
     description: 'Extracted from premium sunflower seeds. Extremely light and non-greasy, retaining natural vitamins for guilt-free family meals.',
     benefits: [
@@ -456,7 +456,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 195,
     packSizes: ['500 ml Bottle', '1 Litre Bottle', '5 Litre Can'],
     defaultPack: '1 Litre Bottle',
-    image: '/products/rice_bran_oil.jpg',
+    image: '/products/rice_bran_oil.jpg?v=ssoil',
     badge: 'Heart Care',
     description: 'Extracted from the nutrient-rich golden outer layer of brown rice grains. Packed with Gamma Oryzanol clinically known to help maintain healthy cholesterol.',
     benefits: [

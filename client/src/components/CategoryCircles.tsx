@@ -22,37 +22,37 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
       id: 'groundnut',
       name: 'Groundnut Oil',
       slug: 'groundnut-oil',
-      image: '/products/groundnut_oil.jpg',
+      image: '/products/groundnut_oil.jpg?v=ssoil',
     },
     {
       id: 'sunflower',
       name: 'Sunflower Oil',
       slug: 'cooking-oil',
-      image: '/products/sunflower_oil.jpg',
+      image: '/products/sunflower_oil.jpg?v=ssoil',
     },
     {
       id: 'mustard',
       name: 'Mustard Oil',
       slug: 'cooking-oil',
-      image: '/products/mustard_oil.jpg',
+      image: '/products/mustard_oil.jpg?v=ssoil',
     },
     {
       id: 'lamp',
       name: 'Lamp Oil',
       slug: 'pooja-special',
-      image: '/products/lamp_oil.jpg',
+      image: '/products/lamp_oil.jpg?v=ssoil',
     },
     {
       id: 'sesame',
       name: 'Sesame Oil',
       slug: 'sesame-oil',
-      image: '/products/sesame_oil.jpg',
+      image: '/products/sesame_oil.jpg?v=ssoil',
     },
     {
       id: 'coconut',
       name: 'Coconut Oil',
       slug: 'coconut-oil',
-      image: '/products/coconut_oil.jpg',
+      image: '/products/coconut_oil.jpg?v=ssoil',
     },
   ];
 

@@ -107,10 +107,9 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
                     </span>
                   </div>
 
-                  {/* Variety Count */}
-                  <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between text-white text-xs">
-                    <span className="font-medium text-cream-200">{itemCount}</span>
-                    <span className="text-[10px] bg-forest-950/80 px-2 py-0.5 rounded text-gold-300">
+                  {/* SS OIL Brand Tag */}
+                  <div className="absolute bottom-3.5 right-3.5">
+                    <span className="text-[10px] bg-forest-950/85 px-2.5 py-1 rounded-md text-gold-300 font-bold tracking-wide">
                       SS OIL
                     </span>
                   </div>

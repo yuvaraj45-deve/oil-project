@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize2, X, Sparkles, ArrowRight, Video as VideoIcon } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, X, Sparkles } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -69,11 +69,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-forest-950 text-gold-300 border border-gold-500/30 text-xs font-bold uppercase tracking-wider shadow-xs">
-            <VideoIcon className="w-3.5 h-3.5 text-gold-400" />
-            <span>{homeFeaturedVideo.badge || 'Heritage Video 🎥'}</span>
-          </div>
-
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-black text-stone-900 tracking-tight leading-tight">
             {title}
           </h2>
@@ -83,8 +78,8 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
           </p>
         </div>
 
-        {/* Video Card Container */}
-        <div className="relative max-w-5xl mx-auto rounded-3xl sm:rounded-4xl overflow-hidden shadow-2xl border-2 sm:border-4 border-stone-200/90 bg-black group">
+        {/* Video Card Container - Compact & Centered */}
+        <div className="relative max-w-2xl sm:max-w-3xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-stone-200/90 bg-black group">
           
           {/* Main Video Viewport (16:9 Aspect Ratio) */}
           <div className="relative w-full aspect-video flex items-center justify-center bg-black overflow-hidden">
@@ -172,28 +167,9 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
                 </div>
               </>
             )}
-
-            {/* Corner Mill Watermark Badge */}
-            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 px-3 py-1.5 rounded-xl bg-black/75 backdrop-blur-md border border-white/20 text-white flex items-center gap-2 pointer-events-none z-20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-serif text-xs font-bold tracking-wide">ss oil Salem Mill</span>
-            </div>
           </div>
 
         </div>
-
-        {/* Optional Action Button */}
-        {homeFeaturedVideo.buttonText && (
-          <div className="mt-8 text-center">
-            <a
-              href={homeFeaturedVideo.buttonLink || '#shop'}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-bold text-sm shadow-md transition-all hover:scale-105 active:scale-95"
-            >
-              <span>{homeFeaturedVideo.buttonText}</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        )}
 
       </div>
 
