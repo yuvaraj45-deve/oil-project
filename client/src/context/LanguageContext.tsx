@@ -145,7 +145,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.terms': 'Terms & Conditions',
 
     // Shop Page
-    'shop.badge': 'Direct from Heritage Wood-Pressed Mill',
+    'shop.badge': '',
     'shop.title': 'Our Cold-Pressed & Mara Chekku Collection',
     'shop.subtitle': 'Every bottle is slow-churned without artificial heat or chemical bleaching. Choose pure wood-pressed sesame, virgin coconut, and everyday healthy oils.',
     'shop.searchPlaceholder': 'Search oils by name or dish...',
@@ -186,7 +186,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.stat.families': 'Happy Families',
 
     // Contact Page
-    'contact.badge': 'Customer Support & Wholesale Desk',
+    'contact.badge': '',
     'contact.title': 'Connect with Our Heritage Mill',
     'contact.subtitle': 'Have questions about our cold-press process, bulk 15L catering tins, or direct farmer sourcing? Our customer desk is here to assist you.',
     'contact.officeTitle': 'Central Mill & Registered Office',
@@ -497,7 +497,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.terms': 'விதிமுறைகள் & நிபந்தனைகள்',
 
     // Shop Page
-    'shop.badge': 'நேரடி பாரம்பரிய மரச்செக்கு ஆலைத் தயாரிப்பு',
+    'shop.badge': '',
     'shop.title': 'மரச்செக்கு & தூய சமையல் எண்ணெய் வகைகள்',
     'shop.subtitle': 'செயற்கை வெப்பமும் ரசாயன நிறமூட்டிகளும் இன்றி மெதுவாக ஆட்டப்பட்ட தூய எண்ணெய்கள். மரச்செக்கு நல்லெண்ணெய், கடலை எண்ணெய், தேங்காய் எண்ணெய் மற்றும் சமையல் எண்ணெய்களைத் தேர்ந்தெடுங்கள்.',
     'shop.searchPlaceholder': 'எண்ணெய் பெயர் அல்லது உணவு மூலம் தேட...',
@@ -538,7 +538,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.stat.families': 'மகிழ்ச்சியான குடும்பங்கள்',
 
     // Contact Page
-    'contact.badge': 'வாடிக்கையாளர் ஆதரவு & மொத்த விற்பனை பிரிவு',
+    'contact.badge': '',
     'contact.title': 'எங்கள் பாரம்பரிய ஆலையை தொடர்பு கொள்ளவும்',
     'contact.subtitle': 'எண்ணெய் தயாரிப்பு முறை, மொத்த 15L டின் ஆர்டர்கள் அல்லது விவசாயிகளிடம் கொள்முதல் குறித்த கேள்விகளுக்கு எங்கள் அலுவலகம் உதவ தயாராக உள்ளது.',
     'contact.officeTitle': 'தலைமை ஆலை & பதிவு செய்யப்பட்ட அலுவலகம்',

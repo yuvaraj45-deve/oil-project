@@ -26,9 +26,6 @@ export const ContactPage: React.FC = () => {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/10 text-forest-900 text-xs font-bold uppercase tracking-wider">
-            <span>{t('contact.badge')}</span>
-          </div>
           <h1 className="text-3xl sm:text-5xl font-serif font-black text-forest-950 tracking-tight">
             {t('contact.title')}
           </h1>
