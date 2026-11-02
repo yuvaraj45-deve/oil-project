@@ -61,7 +61,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         )
         .filter((p): p is Product => Boolean(p));
 
-      displayedProducts = selected.length > 0 ? selected : sourceProducts.slice(0, 4);
+      displayedProducts = (selected.length > 0 ? selected : sourceProducts).slice(0, 4);
     } else {
       const featured = sourceProducts.filter((p) => p.featured);
       displayedProducts = featured.length > 0 ? featured : sourceProducts.slice(0, 4);

@@ -859,12 +859,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
-  // 4C. DATA: Our Pure Oils & Products Homepage Selection State & Helpers
+  // 4C. DATA: Homepage Featured Products State & Helpers
   // -------------------------------------------------------------
   const currentHomepageProductIds =
     settings.homepageProductIds && settings.homepageProductIds.length > 0
       ? settings.homepageProductIds
       : productsList.slice(0, 4).map((p) => p.id);
+
+  const handleSetHomepageSlot = (slotIdx: number, newProductId: string) => {
+    const nextIds = [...currentHomepageProductIds];
+    while (nextIds.length < 4) {
+      const remaining = productsList.find((p) => !nextIds.includes(p.id));
+      nextIds.push(remaining ? remaining.id : productsList[0].id);
+    }
+
+    // Clean swap if newProductId is already assigned to another slot
+    const existingIndex = nextIds.indexOf(newProductId);
+    if (existingIndex !== -1 && existingIndex !== slotIdx) {
+      nextIds[existingIndex] = nextIds[slotIdx];
+    }
+    nextIds[slotIdx] = newProductId;
+
+    const newSettings = { ...settings, homepageProductIds: nextIds };
+    setSettings(newSettings);
+    updateStoreSettings({ homepageProductIds: nextIds });
+
+    const newProd = productsList.find((p) => p.id === newProductId);
+    if (newProd) {
+      contextUpdateProduct({ ...newProd, featured: true });
+    }
+    showToast(`Slot ${slotIdx + 1} updated to "${newProd?.name || 'Oil'}"! ⭐`);
+  };
 
   const handleToggleHomepageProduct = (productId: string) => {
     let nextIds: string[];
@@ -1006,7 +1031,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
             { id: 'bottles', label: 'Standing Bottles / Cans', icon: Droplets, count: bottlesList.filter(b => b.enabled !== false).length },
-            { id: 'products', label: 'Our Pure Oils & Products', icon: Package, count: productsList.length },
+            { id: 'products', label: 'Products', icon: Package, count: productsList.length },
             { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
             { id: 'videos', label: 'Homepage Video', icon: Video, count: 1 },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
@@ -1131,7 +1156,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
                 {activeTab === 'bottles' && 'Standing Bottles & Cans (பாட்டில்கள் / கேன்கள் மேலாண்மை)'}
-                {activeTab === 'products' && 'Our Pure Oils & Products (எங்களின் தூய எண்ணெய்கள் & பொருட்கள்)'}
+                {activeTab === 'products' && 'Products (பொருட்கள்)'}
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
@@ -1475,8 +1500,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-200 hover:border-amber-400 text-left transition-all cursor-pointer group shadow-xs"
                 >
                   <Package className="w-5 h-5 text-forest-800 group-hover:scale-110 mb-2" />
-                  <h4 className="font-bold text-xs text-stone-900">Our Pure Oils & Products</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">{productsList.length} Edible Oils • Homepage Select</p>
+                  <h4 className="font-bold text-xs text-stone-900">Products</h4>
+                  <p className="text-[11px] text-stone-500 mt-0.5">{productsList.length} Edible Oils • Homepage Showcase</p>
                 </button>
 
                 <button
@@ -2482,103 +2507,82 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           )}
 
           {/* ============================================================ */}
-          {/* OUR PURE OILS & PRODUCTS (ALL PRODUCTS + HOMEPAGE SELECT)     */}
+          {/* ============================================================ */}
+          {/* PRODUCTS MANAGEMENT (CLEAN & COMPACT)                        */}
           {/* ============================================================ */}
           {activeTab === 'products' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               
-              {/* 1. Header Card: Overview & Homepage Active Showcase Tray */}
-              <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-5 sm:p-6 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 inline-flex items-center gap-1.5">
-                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                        Our Pure Oils & Products
-                      </span>
-                      <span className="text-xs font-semibold text-stone-500">
-                        • {productsList.length} Total Oils in Inventory
-                      </span>
+              {/* Compact Homepage 4 Products Showcase Box ("Chinna Box") */}
+              <div className="bg-white rounded-2xl border border-amber-200/90 p-3.5 sm:p-4 shadow-2xs space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
                     </div>
-                    <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-900">
-                      Our Pure Oils & Products (எங்களின் தூய எண்ணெய்கள் & பொருட்கள்)
-                    </h3>
-                    <p className="text-xs text-stone-600 max-w-2xl leading-relaxed">
-                      இங்கே அனைத்து எண்ணெய்களையும் பார்க்கலாம், புதிய பொருட்களைச் சேர்க்கலாம் மற்றும் விலை, படங்களை எடிட் செய்யலாம். முகப்புப் பக்கத்தில் (Home Page) வாடிக்கையாளர்களுக்கு எந்தெந்த எண்ணெய்கள் தெரிய வேண்டும் என்பதை கீழே உள்ள <strong className="text-amber-800">"⭐ Active on Home"</strong> பட்டன் மூலம் நேரடியாகத் தேர்வு செய்யலாம்!
-                    </p>
+                    <div>
+                      <h3 className="font-serif font-bold text-xs sm:text-sm text-forest-950">
+                        Homepage Showcase Products (முகப்பு பக்க 4 சிறப்புப் பொருட்கள்)
+                      </h3>
+                      <p className="text-[10px] text-stone-500">
+                        முகப்புப் பக்கத்தில் முதலில் தோன்றும் 4 எண்ணெய்களை இங்கே நேரடியாகத் தேர்வு செய்யலாம்.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewProdName('');
-                        setNewProdTagline('');
-                        setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
-                        setNewProdPrice(350);
-                        setNewProdOriginalPrice(420);
-                        setNewProdDefaultPack('1 Litre Bottle');
-                        setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
-                        setNewProdImage('/products/sesame_oil.jpg');
-                        setNewProdBadge('Cold-Pressed');
-                        setNewProdSmokePoint('220°C');
-                        setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
-                        setNewProdDescription('');
-                        setNewProdInStock(true);
-                        setNewProdFeatured(false);
-                        setIsAddProductOpen(true);
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
-                    >
-                      <Plus className="w-4 h-4 text-gold-400" />
-                      <span>+ Add New Oil (புதிய எண்ணெய்)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={onBackToStore}
-                      className="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>View on Home (முகப்பு பார்க்க)</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={onBackToStore}
+                    className="self-start sm:self-auto px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>View on Home (முகப்பு பார்க்க)</span>
+                  </button>
                 </div>
 
-                {/* Homepage Selected Products Tray */}
-                <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                      <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
-                      Showing on Homepage Showcase ({currentHomepageProductIds.length}):
-                    </span>
-                    {currentHomepageProductIds.map((id, idx) => {
-                      const p = productsList.find((item) => item.id === id);
-                      return (
-                        <div
-                          key={id}
-                          className="bg-white px-2.5 py-1 rounded-xl border border-amber-300 text-xs font-bold text-stone-800 flex items-center gap-2 shadow-2xs"
-                        >
-                          <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-bold">
-                            {idx + 1}
-                          </span>
-                          <span className="max-w-[120px] truncate">{p?.name || id}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleHomepageProduct(id)}
-                            className="text-stone-400 hover:text-red-600 transition-colors cursor-pointer p-0.5"
-                            title="Remove from Homepage"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                {/* 4 Compact Slot Selectors in a Single Neat Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  {[0, 1, 2, 3].map((slotIdx) => {
+                    const assignedId = currentHomepageProductIds[slotIdx];
+                    const slotProd =
+                      productsList.find((p) => p.id === assignedId) ||
+                      productsList[slotIdx] ||
+                      productsList[0];
 
-                  <p className="text-[11px] text-stone-500 italic shrink-0">
-                    💡 Click "⭐ Active on Home" on any product below to toggle
-                  </p>
+                    return (
+                      <div
+                        key={slotIdx}
+                        className="flex items-center gap-2 p-2 rounded-xl border border-amber-200/80 bg-[#FAF8F5] hover:border-amber-400 transition-colors shadow-2xs"
+                      >
+                        <span className="w-5 h-5 rounded-md bg-amber-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs">
+                          {slotIdx + 1}
+                        </span>
+
+                        <img
+                          src={slotProd.image}
+                          alt={slotProd.name}
+                          className="w-9 h-9 rounded-lg object-contain bg-white border border-stone-200 p-0.5 shrink-0"
+                        />
+
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[9px] font-bold text-amber-900 uppercase tracking-wider">
+                            Slot {slotIdx + 1}
+                          </label>
+                          <select
+                            value={slotProd.id}
+                            onChange={(e) => handleSetHomepageSlot(slotIdx, e.target.value)}
+                            className="w-full text-xs font-bold text-forest-950 bg-white border border-stone-300 rounded-lg px-2 py-1 focus:outline-none focus:border-forest-900 cursor-pointer truncate shadow-2xs"
+                          >
+                            {productsList.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} (₹{p.price})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -2771,30 +2775,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               </div>
                             </div>
 
-                            {/* Prominent Homepage Toggle Button */}
+                            {/* Actions & Homepage Slot Badge */}
                             <div className="pt-2 border-t border-stone-100 space-y-2">
-                              <button
-                                type="button"
-                                onClick={() => handleToggleHomepageProduct(prod.id)}
-                                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-98 ${
-                                  isHomepageActive
-                                    ? 'bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 shadow-amber-200'
-                                    : 'bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-900 border border-stone-200'
-                                }`}
-                              >
-                                <Star
-                                  className={`w-3.5 h-3.5 ${
-                                    isHomepageActive ? 'fill-white text-white' : 'text-stone-400'
-                                  }`}
-                                />
-                                <span>
-                                  {isHomepageActive
-                                    ? '⭐ Active on Home (முகப்பில் உள்ளது)'
-                                    : '☆ Show on Home (முகப்பில் காட்டுக)'}
-                                </span>
-                              </button>
+                              {isHomepageActive && (
+                                <div className="flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold">
+                                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
+                                  <span>Showcase Slot #{currentHomepageProductIds.indexOf(prod.id) + 1}</span>
+                                </div>
+                              )}
 
-                              {/* Edit & Delete Actions */}
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
@@ -2868,26 +2857,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 </td>
 
                                 <td className="py-3 px-4">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleToggleHomepageProduct(prod.id)}
-                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
-                                      isHomepageActive
-                                        ? 'bg-amber-500 text-white shadow-xs'
-                                        : 'bg-stone-100 hover:bg-amber-100 text-stone-700 border border-stone-200'
-                                    }`}
-                                  >
-                                    <Star
-                                      className={`w-3 h-3 ${
-                                        isHomepageActive ? 'fill-white text-white' : 'text-stone-400'
-                                      }`}
-                                    />
-                                    <span>
-                                      {isHomepageActive
-                                        ? `⭐ Active on Home (#${currentHomepageProductIds.indexOf(prod.id) + 1})`
-                                        : '☆ Show on Home'}
+                                  {isHomepageActive ? (
+                                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
+                                      <Star className="w-3 h-3 fill-amber-500 text-amber-600" />
+                                      <span>Slot {currentHomepageProductIds.indexOf(prod.id) + 1}</span>
                                     </span>
-                                  </button>
+                                  ) : (
+                                    <span className="text-stone-300 text-xs">—</span>
+                                  )}
                                 </td>
 
                                 <td className="py-3 px-4">
@@ -3136,7 +3113,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                 <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-serif font-bold text-base text-stone-900">Our Pure Oils & Products</h4>
+                    <h4 className="font-serif font-bold text-base text-stone-900">Products</h4>
                     <span className="inline-block text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
                       {currentHomepageProductIds.length} Oils Active on Home
                     </span>
