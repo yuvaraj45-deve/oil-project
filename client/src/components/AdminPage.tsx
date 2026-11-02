@@ -52,8 +52,21 @@ import {
   Play,
   Film,
   Star,
+  Droplets,
 } from 'lucide-react';
-import { PlacedOrder, Product, Category, UserProfile, StoreSettings, HomeFeaturedVideo, DEFAULT_HOME_FEATURED_VIDEO, ReelStory, DEFAULT_REELS_DATA } from '../types';
+import {
+  PlacedOrder,
+  Product,
+  Category,
+  UserProfile,
+  StoreSettings,
+  HomeFeaturedVideo,
+  DEFAULT_HOME_FEATURED_VIDEO,
+  ReelStory,
+  DEFAULT_REELS_DATA,
+  StandingBottleItem,
+  DEFAULT_STANDING_BOTTLES,
+} from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 import { useStore } from '../context/StoreContext';
 import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
@@ -120,6 +133,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Admin Tab Navigation (default to 'products' and remember tab across reloads)
   type AdminTab =
     | 'dashboard'
+    | 'bottles'
     | 'featured-products'
     | 'products'
     | 'orders'
@@ -184,8 +198,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     updateReel: contextUpdateReel,
     deleteReel: contextDeleteReel,
     resetReels: contextResetReels,
+    standingBottles: storeStandingBottles,
+    updateStandingBottles: storeUpdateStandingBottles,
     refreshData: storeRefreshData,
   } = useStore();
+
+  const [bottlesList, setBottlesList] = useState<StandingBottleItem[]>(() => {
+    return storeStandingBottles && storeStandingBottles.length > 0
+      ? storeStandingBottles
+      : DEFAULT_STANDING_BOTTLES;
+  });
+
+  useEffect(() => {
+    if (storeStandingBottles && storeStandingBottles.length > 0) {
+      setBottlesList(storeStandingBottles);
+    }
+  }, [storeStandingBottles]);
 
   const reelsList = storeReels && storeReels.length > 0 ? storeReels : DEFAULT_REELS_DATA;
 
@@ -844,6 +872,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto select-none relative z-10">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
+            { id: 'bottles', label: 'Standing Bottles / Cans', icon: Droplets, count: bottlesList.filter(b => b.enabled !== false).length },
             { id: 'featured-products', label: 'Homepage 4 Products', icon: Star, count: 4 },
             { id: 'products', label: 'Products', icon: Package, count: productsList.length },
             { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
@@ -969,6 +998,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
+                {activeTab === 'bottles' && 'Standing Bottles & Cans (பாட்டில்கள் / கேன்கள் மேலாண்மை)'}
                 {activeTab === 'featured-products' && 'Homepage 4 Featured Products (முகப்பு பக்க 4 பொருட்கள்)'}
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
@@ -982,6 +1012,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {activeTab === 'bottles' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      storeUpdateStandingBottles(bottlesList);
+                      showToast('Standing bottles & cans updated and saved! ✨');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Save className="w-3.5 h-3.5 text-gold-300" />
+                    <span>Save Bottles</span>
+                  </button>
+                  <button
+                    onClick={onBackToStore}
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View on Home</span>
+                  </button>
+                </div>
+              )}
               {activeTab === 'featured-products' && (
                 <div className="flex items-center gap-2">
                   <button
@@ -1873,6 +1924,341 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* HOMEPAGE STANDING BOTTLES & CANS SHOWCASE VIEW                */}
+          {/* ============================================================ */}
+          {activeTab === 'bottles' && (
+            <div className="space-y-6">
+              
+              {/* Top Banner / Description Card */}
+              <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 inline-flex items-center gap-1">
+                      <Droplets className="w-3.5 h-3.5 text-amber-700" />
+                      Homepage Header Showcase
+                    </span>
+                    <span className="text-xs font-semibold text-stone-500">
+                      • {bottlesList.filter((b) => b.enabled !== false).length} Active Bottles Shown Below Navbar
+                    </span>
+                  </div>
+                  <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-900">
+                    Homepage Standing Bottles & Cans (முகப்புப் பக்க பாட்டில்கள் / கேன்கள் மேலாண்மை)
+                  </h3>
+                  <p className="text-xs text-stone-600 max-w-2xl leading-relaxed">
+                    முகப்புப் பக்கத்தின் உச்சியில் நேவிகேஷன் பாருக்குக் கீழே தோன்றும் பாட்டில்கள் மற்றும் கேன்களை இங்கே மாற்றலாம் (Exchange / Replace). புதிய பாட்டில் படம் பதிவேற்றலாம், பெயர் மாற்றலாம் அல்லது புதிய பாட்டில்களைச் சேர்க்கலாம்.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newId = `bottle-${Date.now()}`;
+                      const newB: StandingBottleItem = {
+                        id: newId,
+                        name: 'New Pure Oil',
+                        tamilName: 'புதிய சுத்தமான எண்ணெய்',
+                        slug: 'cooking-oil',
+                        image: '/products/sesame_oil.png',
+                        enabled: true,
+                      };
+                      const updated = [...bottlesList, newB];
+                      setBottlesList(updated);
+                      storeUpdateStandingBottles(updated);
+                      showToast('New bottle added! You can now exchange its image and name. ✨');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-4 h-4 text-gold-400" />
+                    <span>+ Add Bottle / Can</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBottlesList(DEFAULT_STANDING_BOTTLES);
+                      storeUpdateStandingBottles(DEFAULT_STANDING_BOTTLES);
+                      showToast('Reset to original default standing bottles! ✨');
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Reset Defaults
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      storeUpdateStandingBottles(bottlesList);
+                      showToast('Standing bottles & cans configuration saved! ✨');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Save className="w-4 h-4 text-gold-300" />
+                    <span>Save All (சேமிக்க)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid of Bottles / Cans */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {bottlesList.map((bottle, idx) => {
+                  return (
+                    <div
+                      key={bottle.id}
+                      className={`bg-white rounded-3xl border-2 transition-all p-5 flex flex-col justify-between space-y-4 shadow-xs ${
+                        bottle.enabled !== false
+                          ? 'border-stone-200 hover:border-gold-400'
+                          : 'border-stone-200/50 opacity-60 bg-stone-50'
+                      }`}
+                    >
+                      {/* Top Header of Card */}
+                      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-forest-950 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                          #{idx + 1} {bottle.name}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          {/* Move Left */}
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => {
+                              if (idx === 0) return;
+                              const updated = [...bottlesList];
+                              const temp = updated[idx];
+                              updated[idx] = updated[idx - 1];
+                              updated[idx - 1] = temp;
+                              setBottlesList(updated);
+                              storeUpdateStandingBottles(updated);
+                            }}
+                            title="Move Left"
+                            className="p-1 rounded-lg text-stone-400 hover:text-stone-700 disabled:opacity-20 cursor-pointer text-xs"
+                          >
+                            ◀
+                          </button>
+                          {/* Move Right */}
+                          <button
+                            type="button"
+                            disabled={idx === bottlesList.length - 1}
+                            onClick={() => {
+                              if (idx === bottlesList.length - 1) return;
+                              const updated = [...bottlesList];
+                              const temp = updated[idx];
+                              updated[idx] = updated[idx + 1];
+                              updated[idx + 1] = temp;
+                              setBottlesList(updated);
+                              storeUpdateStandingBottles(updated);
+                            }}
+                            title="Move Right"
+                            className="p-1 rounded-lg text-stone-400 hover:text-stone-700 disabled:opacity-20 cursor-pointer text-xs"
+                          >
+                            ▶
+                          </button>
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = bottlesList.filter((_, i) => i !== idx);
+                              setBottlesList(updated);
+                              storeUpdateStandingBottles(updated);
+                              showToast(`Bottle "${bottle.name}" removed.`);
+                            }}
+                            title="Delete"
+                            className="p-1 text-stone-300 hover:text-red-600 cursor-pointer ml-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Standing Bottle Presentation Box */}
+                      <div className="relative h-44 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 p-3 flex flex-col items-center justify-end overflow-hidden group">
+                        <img
+                          src={bottle.image}
+                          alt={bottle.name}
+                          className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] group-hover:scale-105 transition-transform"
+                        />
+                        <div className="w-14 h-2 bg-black/15 blur-xs rounded-full -bottom-1" />
+                      </div>
+
+                      {/* Image Exchange / Upload Section */}
+                      <div className="space-y-2.5 p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/80">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[11px] font-black uppercase tracking-wider text-forest-950">
+                            REPLACE BOTTLE IMAGE (பாட்டில் படம் மாற்றுக)
+                          </label>
+                          <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300">
+                            1-Click Exchange
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-stone-600 leading-tight">
+                          இங்கு புதிய பாட்டில் படம் பதிவேற்றினாலோ அல்லது கீழே உள்ள பாட்டில்களைத் தேர்ந்தெடுத்தாலோ உடனடியாக முகப்புப் பக்கத்தில் மாறிவிடும்.
+                        </p>
+
+                        {/* File path input + Upload Button */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={bottle.image}
+                            onChange={(e) => {
+                              const updated = [...bottlesList];
+                              updated[idx] = { ...updated[idx], image: e.target.value };
+                              setBottlesList(updated);
+                            }}
+                            onBlur={() => storeUpdateStandingBottles(bottlesList)}
+                            placeholder="/products/lamp_oil.png or https://..."
+                            className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs font-mono bg-white focus:outline-none focus:border-forest-900 shadow-2xs"
+                          />
+                          <label className="py-2 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs shrink-0">
+                            <Upload className="w-3.5 h-3.5 text-gold-400" />
+                            <span>Upload & Replace from PC</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                handleImageFileUpload(e, (url) => {
+                                  const updated = [...bottlesList];
+                                  updated[idx] = { ...updated[idx], image: url };
+                                  setBottlesList(updated);
+                                  storeUpdateStandingBottles(updated);
+                                  showToast(`Image for "${bottle.name}" exchanged & updated! ✨`);
+                                });
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        {/* 1-Click SS OIL Transparent PNG Presets */}
+                        <div className="pt-1">
+                          <span className="text-[10px] font-bold text-stone-600 block mb-1.5">
+                            Quick Replace Presets (உடனடி தேர்வுகள்):
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              { label: 'Lamp Oil', url: '/products/lamp_oil.png' },
+                              { label: 'Sesame Oil', url: '/products/sesame_oil.png' },
+                              { label: 'Groundnut Oil', url: '/products/groundnut_oil.png' },
+                              { label: 'Sunflower Oil', url: '/products/sunflower_oil.png' },
+                              { label: 'Mustard Oil', url: '/products/mustard_oil.png' },
+                              { label: 'Coconut Oil', url: '/products/coconut_oil.png' },
+                              { label: 'Rice Bran Oil', url: '/products/rice_bran_oil.png' },
+                            ].map((preset) => (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => {
+                                  const updated = [...bottlesList];
+                                  updated[idx] = { ...updated[idx], image: preset.url };
+                                  setBottlesList(updated);
+                                  storeUpdateStandingBottles(updated);
+                                  showToast(`Exchanged with ${preset.label} bottle! ✨`);
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                                  bottle.image === preset.url
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
+                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                                }`}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Name & Linked Category */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                            Bottle Name (பெயர்)
+                          </label>
+                          <input
+                            type="text"
+                            value={bottle.name}
+                            onChange={(e) => {
+                              const updated = [...bottlesList];
+                              updated[idx] = { ...updated[idx], name: e.target.value };
+                              setBottlesList(updated);
+                            }}
+                            onBlur={() => storeUpdateStandingBottles(bottlesList)}
+                            className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-serif font-bold text-[#8B2323] focus:outline-none focus:border-forest-900 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                            Tamil Title (தமிழ் பெயர்)
+                          </label>
+                          <input
+                            type="text"
+                            value={bottle.tamilName || ''}
+                            onChange={(e) => {
+                              const updated = [...bottlesList];
+                              updated[idx] = { ...updated[idx], tamilName: e.target.value };
+                              setBottlesList(updated);
+                            }}
+                            onBlur={() => storeUpdateStandingBottles(bottlesList)}
+                            placeholder="e.g. மரச்செக்கு கடலை எண்ணெய்"
+                            className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                            Link to Category:
+                          </label>
+                          <select
+                            value={bottle.slug}
+                            onChange={(e) => {
+                              const updated = [...bottlesList];
+                              updated[idx] = { ...updated[idx], slug: e.target.value };
+                              setBottlesList(updated);
+                              storeUpdateStandingBottles(updated);
+                            }}
+                            className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-bold text-forest-950 focus:outline-none focus:border-forest-900 bg-white cursor-pointer"
+                          >
+                            {categoriesList.map((cat) => (
+                              <option key={cat.slug} value={cat.slug}>
+                                {cat.title} ({cat.slug})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Enable / Disable Button */}
+                      <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-stone-500">
+                          {bottle.enabled !== false ? 'Active on Homepage 🟢' : 'Hidden ⚪'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...bottlesList];
+                            updated[idx] = { ...updated[idx], enabled: bottle.enabled === false ? true : false };
+                            setBottlesList(updated);
+                            storeUpdateStandingBottles(updated);
+                          }}
+                          className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                            bottle.enabled !== false
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : 'bg-stone-100 text-stone-500 border-stone-200'
+                          }`}
+                        >
+                          {bottle.enabled !== false ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+
+                    </div>
+                  );
+                })}
               </div>
 
             </div>

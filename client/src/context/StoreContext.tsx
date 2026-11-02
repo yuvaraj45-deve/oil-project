@@ -8,6 +8,8 @@ import {
   DEFAULT_HOME_FEATURED_VIDEO,
   ReelStory,
   DEFAULT_REELS_DATA,
+  StandingBottleItem,
+  DEFAULT_STANDING_BOTTLES,
 } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 
@@ -100,6 +102,8 @@ interface StoreContextType {
   updateReel: (reel: ReelStory) => void;
   deleteReel: (id: string) => void;
   resetReels: () => void;
+  standingBottles: StandingBottleItem[];
+  updateStandingBottles: (bottles: StandingBottleItem[]) => void;
   refreshData: () => Promise<void>;
   isLoading: boolean;
 }
@@ -230,6 +234,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem('ssoil_reels', JSON.stringify(DEFAULT_REELS_DATA));
       window.dispatchEvent(new Event('ssoil_video_updated'));
     } catch {}
+  }, []);
+
+  // 6. Standing Bottles & Cans Showcase State (Sync with localStorage 'ssoil_standing_bottles')
+  const [standingBottles, setStandingBottles] = useState<StandingBottleItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_standing_bottles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Error reading saved standing bottles:', e);
+    }
+    return DEFAULT_STANDING_BOTTLES;
+  });
+
+  const updateStandingBottles = useCallback((newBottles: StandingBottleItem[]) => {
+    setStandingBottles(newBottles);
+    try {
+      localStorage.setItem('ssoil_standing_bottles', JSON.stringify(newBottles));
+      window.dispatchEvent(new Event('ssoil_bottles_updated'));
+    } catch (e) {
+      console.error('Error saving standing bottles:', e);
+    }
   }, []);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -411,6 +439,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => {
       window.removeEventListener('storage', handleVideoStorageChange);
       window.removeEventListener('ssoil_video_updated', handleVideoStorageChange);
+    };
+  }, []);
+
+  // Listen for standing bottles changes across windows/tabs
+  useEffect(() => {
+    const handleBottlesStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('ssoil_standing_bottles');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setStandingBottles(parsed);
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleBottlesStorageChange);
+    window.addEventListener('ssoil_bottles_updated', handleBottlesStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleBottlesStorageChange);
+      window.removeEventListener('ssoil_bottles_updated', handleBottlesStorageChange);
     };
   }, []);
 
@@ -643,6 +692,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateReel,
         deleteReel,
         resetReels,
+        standingBottles,
+        updateStandingBottles,
         refreshData,
         isLoading,
       }}

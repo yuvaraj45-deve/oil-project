@@ -94,6 +94,74 @@ export interface Category {
   badgeTa?: string;
 }
 
+export interface StandingBottleItem {
+  id: string;
+  name: string;
+  tamilName?: string;
+  slug: string;
+  image: string;
+  enabled: boolean;
+}
+
+export const DEFAULT_STANDING_BOTTLES: StandingBottleItem[] = [
+  {
+    id: 'bottle-lamp',
+    name: 'Lamp Oil',
+    tamilName: 'விளக்கெண்ணெய் / பூஜை எண்ணெய்',
+    slug: 'pooja-special',
+    image: '/products/lamp_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-sesame',
+    name: 'Sesame Oil',
+    tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
+    slug: 'sesame-oil',
+    image: '/products/sesame_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-groundnut',
+    name: 'Groundnut Oil',
+    tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
+    slug: 'groundnut-oil',
+    image: '/products/groundnut_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-sunflower',
+    name: 'Sunflower Oil',
+    tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
+    slug: 'cooking-oil',
+    image: '/products/sunflower_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-mustard',
+    name: 'Mustard Oil',
+    tamilName: 'தூய கடுகு எண்ணெய்',
+    slug: 'cooking-oil',
+    image: '/products/mustard_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-coconut',
+    name: 'Coconut Oil',
+    tamilName: 'பாரம்பரிய தேங்காய் எண்ணெய்',
+    slug: 'coconut-oil',
+    image: '/products/coconut_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-ricebran',
+    name: 'Rice Bran Oil',
+    tamilName: 'தூய தவிட்டு எண்ணெய்',
+    slug: 'cooking-oil',
+    image: '/products/rice_bran_oil.png',
+    enabled: true,
+  },
+];
+
 export interface CartItem {
   product: Product;
   packSize: string;
