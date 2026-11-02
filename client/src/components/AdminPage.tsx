@@ -98,23 +98,23 @@ interface UserRecord {
 // Preset High Quality Oil Images for Categories
 const PRESET_IMAGES = [
   {
-    name: 'Sesame (நல்லெண்ணெய்)',
+    name: 'Sesame Oil',
     url: '/products/sesame_oil.jpg',
   },
   {
-    name: 'Groundnut (கடலை)',
+    name: 'Groundnut Oil',
     url: '/products/groundnut_oil.jpg',
   },
   {
-    name: 'Coconut (தேங்காய்)',
+    name: 'Coconut Oil',
     url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
   },
   {
-    name: 'Cooking (சமையல்)',
+    name: 'Cooking Oil',
     url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
   },
   {
-    name: 'Pooja (தீப எண்ணெய்)',
+    name: 'Pooja Deepam Oil',
     url: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=800&q=80',
   },
 ];
@@ -921,6 +921,44 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
+  // 4C-2. DATA: Homepage Categories State & Helpers
+  // -------------------------------------------------------------
+  const currentHomepageCategoryIds =
+    settings.homepageCategoryIds && settings.homepageCategoryIds.length > 0
+      ? settings.homepageCategoryIds
+      : categoriesList.map((c) => c.slug);
+
+  const handleToggleHomepageCategory = (categorySlug: string) => {
+    let nextIds: string[];
+    const isCurrentlyActive = currentHomepageCategoryIds.includes(categorySlug);
+
+    if (isCurrentlyActive) {
+      if (currentHomepageCategoryIds.length <= 1) {
+        showToast('At least 1 category must remain active on the Homepage!');
+        return;
+      }
+      nextIds = currentHomepageCategoryIds.filter((slug) => slug !== categorySlug);
+    } else {
+      nextIds = [...currentHomepageCategoryIds, categorySlug];
+    }
+
+    const newSettings = { ...settings, homepageCategoryIds: nextIds };
+    setSettings(newSettings);
+    updateStoreSettings({ homepageCategoryIds: nextIds });
+
+    const cat = categoriesList.find((c) => c.slug === categorySlug);
+    if (cat) {
+      contextUpdateCategory({ ...cat, enabled: !isCurrentlyActive });
+    }
+    const catName = cat?.title || 'Category';
+    if (isCurrentlyActive) {
+      showToast(`"${catName}" removed from Homepage.`);
+    } else {
+      showToast(`"${catName}" is now active on Homepage! ⭐`);
+    }
+  };
+
+  // -------------------------------------------------------------
   // 4B. DATA: Homepage Video & Reels Management State
   // -------------------------------------------------------------
   const [videoSubTab, setVideoSubTab] = useState<'featured' | 'reels'>('featured');
@@ -1153,7 +1191,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
-                {activeTab === 'products' && 'Products (பொருட்கள்)'}
+                {activeTab === 'products' && 'Products'}
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
@@ -1174,8 +1212,59 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <Eye className="w-3.5 h-3.5" />
                     <span>View on Home</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      setNewProdName('');
+                      setNewProdTagline('');
+                      setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
+                      setNewProdPrice(350);
+                      setNewProdOriginalPrice(420);
+                      setNewProdDefaultPack('1 Litre Bottle');
+                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                      setNewProdImage('/products/sesame_oil.jpg');
+                      setNewProdBadge('Cold-Pressed');
+                      setNewProdSmokePoint('220°C');
+                      setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
+                      setNewProdDescription('');
+                      setNewProdInStock(true);
+                      setNewProdFeatured(false);
+                      setIsAddProductOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Add Product</span>
+                  </button>
                 </div>
               )}
+
+              {activeTab === 'categories' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={onBackToStore}
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View on Home</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewCatTitle('');
+                      setNewCatSubtitle('');
+                      setNewCatBadge('New Arrival');
+                      setNewCatSlug('');
+                      setNewCatImage('/products/sesame_oil.jpg');
+                      setNewCatAssignedProductIds([]);
+                      setIsAddCategoryOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Add Category</span>
+                  </button>
+                </div>
+              )}
+
               {activeTab === 'videos' && (
                 <div className="flex items-center gap-2">
                   <button
@@ -1203,67 +1292,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <Download className="w-3.5 h-3.5 text-stone-600" />
                   <span>Export CSV</span>
                 </button>
-              )}
-
-              {activeTab === 'categories' && (
-                <button
-                  onClick={() => {
-                    setNewCatTitle('');
-                    setNewCatSubtitle('');
-                    setNewCatBadge('New Arrival');
-                    setNewCatSlug('');
-                    setNewCatImage('/products/sesame_oil.jpg');
-                    setNewCatAssignedProductIds([]);
-                    setIsAddCategoryOpen(true);
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <Plus className="w-3.5 h-3.5 text-gold-400" />
-                  <span>Add Category</span>
-                </button>
-              )}
-
-              {activeTab === 'products' && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setNewCatTitle('');
-                      setNewCatSubtitle('');
-                      setNewCatBadge('New Arrival');
-                      setNewCatSlug('');
-                      setNewCatImage('/products/sesame_oil.jpg');
-                      setNewCatAssignedProductIds([]);
-                      setIsAddCategoryOpen(true);
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-white" />
-                    <span>Add Category</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setNewProdName('');
-                      setNewProdTagline('');
-                      setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
-                      setNewProdPrice(350);
-                      setNewProdOriginalPrice(420);
-                      setNewProdDefaultPack('1 Litre Bottle');
-                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
-                      setNewProdImage('/products/sesame_oil.jpg');
-                      setNewProdBadge('Cold-Pressed');
-                      setNewProdSmokePoint('220°C');
-                      setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
-                      setNewProdDescription('');
-                      setNewProdInStock(true);
-                      setNewProdFeatured(false);
-                      setIsAddProductOpen(true);
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-gold-400" />
-                    <span>Add Product</span>
-                  </button>
-                </div>
               )}
             </div>
           </div>
@@ -1545,9 +1573,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
                           {/* Badge Tag */}
-                          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
-                            {cat.badge}
-                          </span>
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
+                              {cat.badge}
+                            </span>
+                            {currentHomepageCategoryIds.includes(cat.slug) && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-xs">
+                                ★ On Home
+                              </span>
+                            )}
+                          </div>
 
                           {/* Quick Edit Image Button */}
                           <button
@@ -1614,14 +1649,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           {/* Card Footer Actions */}
                           <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-                            <button
-                              type="button"
-                              onClick={() => openEditCategory(cat)}
-                              className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                            >
-                              <Edit className="w-3.5 h-3.5 text-gold-400" />
-                              <span>Edit Category</span>
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => openEditCategory(cat)}
+                                className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              >
+                                <Edit className="w-3.5 h-3.5 text-gold-400" />
+                                <span>Edit Category</span>
+                              </button>
+
+                              <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={currentHomepageCategoryIds.includes(cat.slug)}
+                                  onChange={() => handleToggleHomepageCategory(cat.slug)}
+                                  className="w-4 h-4 rounded border-stone-300 text-forest-800 focus:ring-forest-800 cursor-pointer"
+                                />
+                                <span className={currentHomepageCategoryIds.includes(cat.slug) ? "font-bold text-forest-900" : "text-stone-500"}>
+                                  Show on Home
+                                </span>
+                              </label>
+                            </div>
 
                             <button
                               type="button"
@@ -1667,7 +1716,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 1. Category Image (Upload / URL / Presets) */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Category Image (புகைப்படம் சேர்க்கவும்)
+                          1. Category Image
                         </label>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -1747,7 +1796,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Category Title in English (ஆங்கிலப் பெயர்)
+                              Category Title
                             </label>
                             <input
                               type="text"
@@ -1761,13 +1810,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tamil Title (தமிழ் பெயர்)
+                              Tamil Title (Optional)
                             </label>
                             <input
                               type="text"
                               value={editCatTamilTitle}
                               onChange={(e) => setEditCatTamilTitle(e.target.value)}
-                              placeholder="e.g. மரச்செக்கு எள் எண்ணெய்"
+                              placeholder="e.g. Sesame Oil"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
@@ -1788,7 +1837,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                         <div>
                           <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Subtitle / Description (விளக்கம்)
+                            Subtitle / Description
                           </label>
                           <input
                             type="text"
@@ -1816,7 +1865,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="block text-xs font-bold uppercase tracking-wider text-forest-950">
-                            3. Link Products to this Category (பொருட்களை மாற்றவும்)
+                            3. Link Products to this Category
                           </label>
                           <span className="text-[11px] font-bold text-amber-800">
                             {editCatAssignedProductIds.length} Selected
@@ -2091,22 +2140,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           : categoriesList.find((c) => c.slug === cat)?.title || cat}
                       </button>
                     ))}
-                    <button
-                      onClick={() => {
-                        setNewCatTitle('');
-                        setNewCatSubtitle('');
-                        setNewCatBadge('New Arrival');
-                        setNewCatSlug('');
-                        setNewCatImage('/products/sesame_oil.jpg');
-                        setNewCatAssignedProductIds([]);
-                        setIsAddCategoryOpen(true);
-                      }}
-                      className="px-2.5 py-1.5 rounded-xl border border-dashed border-emerald-600 bg-emerald-50/50 hover:bg-emerald-100/60 text-emerald-800 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-2xs"
-                      title="Add a new category"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>+ Category</span>
-                    </button>
+
                   </div>
 
                   {/* Grid vs Table View Mode Switcher */}
@@ -2260,7 +2294,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                   className="w-4 h-4 rounded text-forest-900 border-stone-300 focus:ring-forest-900 cursor-pointer"
                                 />
                                 <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                                  <span>Show on Home (முகப்பு பக்கத்தில் காட்டுக)</span>
+                                  <span>Show on Home</span>
                                   {isHomepageActive && <span className="text-amber-600 font-black">⭐ Active</span>}
                                 </span>
                               </label>
@@ -2272,7 +2306,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                   className="flex-1 py-2 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                                 >
                                   <Edit className="w-3.5 h-3.5 text-gold-400" />
-                                  <span>Edit Oil Details (விலை, படம்)</span>
+                                  <span>Edit Product</span>
                                 </button>
 
                                 <button
@@ -2620,13 +2654,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-3">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-md">
-                      Quality Pillars Center Image • தர உத்தரவாதம் நடுப்பகுதி படம்
+                      Quality Pillars Center Image
                     </span>
                     <h4 className="font-serif font-black text-lg text-stone-900 mt-1">
                       Homepage 4 Quality Pillars Center Banner Photo
                     </h4>
                     <p className="text-xs text-stone-600">
-                      முகப்புப் பக்கத்தில் 4 தர அம்சங்களுக்கு நடுவே தோன்றும் பாட்டில் புகைப்படத்தை மாற்றவும் அல்லது புதிய படத்தைப் பதிவேற்றவும்.
+                      Change or upload the center bottle photo displayed in the 4 quality pillars section on the homepage.
                     </p>
                   </div>
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full shrink-0">
@@ -2658,7 +2692,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     {/* Upload File from PC */}
                     <div>
                       <label className="block text-xs font-bold text-stone-800 mb-1.5">
-                        Upload New Photo from Computer (கம்ப்யூட்டரில் இருந்து படம் மாற்ற):
+                        Upload New Photo from Computer:
                       </label>
                       <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-xs font-bold cursor-pointer shadow-xs transition-all hover:border-amber-500">
                         <Upload className="w-4 h-4 text-amber-700" />
@@ -2681,7 +2715,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     {/* Image URL Input */}
                     <div>
                       <label className="block text-xs font-bold text-stone-800 mb-1">
-                        Or Enter Direct Image URL (அல்லது இணைய முகவரி):
+                        Or Enter Direct Image URL:
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -2707,7 +2741,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     {/* Badge Text Input */}
                     <div>
                       <label className="block text-xs font-bold text-stone-800 mb-1">
-                        Bottom Badge Seal Text (கீழ் உள்ள பேட்ஜ் வாசகம்):
+                        Bottom Badge Seal Text:
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -2733,7 +2767,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     {/* Presets Quick Chooser */}
                     <div>
                       <span className="block text-[11px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
-                        Quick Select Presets (தயாராக உள்ள படங்கள்):
+                        Quick Select Presets:
                       </span>
                       <div className="flex flex-wrap gap-2">
                         {[
@@ -2783,11 +2817,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                       <h3 className="font-serif font-black text-xl text-stone-900">
-                        Mara Chekku Heritage Video (ஒரே ஒரு வீடியோ மட்டும்)
+                        Mara Chekku Heritage Video
                       </h3>
                     </div>
                     <p className="text-xs text-stone-500 mt-1">
-                      முகப்புப் பக்கத்தில் "Mara Chekku Heritage: The Live Wood Pressing Experience" கீழே ஒரே ஒரு வீடியோ மட்டுமே வைக்கப்படும். வேறு வீடியோ தேவைப்பட்டால் கீழே புதிய வீடியோவை மாற்றலாம் (ஏற்கனவே உள்ள வீடியோவுக்குப் பதிலாக புதிய வீடியோ சேர்க்கப்படும்).
+                      Display a single featured heritage video on the homepage. Change or update it below.
                     </p>
                   </div>
 
@@ -2811,7 +2845,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-forest-800" />
-                      <span>Current Active Video (தற்போதைய நேரலை வீடியோ)</span>
+                      <span>Current Active Video</span>
                     </label>
                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                       {videoForm.videoType === 'youtube' ? 'YouTube Stream' : 'Local / MP4 Video'}
@@ -2845,14 +2879,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
-                        Replace Video (ஏற்கனவே உள்ள வீடியோவுக்குப் பதிலாக புதிய வீடியோவை மாற்றவும்)
+                        Replace Video
                       </label>
                       <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
                         Only 1 Video
                       </span>
                     </div>
                     <p className="text-[11px] text-stone-500">
-                      இங்கு புதிய வீடியோ ஃபைல் பதிவேற்றினாலோ அல்லது யூடியூப் லிங்க் கொடுத்தாலோ, அது உடனடியாக முந்தைய வீடியோவுக்குப் பதிலாக மாறிவிடும்.
+                      Upload a new video file or provide a YouTube link to instantly replace the current video on the homepage.
                     </p>
 
                     {/* Format Buttons */}
@@ -2877,7 +2911,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-100'
                         }`}
                       >
-                        ▶ YouTube Link (யூடியூப்)
+                        ▶ YouTube Link
                       </button>
                     </div>
 
@@ -2909,7 +2943,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   {/* 3. Video Title */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                      Video Heading Title (வீடியோ தலைப்பு)
+                      Video Heading Title
                     </label>
                     <input
                       type="text"
@@ -2923,7 +2957,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   {/* 4. Subtitle / Description */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                      Subtitle / Description (விளக்க உரை)
+                      Subtitle / Description
                     </label>
                     <textarea
                       rows={2}
@@ -2941,7 +2975,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       className="flex-1 py-3.5 rounded-2xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                     >
                       <Save className="w-4 h-4 text-gold-300" />
-                      <span>Save Video (வீடியோ மாற்றத்தை சேமிக்கவும்)</span>
+                      <span>Save Video</span>
                     </button>
 
                     <button
@@ -3176,20 +3210,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Homepage Products Display (முகப்பில் காட்ட வேண்டிய தயாரிப்புகள்)
+                              Homepage Products Display
                             </label>
                             <select
                               value={settings.homepageProductsLimit || 4}
                               onChange={(e) => setSettings({ ...settings, homepageProductsLimit: Number(e.target.value) })}
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium cursor-pointer"
                             >
-                              <option value={4}>4 Products (Recommended - 4 தயாரிப்புகள் மட்டும்)</option>
-                              <option value={6}>6 Products (6 தயாரிப்புகள்)</option>
-                              <option value={8}>8 Products (8 தயாரிப்புகள்)</option>
-                              <option value={999}>All Products (அனைத்து தயாரிப்புகளும்)</option>
+                              <option value={4}>4 Products (Recommended)</option>
+                              <option value={6}>6 Products</option>
+                              <option value={8}>8 Products</option>
+                              <option value={999}>All Products</option>
                             </select>
                             <p className="text-[10px] text-stone-400 mt-1">
-                              முகப்பில் 4 தயாரிப்புகள் மட்டுமே காட்டப்படும். மற்றவற்றை "Explore All Pure Oils" பட்டனை கிளிக் செய்து பார்க்கலாம்.
+                              Choose how many featured products are shown on the homepage.
                             </p>
                           </div>
                         </div>
@@ -3540,7 +3574,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   {/* Image Picker */}
                   <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                     <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                      1. Category Image (புகைப்படம் சேர்க்கவும்)
+                      1. Category Image
                     </label>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -3607,7 +3641,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Category Title (பெயர்)
+                          Category Title
                         </label>
                         <input
                           type="text"
@@ -3635,7 +3669,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                     <div>
                       <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Subtitle (விளக்கம்)
+                        Subtitle / Description
                       </label>
                       <input
                         type="text"
@@ -3768,7 +3802,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 1. Product Image (Upload / URL / Quick Presets) */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image (புகைப்படம் சேர்க்கவும்)
+                          1. Product Image
                         </label>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -3845,7 +3879,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name in English (ஆங்கிலப் பெயர்)
+                              Product Name
                             </label>
                             <input
                               type="text"
@@ -3859,20 +3893,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tamil Name (தமிழ் பெயர்)
+                              Tamil Name (Optional)
                             </label>
                             <input
                               type="text"
                               value={editProdTamilName}
                               onChange={(e) => setEditProdTamilName(e.target.value)}
-                              placeholder="e.g. மரச்செக்கு நல்லெண்ணெய்"
+                              placeholder="e.g. Cold-Pressed Sesame Oil"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
 
                           <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tagline / Subtitle (விவரக் குறிப்பு)
+                              Tagline / Subtitle
                             </label>
                             <input
                               type="text"
@@ -3886,7 +3920,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="text-xs font-semibold text-stone-700">
-                                Category (பிரிவு)
+                                Category
                               </label>
                               <button
                                 type="button"
@@ -3950,7 +3984,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Selling Price (விற்பனை விலை ₹)
+                              Selling Price (₹)
                             </label>
                             <input
                               type="number"
@@ -3964,7 +3998,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              MRP / Original Price (அசல் விலை ₹)
+                              MRP / Original Price (₹)
                             </label>
                             <input
                               type="number"
@@ -3999,7 +4033,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 4. Pack Sizes Checkbox Selection */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes (அளவு தேர்வுகள்)
+                          4. Available Pack Sizes
                         </label>
                         <div className="flex flex-wrap gap-2 pt-1">
                           {ALL_PACK_OPTIONS.map((pack) => {
@@ -4036,7 +4070,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method (செக்கு வகை)
+                              Extraction Method
                             </label>
                             <input
                               type="text"
@@ -4071,7 +4105,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
                             />
                             <span className="text-xs font-bold text-stone-800">
-                              In Stock (கையிருப்பு உள்ளது)
+                              In Stock
                             </span>
                           </label>
 
@@ -4083,7 +4117,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
                             />
                             <span className="text-xs font-bold text-stone-800">
-                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
+                              Show on Home
                             </span>
                           </label>
                         </div>
@@ -4156,7 +4190,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 1. Product Image */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image (புகைப்படம் சேர்க்கவும்)
+                          1. Product Image
                         </label>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -4232,14 +4266,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name (பெயர்)
+                              Product Name
                             </label>
                             <input
                               type="text"
                               required
                               value={newProdName}
                               onChange={(e) => setNewProdName(e.target.value)}
-                              placeholder="e.g. SS Pure Castor Oil (ஆமணக்கு எண்ணெய்)"
+                              placeholder="e.g. SS Pure Castor Oil"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
@@ -4260,7 +4294,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="text-xs font-semibold text-stone-700">
-                                Category (பிரிவு)
+                                Category
                               </label>
                               <button
                                 type="button"
@@ -4322,7 +4356,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Selling Price (விற்பனை விலை ₹)
+                              Selling Price (₹)
                             </label>
                             <input
                               type="number"
@@ -4336,7 +4370,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              MRP / Original Price (அசல் விலை ₹)
+                              MRP / Original Price (₹)
                             </label>
                             <input
                               type="number"
@@ -4371,7 +4405,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 4. Pack Sizes */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes (அளவு தேர்வுகள்)
+                          4. Available Pack Sizes
                         </label>
                         <div className="flex flex-wrap gap-2 pt-1">
                           {ALL_PACK_OPTIONS.map((pack) => {
@@ -4408,7 +4442,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method (செக்கு வகை)
+                              Extraction Method
                             </label>
                             <input
                               type="text"
@@ -4443,7 +4477,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
                             />
                             <span className="text-xs font-bold text-stone-800">
-                              In Stock (கையிருப்பு உள்ளது)
+                              In Stock
                             </span>
                           </label>
 
@@ -4455,7 +4489,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
                             />
                             <span className="text-xs font-bold text-stone-800">
-                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
+                              Show on Home
                             </span>
                           </label>
                         </div>
@@ -4500,193 +4534,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               )}
 
               {/* EDIT BOTTLE MODAL */}
-              {editingBottle && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                  <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-2xl space-y-5 my-8">
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
-                          Bottle & Can Editor
-                        </span>
-                        <h3 className="font-serif font-black text-xl text-forest-950 mt-1">
-                          Edit Bottle: {editingBottle.name}
-                        </h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingBottle(null)}
-                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleSaveEditBottle} className="space-y-4">
-                      {/* Bottle Image Preview & Upload */}
-                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
-                          1. Bottle / Can Photo (பாட்டில் அல்லது கேன் புகைப்படம்)
-                        </label>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          <div className="relative h-36 w-28 rounded-2xl bg-white border border-stone-200 p-2 flex flex-col items-center justify-end shrink-0 shadow-xs">
-                            {editBottleImage ? (
-                              <>
-                                <img
-                                  src={editBottleImage}
-                                  alt="Bottle Preview"
-                                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)]"
-                                />
-                                <div className="w-14 h-2 bg-black/15 blur-xs rounded-full -bottom-1" />
-                              </>
-                            ) : (
-                              <div className="text-center p-2 text-stone-400 flex flex-col items-center">
-                                <Camera className="w-8 h-8 text-stone-300 mb-1" />
-                                <span className="text-[10px]">No image</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 space-y-2 w-full">
-                            <label className="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs">
-                              <Upload className="w-4 h-4 text-gold-400" />
-                              <span>Upload Bottle Photo from PC (கணினியிலிருந்து படம் பதிவேற்ற)</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleImageFileUpload(e, setEditBottleImage)}
-                              />
-                            </label>
-
-                            <input
-                              type="text"
-                              value={editBottleImage}
-                              onChange={(e) => setEditBottleImage(e.target.value)}
-                              placeholder="Or paste image URL / file path"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-mono bg-white focus:outline-none focus:border-forest-900"
-                            />
-
-                            <div className="pt-1">
-                              <span className="text-[10px] font-bold text-stone-500 block mb-1">
-                                Quick Replace Presets (உடனடி தேர்வுகள்):
-                              </span>
-                              <div className="flex flex-wrap gap-1">
-                                {[
-                                  { label: 'Lamp Oil', url: '/products/lamp_oil.png' },
-                                  { label: 'Sesame Oil', url: '/products/sesame_oil.png' },
-                                  { label: 'Groundnut Oil', url: '/products/groundnut_oil.png' },
-                                  { label: 'Sunflower Oil', url: '/products/sunflower_oil.png' },
-                                  { label: 'Mustard Oil', url: '/products/mustard_oil.png' },
-                                  { label: 'Coconut Oil', url: '/products/coconut_oil.png' },
-                                  { label: 'Rice Bran Oil', url: '/products/rice_bran_oil.png' },
-                                ].map((preset) => (
-                                  <button
-                                    key={preset.label}
-                                    type="button"
-                                    onClick={() => setEditBottleImage(preset.url)}
-                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
-                                      editBottleImage === preset.url
-                                        ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                    }`}
-                                  >
-                                    {preset.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottle Names */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Bottle Name in English (ஆங்கிலப் பெயர்) *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={editBottleName}
-                            onChange={(e) => setEditBottleName(e.target.value)}
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-serif font-bold text-[#8B2323] focus:outline-none focus:border-forest-900 bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Tamil Name (தமிழ் பெயர்)
-                          </label>
-                          <input
-                            type="text"
-                            value={editBottleTamilName}
-                            onChange={(e) => setEditBottleTamilName(e.target.value)}
-                            placeholder="e.g. மரச்செக்கு கடலை எண்ணெய்"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Category link & Visibility */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Category Link (கிளிக் செய்தால் திறக்க வேண்டிய பிரிவு)
-                          </label>
-                          <select
-                            value={editBottleSlug}
-                            onChange={(e) => setEditBottleSlug(e.target.value)}
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-bold text-forest-950 focus:outline-none focus:border-forest-900 bg-white cursor-pointer"
-                          >
-                            {categoriesList.map((cat) => (
-                              <option key={cat.slug} value={cat.slug}>
-                                {cat.title} ({cat.slug})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Homepage Display (முகப்பில் காட்டு)
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => setEditBottleEnabled(!editBottleEnabled)}
-                            className={`w-full py-2 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                              editBottleEnabled
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                : 'bg-stone-100 text-stone-500 border-stone-300'
-                            }`}
-                          >
-                            <span>{editBottleEnabled ? 'Active on Homepage 🟢' : 'Hidden from Homepage ⚪'}</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setEditingBottle(null)}
-                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                        >
-                          <Save className="w-4 h-4 text-gold-400" />
-                          <span>Save Bottle Changes (சேமிக்க)</span>
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
+              
 
         </main>
 
