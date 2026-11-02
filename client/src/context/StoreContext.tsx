@@ -507,6 +507,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Listen for category changes across windows/tabs and local updates
+  useEffect(() => {
+    const handleCategoriesStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('ssoil_categories');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCategories(mergeCategories(CATEGORIES_DATA, parsed));
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleCategoriesStorageChange);
+    window.addEventListener('ssoil_categories_updated', handleCategoriesStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleCategoriesStorageChange);
+      window.removeEventListener('ssoil_categories_updated', handleCategoriesStorageChange);
+    };
+  }, []);
+
   // Listen for standing bottles changes across windows/tabs
   useEffect(() => {
     const handleBottlesStorageChange = () => {
@@ -727,6 +748,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = [...prev, newCategory];
       try {
         localStorage.setItem('ssoil_categories', JSON.stringify(next));
+        window.dispatchEvent(new Event('ssoil_categories_updated'));
       } catch (e) {}
       return next;
     });
@@ -752,6 +774,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = prev.filter((c) => c.id !== categoryId);
       try {
         localStorage.setItem('ssoil_categories', JSON.stringify(next));
+        window.dispatchEvent(new Event('ssoil_categories_updated'));
       } catch (e) {}
       return next;
     });

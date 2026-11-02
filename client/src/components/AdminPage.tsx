@@ -30,7 +30,6 @@ import {
   AlertCircle,
   Save,
   Check,
-  Sparkles,
   ToggleLeft,
   ToggleRight,
   Filter,
@@ -921,44 +920,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
-  // 4C-2. DATA: Homepage Categories State & Helpers
-  // -------------------------------------------------------------
-  const currentHomepageCategoryIds =
-    settings.homepageCategoryIds && settings.homepageCategoryIds.length > 0
-      ? settings.homepageCategoryIds
-      : categoriesList.map((c) => c.slug);
-
-  const handleToggleHomepageCategory = (categorySlug: string) => {
-    let nextIds: string[];
-    const isCurrentlyActive = currentHomepageCategoryIds.includes(categorySlug);
-
-    if (isCurrentlyActive) {
-      if (currentHomepageCategoryIds.length <= 1) {
-        showToast('At least 1 category must remain active on the Homepage!');
-        return;
-      }
-      nextIds = currentHomepageCategoryIds.filter((slug) => slug !== categorySlug);
-    } else {
-      nextIds = [...currentHomepageCategoryIds, categorySlug];
-    }
-
-    const newSettings = { ...settings, homepageCategoryIds: nextIds };
-    setSettings(newSettings);
-    updateStoreSettings({ homepageCategoryIds: nextIds });
-
-    const cat = categoriesList.find((c) => c.slug === categorySlug);
-    if (cat) {
-      contextUpdateCategory({ ...cat, enabled: !isCurrentlyActive });
-    }
-    const catName = cat?.title || 'Category';
-    if (isCurrentlyActive) {
-      showToast(`"${catName}" removed from Homepage.`);
-    } else {
-      showToast(`"${catName}" is now active on Homepage! ⭐`);
-    }
-  };
-
-  // -------------------------------------------------------------
   // 4B. DATA: Homepage Video & Reels Management State
   // -------------------------------------------------------------
   const [videoSubTab, setVideoSubTab] = useState<'featured' | 'reels'>('featured');
@@ -1573,16 +1534,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
                           {/* Badge Tag */}
-                          <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
-                              {cat.badge}
-                            </span>
-                            {currentHomepageCategoryIds.includes(cat.slug) && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-xs">
-                                ★ On Home
-                              </span>
-                            )}
-                          </div>
+                          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
+                            {cat.badge}
+                          </span>
 
                           {/* Quick Edit Image Button */}
                           <button
@@ -1649,28 +1603,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           {/* Card Footer Actions */}
                           <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => openEditCategory(cat)}
-                                className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                              >
-                                <Edit className="w-3.5 h-3.5 text-gold-400" />
-                                <span>Edit Category</span>
-                              </button>
-
-                              <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={currentHomepageCategoryIds.includes(cat.slug)}
-                                  onChange={() => handleToggleHomepageCategory(cat.slug)}
-                                  className="w-4 h-4 rounded border-stone-300 text-forest-800 focus:ring-forest-800 cursor-pointer"
-                                />
-                                <span className={currentHomepageCategoryIds.includes(cat.slug) ? "font-bold text-forest-900" : "text-stone-500"}>
-                                  Show on Home
-                                </span>
-                              </label>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => openEditCategory(cat)}
+                              className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            >
+                              <Edit className="w-3.5 h-3.5 text-gold-400" />
+                              <span>Edit Category</span>
+                            </button>
 
                             <button
                               type="button"

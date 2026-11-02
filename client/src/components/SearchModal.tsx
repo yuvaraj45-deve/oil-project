@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, ArrowRight, Sparkles, ShoppingBag, ShieldCheck, Lock } from 'lucide-react';
+import { Search, X, ArrowRight, ShoppingBag, ShieldCheck, Lock } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';

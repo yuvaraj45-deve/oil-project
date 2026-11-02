@@ -9,7 +9,6 @@ import {
   Droplets,
   Flame,
   FlaskConicalOff,
-  Sparkles,
   Clock,
   Truck,
   Heart,

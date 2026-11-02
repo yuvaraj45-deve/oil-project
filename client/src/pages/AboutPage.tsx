@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { PromiseOfPurity } from '../components/PromiseOfPurity';
 import { HistoryAndQuality } from '../components/HistoryAndQuality';
 import { Product } from '../types';

@@ -9,7 +9,6 @@ import {
   ExternalLink,
   ShieldCheck,
   Printer,
-  Sparkles,
 } from 'lucide-react';
 import { PlacedOrder } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -50,7 +49,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> {language === 'ta' ? 'ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது!' : 'Order Successfully Placed!'}
+            {language === 'ta' ? 'ஆர்டர் வெற்றிகரமாக பதிவு செய்யப்பட்டது!' : 'Order Successfully Placed!'}
           </span>
 
           <h3 className="font-serif text-2xl font-bold tracking-wide">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { OilSommelier } from '../components/OilSommelier';
 import { Product } from '../types';
-import { Flame, Sparkles, ChefHat, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Flame, ChefHat, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface SommelierPageProps {

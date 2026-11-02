@@ -8,7 +8,6 @@ import {
   Globe,
   KeyRound,
   ChevronDown,
-  Sparkles,
   ArrowRight,
   LogOut,
 } from 'lucide-react';

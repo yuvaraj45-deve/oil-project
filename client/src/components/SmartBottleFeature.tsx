@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';

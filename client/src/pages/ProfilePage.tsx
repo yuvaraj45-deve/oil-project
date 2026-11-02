@@ -11,7 +11,6 @@ import {
   Edit2,
   ShoppingBag,
   ShieldCheck,
-  Sparkles,
   ChevronRight,
   Plus,
   XCircle,
@@ -751,7 +750,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     </div>
 
                     <div className="p-4 rounded-2xl bg-stone-50 border border-stone-100">
-                      <Sparkles className="w-5 h-5 text-gold-600 mb-2" />
+                      <Award className="w-5 h-5 text-gold-600 mb-2" />
                       <span className="text-xs font-bold text-stone-900 block">Priority Wood Pressing</span>
                       <span className="text-[11px] text-stone-500 mt-0.5 block">Direct fresh-churn allocation from our authentic vaagai wood churners.</span>
                     </div>

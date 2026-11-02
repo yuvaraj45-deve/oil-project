@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShopByCategory } from '../components/ShopByCategory';
-import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface CategoriesPageProps {

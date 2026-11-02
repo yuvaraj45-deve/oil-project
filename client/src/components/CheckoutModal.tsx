@@ -11,7 +11,6 @@ import {
   Banknote,
   MapPin,
   Clock,
-  Sparkles,
 } from 'lucide-react';
 import { CartItem, PlacedOrder } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -404,7 +403,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {formData.paymentMethod === 'UPI' && (
                 <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs space-y-1.5 text-emerald-950">
                   <div className="flex items-center gap-2 font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                     {language === 'ta' ? 'டெலிவரி போது அல்லது செயலியில் உடனடி UPI' : 'Instant UPI Payment on Delivery or App'}
                   </div>
                   <p className="text-[11px] text-emerald-800">

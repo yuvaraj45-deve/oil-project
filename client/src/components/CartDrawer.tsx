@@ -7,7 +7,6 @@ import {
   Minus,
   ArrowRight,
   ShieldCheck,
-  Sparkles,
   Heart,
   Package,
   Clock,
@@ -294,8 +293,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div className="flex items-center justify-between mb-1.5 font-medium">
                     <span>
                       {isFreeShipping ? (
-                        <span className="text-gold-300 flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" />
+                        <span className="text-gold-300 flex items-center gap-1 font-semibold">
                           {t('cart.freeShippingReached')}
                         </span>
                       ) : (

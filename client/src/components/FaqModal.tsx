@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
-  Sparkles,
   ShieldCheck,
   Droplet,
   Truck,

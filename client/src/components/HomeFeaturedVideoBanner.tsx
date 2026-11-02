@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize2, X, Sparkles } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -179,7 +179,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
           <div className="relative w-full max-w-5xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-stone-800">
             <div className="p-4 bg-stone-900 border-b border-stone-800 flex items-center justify-between text-white">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-gold-400" />
                 <h3 className="font-serif font-bold text-sm sm:text-base text-stone-100">{title}</h3>
               </div>
               <button

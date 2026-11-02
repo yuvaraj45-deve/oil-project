@@ -23,7 +23,7 @@ interface OurProductRangeProps {
 
 export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct }) => {
   const { language, t } = useLanguage();
-  const { products, categories: storeCategories, settings } = useStore();
+  const { products, categories: storeCategories } = useStore();
   const [activeGroup, setActiveGroup] = useState<string>('all');
 
   const getStartingPrice = (slug: string, fallback: string) => {
@@ -35,14 +35,6 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
   };
 
   const rawCategories = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
-  const activeCategorySlugs =
-    settings?.homepageCategoryIds && settings.homepageCategoryIds.length > 0
-      ? settings.homepageCategoryIds
-      : rawCategories.map((c) => c.slug);
-  const visibleRawCategories = rawCategories.filter(
-    (c) => activeCategorySlugs.includes(c.slug) || (c.id && activeCategorySlugs.includes(c.id))
-  );
-  const finalRawCategories = visibleRawCategories.length > 0 ? visibleRawCategories : rawCategories;
 
   const PRESET_METADATA: Record<string, Partial<CategoryItem>> = {
     'groundnut-oil': {
@@ -104,7 +96,7 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
   };
 
   // Dynamically map all categories so newly added categories in Admin appear live on the homepage
-  const categories: CategoryItem[] = finalRawCategories.map((c) => {
+  const categories: CategoryItem[] = rawCategories.map((c) => {
     const meta = PRESET_METADATA[c.slug] || {};
     return {
       id: c.id || c.slug,

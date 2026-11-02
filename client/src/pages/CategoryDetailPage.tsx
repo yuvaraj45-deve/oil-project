@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   Droplets,
   Flame,
-  Sparkles,
   Award,
   CheckCircle2,
   Plus,
@@ -332,7 +331,6 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 <span>{meta.smokePoint}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                 <span>{meta.woodType}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 text-stone-700 text-xs font-semibold border border-stone-200">

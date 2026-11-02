@@ -2,7 +2,6 @@ import React from 'react';
 import {
   History,
   ShieldCheck,
-  Sparkles,
   CheckCircle2,
   Eye,
   Target,
@@ -131,7 +130,6 @@ export const HistoryAndQuality: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-cream-50 border border-cream-200/80">
               <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm mb-1">
-                <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
                 <span>{t('about.quality.p3.title')}</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">

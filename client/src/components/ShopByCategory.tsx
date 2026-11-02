@@ -14,18 +14,8 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
   selectedCategory,
 }) => {
   const { language } = useLanguage();
-  const { categories, settings } = useStore();
+  const { categories } = useStore();
   const sourceCategories = categories && categories.length > 0 ? categories : CATEGORIES_DATA;
-
-  const activeCategorySlugs =
-    settings?.homepageCategoryIds && settings.homepageCategoryIds.length > 0
-      ? settings.homepageCategoryIds
-      : sourceCategories.map((c) => c.slug);
-
-  const visibleCategories = sourceCategories.filter(
-    (c) => activeCategorySlugs.includes(c.slug) || (c.id && activeCategorySlugs.includes(c.id))
-  );
-  const finalCategories = visibleCategories.length > 0 ? visibleCategories : sourceCategories;
 
   const getCategoryDetails = (slug: string) => {
     if (language !== 'ta') return null;
@@ -82,7 +72,7 @@ export const ShopByCategory: React.FC<ShopByCategoryProps> = ({
 
         {/* Clean Category Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {finalCategories.map((cat) => {
+          {sourceCategories.map((cat) => {
             const isSelected = selectedCategory === cat.slug;
             const taDetails = getCategoryDetails(cat.slug);
             const title = taDetails?.title || cat.title;
