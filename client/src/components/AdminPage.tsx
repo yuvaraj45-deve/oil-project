@@ -68,7 +68,7 @@ import {
   DEFAULT_STANDING_BOTTLES,
 } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
-import { useStore } from '../context/StoreContext';
+import { useStore, normalizeHomepage4 } from '../context/StoreContext';
 import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
 
 interface AdminPageProps {
@@ -655,16 +655,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       featured: editProdFeatured,
     };
 
-    // If marked featured (Show on Homepage), ensure it is immediately in homepage slots
-    if (editProdFeatured) {
-      const currentIds = settings.homepageProductIds || [];
-      if (!currentIds.includes(updatedProduct.id)) {
-        const nextIds = [updatedProduct.id, ...currentIds.filter((id) => id !== updatedProduct.id)].slice(0, 4);
-        setSettings({ ...settings, homepageProductIds: nextIds });
-        updateStoreSettings({ homepageProductIds: nextIds });
-      }
-    }
-
     setEditingProduct(null);
     await contextUpdateProduct(updatedProduct);
     showToast(`Product "${updatedProduct.name}" updated successfully!`);
@@ -857,20 +847,25 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // -------------------------------------------------------------
   // 4C. DATA: Homepage 4 Featured Products State & Helpers
   // -------------------------------------------------------------
-  const defaultHomepage4 = ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'];
-  const currentHomepageProductIds =
-    settings.homepageProductIds && settings.homepageProductIds.length > 0
-      ? settings.homepageProductIds
-      : defaultHomepage4;
+  const current4Products = normalizeHomepage4(settings.homepageProductIds, productsList);
+  const currentHomepageProductIds = current4Products.map((p) => p.id);
 
   const handleUpdateHomepageSlot = (slotIndex: number, newProductId: string) => {
-    const updated = [...currentHomepageProductIds];
-    updated[slotIndex] = newProductId;
-    const newSettings = { ...settings, homepageProductIds: updated };
+    const nextIds = [...currentHomepageProductIds];
+    const targetProd = productsList.find((p) => p.id === newProductId);
+    if (!targetProd) return;
+
+    // Clean swap if newProductId is already assigned to another slot to guarantee 0 duplicates
+    const existingSlot = nextIds.indexOf(targetProd.id);
+    if (existingSlot !== -1 && existingSlot !== slotIndex) {
+      nextIds[existingSlot] = nextIds[slotIndex];
+    }
+    nextIds[slotIndex] = targetProd.id;
+
+    const newSettings = { ...settings, homepageProductIds: nextIds };
     setSettings(newSettings);
-    updateStoreSettings({ homepageProductIds: updated });
-    const prodName = productsList.find((p) => p.id === newProductId)?.name || 'Product';
-    showToast(`Slot ${slotIndex + 1} updated to "${prodName}"! ✨`);
+    updateStoreSettings({ homepageProductIds: nextIds });
+    showToast(`Slot ${slotIndex + 1} updated to "${targetProd.name}"! ✨`);
   };
 
   // -------------------------------------------------------------
@@ -2529,8 +2524,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               {/* 4 Slots Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[0, 1, 2, 3].map((slotIdx) => {
-                  const prodId = currentHomepageProductIds[slotIdx] || defaultHomepage4[slotIdx];
-                  const slotProd = productsList.find((p) => p.id === prodId) || productsList[slotIdx % productsList.length];
+                  const slotProd = current4Products[slotIdx] || productsList[slotIdx] || productsList[0];
 
                   return (
                     <div

@@ -3,7 +3,7 @@ import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart } 
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
-import { useStore } from '../context/StoreContext';
+import { useStore, normalizeHomepage4 } from '../context/StoreContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface FeaturedProductsProps {
@@ -43,41 +43,10 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
   // Curated Homepage Products logic:
-  // Show products explicitly configured in settings.homepageProductIds OR marked featured: true
+  // Show exactly the 4 products configured in settings.homepageProductIds (deduplicated & normalized)
   let displayedProducts: Product[];
   if (selectedCategory === 'all') {
-    const configuredIds =
-      settings?.homepageProductIds && settings.homepageProductIds.length > 0
-        ? settings.homepageProductIds
-        : ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'];
-
-    const slotMatched = configuredIds
-      .map((id) =>
-        sourceProducts.find(
-          (p) =>
-            p.id === id ||
-            p.slug === id ||
-            (p.name && id && p.name.toLowerCase().trim() === id.toLowerCase().trim())
-        )
-      )
-      .filter((p): p is Product => Boolean(p));
-
-    // Also pick any products that are marked featured: true
-    const featuredProds = sourceProducts.filter(
-      (p) => Boolean(p.featured) && !slotMatched.some((m) => m.id === p.id || m.slug === p.slug)
-    );
-
-    const combined = [...slotMatched, ...featuredProds];
-    const limit = maxProducts || 4;
-
-    if (combined.length < limit) {
-      const remaining = sourceProducts.filter(
-        (p) => !combined.some((m) => m.id === p.id || m.slug === p.slug)
-      );
-      displayedProducts = [...combined, ...remaining].slice(0, limit);
-    } else {
-      displayedProducts = combined.slice(0, limit);
-    }
+    displayedProducts = normalizeHomepage4(settings?.homepageProductIds, sourceProducts);
   } else {
     const filtered = sourceProducts.filter((p) => p.category === selectedCategory);
     displayedProducts = maxProducts ? filtered.slice(0, maxProducts) : filtered;

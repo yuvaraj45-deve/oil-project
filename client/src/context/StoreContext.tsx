@@ -58,6 +58,38 @@ export const getCategoryKey = (c: Category): string => {
   return c.slug || c.id || c.title.toLowerCase().trim();
 };
 
+export const normalizeHomepage4 = (configuredIds: string[] | undefined, allProds: Product[]): Product[] => {
+  if (!allProds || allProds.length === 0) return [];
+  const selected: Product[] = [];
+  const ids = configuredIds && configuredIds.length > 0 ? configuredIds : [];
+
+  for (const id of ids) {
+    if (selected.length >= 4) break;
+    if (!id) continue;
+    const found = allProds.find(
+      (p) =>
+        !selected.some((sp) => sp.id === p.id) &&
+        (p.id === id ||
+          p.slug === id ||
+          (p.name && p.name.toLowerCase().trim() === id.toLowerCase().trim()) ||
+          getProductKey(p) === id)
+    );
+    if (found) {
+      selected.push(found);
+    }
+  }
+
+  // Fill up to 4 with distinct products
+  for (const p of allProds) {
+    if (selected.length >= 4) break;
+    if (!selected.some((sp) => sp.id === p.id)) {
+      selected.push(p);
+    }
+  }
+
+  return selected;
+};
+
 const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | null)[]): Product[] => {
   const deletedIds = getDeletedProductIds();
   const map = new Map<string, Product>();
@@ -305,10 +337,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (catData.success && Array.isArray(catData.data) && catData.data.length > 0) {
           const mappedCats: Category[] = catData.data.map((c: any) => {
             const fallback = CATEGORIES_DATA.find((x) => x.slug === c.slug || x.id === c.id);
+            const isOriginalCat = fallback && fallback.title.toLowerCase().trim() === c.name.toLowerCase().trim();
+            const resolvedTamilTitle = isOriginalCat ? fallback.tamilTitle : (c.tamilTitle || c.name);
             return {
               id: c.id,
               slug: c.slug,
               title: c.name,
+              tamilTitle: resolvedTamilTitle,
               subtitle: c.description || fallback?.subtitle || '100% Traditional Wood-Pressed',
               image: c.image || fallback?.image || '/products/sesame_oil.jpg',
               itemCount: `${c._count?.products || 4} Variants`,
@@ -334,10 +369,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (prodData.success && Array.isArray(prodData.data) && prodData.data.length > 0) {
           const mappedProds: Product[] = prodData.data.map((p: any) => {
             const fallback = PRODUCTS_DATA.find((x) => x.id === p.id || x.slug === p.slug);
+            const isOriginalName = fallback && fallback.name.toLowerCase().trim() === p.name.toLowerCase().trim();
+            const resolvedTamilName = isOriginalName ? fallback.tamilName : (p.tamilName || p.name);
             return {
               id: p.id,
               name: p.name,
-              tamilName: fallback?.tamilName,
+              tamilName: resolvedTamilName,
               tagline: p.tagline,
               category: p.category?.slug || fallback?.category || 'cooking-oil',
               categoryName: p.category?.name || fallback?.categoryName || 'Edible Oil',
@@ -515,25 +552,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch (e) {}
       return finalNext;
     });
-
-    // If updatedProduct is featured, ensure it's in settings.homepageProductIds
-    if (updatedProduct.featured) {
-      setSettings((prev) => {
-        const currentIds = prev.homepageProductIds || [];
-        if (!currentIds.includes(updatedProduct.id)) {
-          const updated = {
-            ...prev,
-            homepageProductIds: [updatedProduct.id, ...currentIds.filter((id) => id !== updatedProduct.id)].slice(0, 4),
-          };
-          try {
-            localStorage.setItem('ssoil_admin_settings', JSON.stringify(updated));
-            window.dispatchEvent(new Event('store_settings_updated'));
-          } catch (e) {}
-          return updated;
-        }
-        return prev;
-      });
-    }
 
     // Background API call
     if (!API_BASE_URL) return;

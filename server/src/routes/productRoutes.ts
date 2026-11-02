@@ -298,8 +298,43 @@ productRouter.put('/:id', async (req: Request, res: Response) => {
     if (!existing) {
       existing = await prisma.product.findUnique({ where: { slug: id } }).catch(() => null);
     }
+    const SEED_SLUG_MAP: Record<string, string> = {
+      'ss-sesame-1000': 'ss-pure-mara-chekku-sesame-oil',
+      'ss-coconut-1000': 'ss-pure-cold-pressed-coconut-oil',
+      'ss-cooking-daily-1000': 'ss-gold-everyday-pure-cooking-oil',
+      'ss-groundnut-1000': 'ss-mara-chekku-groundnut-oil',
+      'ss-sunflower-1000': 'ss-pure-light-sunflower-oil',
+      'ss-mustard-1000': 'cold-pressed-mustard-oil',
+      'ss-rice-bran-1000': 'ss-heart-care-pure-rice-bran-oil',
+      'ss-pancha-deepam-1000': 'ss-pancha-deepam-pooja-oil',
+      'ss-a2-ghee-500': 'ss-a2-cultured-desi-cow-ghee',
+      'ss-palm-jaggery-1000': 'ss-pure-udangudi-palm-jaggery-karupatti',
+    };
+    if (!existing && SEED_SLUG_MAP[id]) {
+      existing = await prisma.product.findUnique({ where: { slug: SEED_SLUG_MAP[id] } }).catch(() => null);
+    }
     if (!existing && slug) {
       existing = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
+    }
+    if (!existing) {
+      const lower = `${id} ${slug || ''}`.toLowerCase();
+      let kw = '';
+      if (lower.includes('sesame') || lower.includes('gingelly')) kw = 'sesame';
+      else if (lower.includes('coconut')) kw = 'coconut';
+      else if (lower.includes('groundnut') || lower.includes('peanut')) kw = 'groundnut';
+      else if (lower.includes('cooking')) kw = 'cooking';
+      else if (lower.includes('mustard')) kw = 'mustard';
+      else if (lower.includes('sunflower')) kw = 'sunflower';
+      else if (lower.includes('rice')) kw = 'rice';
+      else if (lower.includes('pooja') || lower.includes('deepam')) kw = 'pooja';
+      else if (lower.includes('ghee')) kw = 'ghee';
+      else if (lower.includes('jaggery') || lower.includes('karupatti')) kw = 'jaggery';
+
+      if (kw) {
+        existing = await prisma.product.findFirst({
+          where: { slug: { contains: kw } },
+        }).catch(() => null);
+      }
     }
     if (!existing && name) {
       const firstWord = name.trim().split(' ')[0];
