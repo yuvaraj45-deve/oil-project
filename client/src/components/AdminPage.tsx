@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
-  LayoutGrid,
   List,
   Layers,
   Users,
@@ -219,7 +218,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const productsList = storeProducts && storeProducts.length > 0 ? storeProducts : PRODUCTS_DATA;
   const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
-  const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
 
   // Refresh live data on mount
   useEffect(() => {
@@ -2083,35 +2081,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                   </div>
 
-                  {/* Grid vs Table View Mode Switcher */}
-                  <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setProductViewMode('grid')}
-                      className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                        productViewMode === 'grid'
-                          ? 'bg-white text-forest-950 shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900'
-                      }`}
-                      title="Grid Cards View"
-                    >
-                      <LayoutGrid className="w-3.5 h-3.5" />
-                      <span className="hidden md:inline text-[11px]">Cards</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setProductViewMode('table')}
-                      className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                        productViewMode === 'table'
-                          ? 'bg-white text-forest-950 shadow-xs'
-                          : 'text-stone-500 hover:text-stone-900'
-                      }`}
-                      title="Table List View"
-                    >
-                      <List className="w-3.5 h-3.5" />
-                      <span className="hidden md:inline text-[11px]">Table</span>
-                    </button>
-                  </div>
+
                 </div>
               </div>
 
@@ -2151,122 +2121,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   );
                 }
 
-                if (productViewMode === 'grid') {
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                      {filteredProducts.map((prod) => {
-                        const isHomepageActive = currentHomepageProductIds.includes(prod.id);
-                        return (
-                          <div
-                            key={prod.id}
-                            className={`bg-white rounded-3xl border p-4 shadow-xs flex flex-col justify-between space-y-3.5 transition-all hover:shadow-md relative group ${
-                              isHomepageActive
-                                ? 'border-amber-300 ring-1 ring-amber-200'
-                                : 'border-stone-200/90 hover:border-amber-400'
-                            }`}
-                          >
-                            {/* Card Top: Category & Stock Status */}
-                            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md">
-                                {prod.categoryName || prod.category}
-                              </span>
-                              <button
-                                onClick={() => handleToggleStock(prod.id)}
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 cursor-pointer ${
-                                  prod.inStock
-                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                    : 'bg-red-100 text-red-800 border-red-300'
-                                }`}
-                                title="Toggle Stock Status"
-                              >
-                                {prod.inStock ? 'In Stock 🟢' : 'Out of Stock 🔴'}
-                              </button>
-                            </div>
-
-                            {/* Product Presentation Box */}
-                            <div className="relative h-44 w-full rounded-2xl bg-[#FAF8F5] p-3 flex items-center justify-center overflow-hidden border border-stone-200/70">
-                              <img
-                                src={prod.image}
-                                alt={prod.name}
-                                className="max-h-full max-w-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
-                              />
-                              {prod.badge && (
-                                <span className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-2xs">
-                                  {prod.badge}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Product Info */}
-                            <div className="space-y-1">
-                              <h4 className="font-serif font-black text-sm text-forest-950 line-clamp-1">
-                                {prod.name}
-                              </h4>
-                              {prod.tamilName && (
-                                <p className="text-[11px] text-stone-500 line-clamp-1">
-                                  {prod.tamilName}
-                                </p>
-                              )}
-                              <div className="flex items-baseline justify-between pt-1">
-                                <div className="flex items-baseline gap-1.5">
-                                  <span className="text-base font-serif font-black text-forest-950">
-                                    ₹{prod.price}
-                                  </span>
-                                  {prod.originalPrice && prod.originalPrice > prod.price && (
-                                    <span className="text-xs text-stone-400 line-through">
-                                      MRP ₹{prod.originalPrice}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[11px] font-semibold text-stone-500">
-                                  {prod.defaultPack || '1 Litre'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Actions & Checkbox: Show on Home */}
-                            <div className="pt-2 border-t border-stone-100 space-y-2">
-                              <label className="flex items-center gap-2 cursor-pointer select-none bg-stone-50 hover:bg-amber-50/70 p-2 rounded-xl border border-stone-200 transition-colors">
-                                <input
-                                  type="checkbox"
-                                  checked={isHomepageActive}
-                                  onChange={() => handleToggleHomepageProduct(prod.id)}
-                                  className="w-4 h-4 rounded text-forest-900 border-stone-300 focus:ring-forest-900 cursor-pointer"
-                                />
-                                <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                                  <span>Show on Home</span>
-                                  {isHomepageActive && <span className="text-amber-600 font-black">⭐ Active</span>}
-                                </span>
-                              </label>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => openEditProduct(prod)}
-                                  className="flex-1 py-2 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                                >
-                                  <Edit className="w-3.5 h-3.5 text-gold-400" />
-                                  <span>Edit Product</span>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteProduct(prod.id)}
-                                  className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border border-stone-200 hover:border-red-200 transition-colors cursor-pointer"
-                                  title="Delete product"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                }
-
-                // Table List View
                 return (
                   <div className="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
                     <div className="overflow-x-auto">
@@ -2274,7 +2128,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <thead className="bg-stone-50 border-b border-stone-200 text-stone-700 font-serif">
                           <tr>
                             <th className="py-3 px-4 font-bold">Product</th>
-                            <th className="py-3 px-4 font-bold">Show on Home</th>
+                            <th className="py-3 px-4 font-bold text-center">Home</th>
                             <th className="py-3 px-4 font-bold">Category</th>
                             <th className="py-3 px-4 font-bold">Extraction Method</th>
                             <th className="py-3 px-4 font-bold">Price / MRP</th>
@@ -2298,11 +2152,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                     <div>
                                       <div className="flex items-center gap-2">
                                         <span className="font-bold text-stone-900 block">{prod.name}</span>
-                                        {isHomepageActive && (
-                                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
-                                            ⭐ Homepage #{currentHomepageProductIds.indexOf(prod.id) + 1}
-                                          </span>
-                                        )}
                                       </div>
                                       <span className="text-[11px] text-stone-500 line-clamp-1">
                                         {prod.tagline}
@@ -2311,18 +2160,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                   </div>
                                 </td>
 
-                                <td className="py-3 px-4">
-                                  <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                                    <input
-                                      type="checkbox"
-                                      checked={isHomepageActive}
-                                      onChange={() => handleToggleHomepageProduct(prod.id)}
-                                      className="w-4 h-4 rounded text-forest-900 border-stone-300 focus:ring-forest-900 cursor-pointer"
-                                    />
-                                    <span className={`text-[11px] font-bold ${isHomepageActive ? 'text-amber-800' : 'text-stone-400'}`}>
-                                      {isHomepageActive ? 'Show on Home ⭐' : 'Off'}
-                                    </span>
-                                  </label>
+                                <td className="py-3 px-4 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isHomepageActive}
+                                    onChange={() => handleToggleHomepageProduct(prod.id)}
+                                    className="w-5 h-5 rounded border-stone-300 text-forest-900 focus:ring-forest-900 cursor-pointer accent-forest-900"
+                                    title={isHomepageActive ? "Active on Home" : "Off"}
+                                  />
                                 </td>
 
                                 <td className="py-3 px-4">
