@@ -29,6 +29,35 @@ const getDeletedProductIds = (): string[] => {
   }
 };
 
+export const getProductKey = (p: Product): string => {
+  if (!p) return '';
+  const s = `${p.id || ''} ${p.slug || ''} ${p.name || ''} ${p.category || ''}`.toLowerCase();
+  if (s.includes('groundnut') || s.includes('கடலை') || s.includes('peanut')) return 'oil_groundnut';
+  if (s.includes('sesame') || s.includes('நல்லெண்ணெய்') || s.includes('gingelly')) return 'oil_sesame';
+  if (s.includes('coconut') || s.includes('தேங்காய்')) return 'oil_coconut';
+  if (s.includes('mustard') || s.includes('கடுகு')) return 'oil_mustard';
+  if (s.includes('sunflower') || s.includes('சூரியகாந்தி')) return 'oil_sunflower';
+  if (s.includes('rice') || s.includes('தவிடு') || s.includes('rice-bran')) return 'oil_ricebran';
+  if (s.includes('pooja') || s.includes('deepam') || s.includes('தீப')) return 'oil_pooja';
+  if (s.includes('ghee') || s.includes('நெய்')) return 'oil_ghee';
+  if (s.includes('jaggery') || s.includes('karupatti') || s.includes('கருப்பட்டி')) return 'oil_jaggery';
+  return p.id || p.slug || p.name.toLowerCase().trim();
+};
+
+export const getCategoryKey = (c: Category): string => {
+  if (!c) return '';
+  const s = `${c.id || ''} ${c.slug || ''} ${c.title || ''}`.toLowerCase();
+  if (s.includes('groundnut') || s.includes('கடலை')) return 'cat_groundnut';
+  if (s.includes('sesame') || s.includes('நல்லெண்ணெய்') || s.includes('gingelly')) return 'cat_sesame';
+  if (s.includes('coconut') || s.includes('தேங்காய்')) return 'cat_coconut';
+  if (s.includes('mustard') || s.includes('கடுகு')) return 'cat_mustard';
+  if (s.includes('cooking') || s.includes('சமையல்')) return 'cat_cooking';
+  if (s.includes('pooja') || s.includes('deepam') || s.includes('தீப')) return 'cat_pooja';
+  if (s.includes('ghee') || s.includes('நெய்')) return 'cat_ghee';
+  if (s.includes('jaggery') || s.includes('karupatti') || s.includes('கருப்பட்டி')) return 'cat_jaggery';
+  return c.slug || c.id || c.title.toLowerCase().trim();
+};
+
 const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | null)[]): Product[] => {
   const deletedIds = getDeletedProductIds();
   const map = new Map<string, Product>();
@@ -36,27 +65,22 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
   // Baseline products
   base.forEach((p) => {
     if (!deletedIds.includes(p.id)) {
-      map.set(p.id, p);
+      const key = getProductKey(p);
+      map.set(key, p);
     }
   });
 
-  // Sources (localStorage, API response, etc.)
+  // Sources (API response, and lastly localStorage which MUST win)
   sources.forEach((src) => {
     if (!src || !Array.isArray(src)) return;
     src.forEach((p) => {
       if (!p || !p.id || deletedIds.includes(p.id)) return;
-      const matchedKey = Array.from(map.keys()).find((k) => {
-        const item = map.get(k);
-        return (
-          item &&
-          (item.id === p.id ||
-            (item.name && p.name && item.name.toLowerCase().trim() === p.name.toLowerCase().trim()))
-        );
-      });
-      if (matchedKey) {
-        map.set(matchedKey, { ...map.get(matchedKey)!, ...p });
+      const key = getProductKey(p);
+      const existing = map.get(key);
+      if (existing) {
+        map.set(key, { ...existing, ...p });
       } else {
-        map.set(p.id, p);
+        map.set(key, p);
       }
     });
   });
@@ -67,17 +91,21 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
 const mergeCategories = (base: Category[], ...sources: (Category[] | undefined | null)[]): Category[] => {
   const map = new Map<string, Category>();
   base.forEach((c) => {
-    if (c?.slug) map.set(c.slug, c);
+    if (c?.slug || c?.id) {
+      const key = getCategoryKey(c);
+      map.set(key, c);
+    }
   });
   sources.forEach((src) => {
     if (!src || !Array.isArray(src)) return;
     src.forEach((c) => {
-      if (!c || !c.slug) return;
-      const existing = map.get(c.slug);
+      if (!c || (!c.slug && !c.id)) return;
+      const key = getCategoryKey(c);
+      const existing = map.get(key);
       if (existing) {
-        map.set(c.slug, { ...existing, ...c });
+        map.set(key, { ...existing, ...c });
       } else {
-        map.set(c.slug, c);
+        map.set(key, c);
       }
     });
   });
@@ -466,19 +494,46 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Product CRUD
   const updateProduct = useCallback(async (updatedProduct: Product) => {
     setProducts((prev) => {
-      const next = prev.map((p) =>
-        p.id === updatedProduct.id ||
-        (p.slug && updatedProduct.slug && p.slug === updatedProduct.slug) ||
-        (p.name && updatedProduct.name && p.name.toLowerCase().trim() === updatedProduct.name.toLowerCase().trim())
-          ? { ...p, ...updatedProduct }
-          : p
-      );
+      const targetKey = getProductKey(updatedProduct);
+      let matched = false;
+      const next = prev.map((p) => {
+        if (
+          p.id === updatedProduct.id ||
+          (p.slug && updatedProduct.slug && p.slug === updatedProduct.slug) ||
+          (p.name && updatedProduct.name && p.name.toLowerCase().trim() === updatedProduct.name.toLowerCase().trim()) ||
+          getProductKey(p) === targetKey
+        ) {
+          matched = true;
+          return { ...p, ...updatedProduct };
+        }
+        return p;
+      });
+      const finalNext = matched ? next : [updatedProduct, ...prev];
       try {
-        localStorage.setItem('ssoil_products', JSON.stringify(next));
+        localStorage.setItem('ssoil_products', JSON.stringify(finalNext));
         window.dispatchEvent(new Event('ssoil_products_updated'));
       } catch (e) {}
-      return next;
+      return finalNext;
     });
+
+    // If updatedProduct is featured, ensure it's in settings.homepageProductIds
+    if (updatedProduct.featured) {
+      setSettings((prev) => {
+        const currentIds = prev.homepageProductIds || [];
+        if (!currentIds.includes(updatedProduct.id)) {
+          const updated = {
+            ...prev,
+            homepageProductIds: [updatedProduct.id, ...currentIds.filter((id) => id !== updatedProduct.id)].slice(0, 4),
+          };
+          try {
+            localStorage.setItem('ssoil_admin_settings', JSON.stringify(updated));
+            window.dispatchEvent(new Event('store_settings_updated'));
+          } catch (e) {}
+          return updated;
+        }
+        return prev;
+      });
+    }
 
     // Background API call
     if (!API_BASE_URL) return;
@@ -488,7 +543,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: updatedProduct.name,
-          slug: updatedProduct.name.toLowerCase().replace(/\s+/g, '-'),
+          slug: updatedProduct.slug || updatedProduct.name.toLowerCase().replace(/\s+/g, '-'),
           tagline: updatedProduct.tagline,
           description: updatedProduct.description,
           price: updatedProduct.price,
@@ -612,16 +667,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Category CRUD
   const updateCategory = useCallback(async (updatedCategory: Category) => {
     setCategories((prev) => {
-      const next = prev.map((c) =>
-        c.id === updatedCategory.id || (c.slug && updatedCategory.slug && c.slug === updatedCategory.slug)
-          ? { ...c, ...updatedCategory }
-          : c
-      );
+      const targetKey = getCategoryKey(updatedCategory);
+      let matched = false;
+      const next = prev.map((c) => {
+        if (
+          c.id === updatedCategory.id ||
+          (c.slug && updatedCategory.slug && c.slug === updatedCategory.slug) ||
+          getCategoryKey(c) === targetKey
+        ) {
+          matched = true;
+          return { ...c, ...updatedCategory };
+        }
+        return c;
+      });
+      const finalNext = matched ? next : [...prev, updatedCategory];
       try {
-        localStorage.setItem('ssoil_categories', JSON.stringify(next));
+        localStorage.setItem('ssoil_categories', JSON.stringify(finalNext));
         window.dispatchEvent(new Event('ssoil_categories_updated'));
       } catch (e) {}
-      return next;
+      return finalNext;
     });
 
     try {

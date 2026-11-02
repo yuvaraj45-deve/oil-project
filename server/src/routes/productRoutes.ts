@@ -90,22 +90,41 @@ productRouter.put('/categories/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, slug, description, image } = req.body;
 
-    const existing = await prisma.category.findUnique({ where: { id } });
+    let existing = await prisma.category.findUnique({ where: { id } }).catch(() => null);
     if (!existing) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
+      existing = await prisma.category.findUnique({ where: { slug: id } }).catch(() => null);
+    }
+    if (!existing && slug) {
+      existing = await prisma.category.findUnique({ where: { slug } }).catch(() => null);
+    }
+    if (!existing && name) {
+      existing = await prisma.category.findFirst({
+        where: { name: { contains: name.split(' ')[0] } },
+      }).catch(() => null);
     }
 
-    const updated = await prisma.category.update({
-      where: { id },
-      data: {
-        name: name !== undefined ? name : existing.name,
-        slug: slug !== undefined ? slug : existing.slug,
-        description: description !== undefined ? description : existing.description,
-        image: image !== undefined ? image : existing.image,
-      },
-    });
-
-    res.json({ success: true, data: updated, message: 'Category updated successfully' });
+    if (existing) {
+      const updated = await prisma.category.update({
+        where: { id: existing.id },
+        data: {
+          name: name !== undefined ? name : existing.name,
+          slug: slug !== undefined ? slug : existing.slug,
+          description: description !== undefined ? description : existing.description,
+          image: image !== undefined ? image : existing.image,
+        },
+      });
+      return res.json({ success: true, data: updated, message: 'Category updated successfully' });
+    } else {
+      const created = await prisma.category.create({
+        data: {
+          name: name || id,
+          slug: slug || id.toLowerCase().replace(/\s+/g, '-'),
+          description: description || null,
+          image: image || '/products/sesame_oil.jpg',
+        },
+      });
+      return res.status(201).json({ success: true, data: created, message: 'Category created successfully' });
+    }
   } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ success: false, message: 'Server error updating category' });
@@ -275,9 +294,23 @@ productRouter.put('/:id', async (req: Request, res: Response) => {
       packSizes,
     } = req.body;
 
-    const existing = await prisma.product.findUnique({ where: { id } });
+    let existing = await prisma.product.findUnique({ where: { id } }).catch(() => null);
     if (!existing) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
+      existing = await prisma.product.findUnique({ where: { slug: id } }).catch(() => null);
+    }
+    if (!existing && slug) {
+      existing = await prisma.product.findUnique({ where: { slug } }).catch(() => null);
+    }
+    if (!existing && name) {
+      const firstWord = name.trim().split(' ')[0];
+      existing = await prisma.product.findFirst({
+        where: {
+          OR: [
+            { name: { contains: firstWord } },
+            { name: { equals: name.trim() } },
+          ],
+        },
+      }).catch(() => null);
     }
 
     const calculatedDiscount =
@@ -285,48 +318,81 @@ productRouter.put('/:id', async (req: Request, res: Response) => {
         ? Number(discountPercent)
         : price !== undefined && originalPrice !== undefined && Number(originalPrice) > Number(price)
         ? Math.round(((Number(originalPrice) - Number(price)) / Number(originalPrice)) * 100)
-        : existing.discountPercent;
+        : existing ? existing.discountPercent : 0;
 
-    // If packSizes provided, update them
-    if (packSizes && Array.isArray(packSizes)) {
-      await prisma.productPackSize.deleteMany({ where: { productId: id } });
-      await prisma.productPackSize.createMany({
-        data: packSizes.map((p: any) => ({
-          productId: id,
-          packSize: typeof p === 'string' ? p : p.packSize,
-          price: Number(p.price || price || existing.price),
-          originalPrice: Number(p.originalPrice || originalPrice || existing.originalPrice),
-          inStock: p.inStock !== undefined ? Boolean(p.inStock) : true,
-        })),
+    if (existing) {
+      // If packSizes provided, update them
+      if (packSizes && Array.isArray(packSizes)) {
+        await prisma.productPackSize.deleteMany({ where: { productId: existing.id } });
+        await prisma.productPackSize.createMany({
+          data: packSizes.map((p: any) => ({
+            productId: existing.id,
+            packSize: typeof p === 'string' ? p : p.packSize,
+            price: Number(p.price || price || existing.price),
+            originalPrice: Number(p.originalPrice || originalPrice || existing.originalPrice),
+            inStock: p.inStock !== undefined ? Boolean(p.inStock) : true,
+          })),
+        });
+      }
+
+      const updated = await prisma.product.update({
+        where: { id: existing.id },
+        data: {
+          name: name !== undefined ? name : existing.name,
+          slug: slug !== undefined ? slug : existing.slug,
+          tagline: tagline !== undefined ? tagline : existing.tagline,
+          description: description !== undefined ? description : existing.description,
+          price: price !== undefined ? Number(price) : existing.price,
+          originalPrice: originalPrice !== undefined ? Number(originalPrice) : existing.originalPrice,
+          discountPercent: calculatedDiscount,
+          defaultPack: defaultPack !== undefined ? defaultPack : existing.defaultPack,
+          image: image !== undefined ? image : existing.image,
+          badge: badge !== undefined ? badge : existing.badge,
+          smokePoint: smokePoint !== undefined ? smokePoint : existing.smokePoint,
+          extractionMethod: extractionMethod !== undefined ? extractionMethod : existing.extractionMethod,
+          inStock: inStock !== undefined ? Boolean(inStock) : existing.inStock,
+          featured: featured !== undefined ? Boolean(featured) : existing.featured,
+          categoryId: categoryId !== undefined ? categoryId : existing.categoryId,
+        },
+        include: {
+          category: true,
+          packSizes: true,
+          reviews: true,
+          labReports: true,
+        },
       });
-    }
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        name: name !== undefined ? name : existing.name,
-        slug: slug !== undefined ? slug : existing.slug,
-        tagline: tagline !== undefined ? tagline : existing.tagline,
-        description: description !== undefined ? description : existing.description,
-        price: price !== undefined ? Number(price) : existing.price,
-        originalPrice: originalPrice !== undefined ? Number(originalPrice) : existing.originalPrice,
-        discountPercent: calculatedDiscount,
-        defaultPack: defaultPack !== undefined ? defaultPack : existing.defaultPack,
-        image: image !== undefined ? image : existing.image,
-        badge: badge !== undefined ? badge : existing.badge,
-        smokePoint: smokePoint !== undefined ? smokePoint : existing.smokePoint,
-        extractionMethod: extractionMethod !== undefined ? extractionMethod : existing.extractionMethod,
-        inStock: inStock !== undefined ? Boolean(inStock) : existing.inStock,
-        featured: featured !== undefined ? Boolean(featured) : existing.featured,
-        categoryId: categoryId !== undefined ? categoryId : existing.categoryId,
-      },
-      include: {
-        category: true,
-        packSizes: true,
-        reviews: true,
-        labReports: true,
-      },
-    });
+      return res.json({ success: true, data: updated, message: 'Product updated successfully' });
+    } else {
+      // If doesn't exist, create it!
+      const firstCat = await prisma.category.findFirst();
+      const targetCatId = categoryId || (firstCat ? firstCat.id : undefined);
+
+      const created = await prisma.product.create({
+        data: {
+          name: name || id,
+          slug: slug || id.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          tagline: tagline || '',
+          description: description || '',
+          price: Number(price || 300),
+          originalPrice: originalPrice ? Number(originalPrice) : Number(price || 350),
+          discountPercent: calculatedDiscount,
+          defaultPack: defaultPack || '1 Litre Bottle',
+          image: image || '/products/sesame_oil.jpg',
+          badge: badge || null,
+          smokePoint: smokePoint || '210°C',
+          extractionMethod: extractionMethod || 'Traditional Vaagai Mara Chekku',
+          inStock: inStock !== undefined ? Boolean(inStock) : true,
+          featured: featured !== undefined ? Boolean(featured) : true,
+          categoryId: targetCatId!,
+        },
+        include: {
+          category: true,
+          packSizes: true,
+        },
+      });
+      return res.status(201).json({ success: true, data: created, message: 'Product created successfully' });
+    }
 
     res.json({ success: true, data: updated, message: 'Product updated successfully' });
   } catch (error) {

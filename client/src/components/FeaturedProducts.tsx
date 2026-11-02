@@ -42,8 +42,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
 
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Curated Homepage 4 Products logic:
-  // When browsing 'all', use the 4 products configured in Admin settings (settings.homepageProductIds)
+  // Curated Homepage Products logic:
+  // Show products explicitly configured in settings.homepageProductIds OR marked featured: true
   let displayedProducts: Product[];
   if (selectedCategory === 'all') {
     const configuredIds =
@@ -51,7 +51,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         ? settings.homepageProductIds
         : ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'];
 
-    const matched = configuredIds
+    const slotMatched = configuredIds
       .map((id) =>
         sourceProducts.find(
           (p) =>
@@ -62,11 +62,21 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       )
       .filter((p): p is Product => Boolean(p));
 
-    if (matched.length < (maxProducts || 4)) {
-      const remaining = sourceProducts.filter((p) => !matched.some((m) => m.id === p.id));
-      displayedProducts = [...matched, ...remaining].slice(0, maxProducts || 4);
+    // Also pick any products that are marked featured: true
+    const featuredProds = sourceProducts.filter(
+      (p) => Boolean(p.featured) && !slotMatched.some((m) => m.id === p.id || m.slug === p.slug)
+    );
+
+    const combined = [...slotMatched, ...featuredProds];
+    const limit = maxProducts || 4;
+
+    if (combined.length < limit) {
+      const remaining = sourceProducts.filter(
+        (p) => !combined.some((m) => m.id === p.id || m.slug === p.slug)
+      );
+      displayedProducts = [...combined, ...remaining].slice(0, limit);
     } else {
-      displayedProducts = matched.slice(0, maxProducts || 4);
+      displayedProducts = combined.slice(0, limit);
     }
   } else {
     const filtered = sourceProducts.filter((p) => p.category === selectedCategory);

@@ -655,6 +655,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       featured: editProdFeatured,
     };
 
+    // If marked featured (Show on Homepage), ensure it is immediately in homepage slots
+    if (editProdFeatured) {
+      const currentIds = settings.homepageProductIds || [];
+      if (!currentIds.includes(updatedProduct.id)) {
+        const nextIds = [updatedProduct.id, ...currentIds.filter((id) => id !== updatedProduct.id)].slice(0, 4);
+        setSettings({ ...settings, homepageProductIds: nextIds });
+        updateStoreSettings({ homepageProductIds: nextIds });
+      }
+    }
+
     setEditingProduct(null);
     await contextUpdateProduct(updatedProduct);
     showToast(`Product "${updatedProduct.name}" updated successfully!`);
