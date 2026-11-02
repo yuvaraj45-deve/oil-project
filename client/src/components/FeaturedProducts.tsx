@@ -3,7 +3,7 @@ import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart } 
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
-import { useStore, normalizeHomepage4 } from '../context/StoreContext';
+import { useStore, normalizeHomepage4, getProductKey } from '../context/StoreContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface FeaturedProductsProps {
@@ -43,10 +43,29 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
   // Curated Homepage Products logic:
-  // Show exactly the 4 products configured in settings.homepageProductIds (deduplicated & normalized)
+  // Directly resolves all user-selected products configured in settings.homepageProductIds
   let displayedProducts: Product[];
-  if (selectedCategory === 'all' || maxProducts === 4) {
-    displayedProducts = normalizeHomepage4(settings?.homepageProductIds, sourceProducts);
+  const configuredIds = settings?.homepageProductIds;
+
+  if (selectedCategory === 'all') {
+    if (configuredIds && configuredIds.length > 0) {
+      const selected = configuredIds
+        .map((id) =>
+          sourceProducts.find(
+            (p) =>
+              p.id === id ||
+              p.slug === id ||
+              (p.name && p.name.toLowerCase().trim() === id.toLowerCase().trim()) ||
+              getProductKey(p) === id
+          )
+        )
+        .filter((p): p is Product => Boolean(p));
+
+      displayedProducts = selected.length > 0 ? selected : sourceProducts.slice(0, 4);
+    } else {
+      const featured = sourceProducts.filter((p) => p.featured);
+      displayedProducts = featured.length > 0 ? featured : sourceProducts.slice(0, 4);
+    }
   } else {
     const filtered = sourceProducts.filter((p) => p.category === selectedCategory);
     displayedProducts = maxProducts ? filtered.slice(0, maxProducts) : filtered;
@@ -130,7 +149,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         </div>
 
         {/* Responsive Grid: All Products + View All */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${maxProducts === 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-5 sm:gap-6 items-stretch`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${displayedProducts.length <= 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-5 sm:gap-6 items-stretch`}>
           {displayedProducts.map((product) => {
             const defaultPack = formatPack(product.defaultPack, language);
             const basePrice = product.price;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
+  LayoutGrid,
+  List,
   Layers,
   Users,
   Package,
@@ -134,7 +136,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   type AdminTab =
     | 'dashboard'
     | 'bottles'
-    | 'featured-products'
     | 'products'
     | 'orders'
     | 'customers'
@@ -148,7 +149,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [activeTab, setActiveTab] = useState<AdminTab>(() => {
     try {
       const saved = sessionStorage.getItem('admin_active_tab') as AdminTab;
-      if (saved) return saved;
+      if (saved && (saved as string) !== 'featured-products') return saved;
     } catch {}
     return 'products';
   });
@@ -220,6 +221,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const productsList = storeProducts && storeProducts.length > 0 ? storeProducts : PRODUCTS_DATA;
   const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
+  const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
 
   // Refresh live data on mount
   useEffect(() => {
@@ -657,6 +659,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
     setEditingProduct(null);
     await contextUpdateProduct(updatedProduct);
+
+    // Sync homepage selection with featured toggle
+    if (editProdFeatured && !currentHomepageProductIds.includes(updatedProduct.id)) {
+      const nextIds = [...currentHomepageProductIds, updatedProduct.id];
+      setSettings((prev) => ({ ...prev, homepageProductIds: nextIds }));
+      updateStoreSettings({ homepageProductIds: nextIds });
+    } else if (!editProdFeatured && currentHomepageProductIds.includes(updatedProduct.id)) {
+      const nextIds = currentHomepageProductIds.filter((id) => id !== updatedProduct.id);
+      setSettings((prev) => ({ ...prev, homepageProductIds: nextIds }));
+      updateStoreSettings({ homepageProductIds: nextIds });
+    }
+
     showToast(`Product "${updatedProduct.name}" updated successfully!`);
   };
 
@@ -845,27 +859,41 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
-  // 4C. DATA: Homepage 4 Featured Products State & Helpers
+  // 4C. DATA: Our Pure Oils & Products Homepage Selection State & Helpers
   // -------------------------------------------------------------
-  const current4Products = normalizeHomepage4(settings.homepageProductIds, productsList);
-  const currentHomepageProductIds = current4Products.map((p) => p.id);
+  const currentHomepageProductIds =
+    settings.homepageProductIds && settings.homepageProductIds.length > 0
+      ? settings.homepageProductIds
+      : productsList.slice(0, 4).map((p) => p.id);
 
-  const handleUpdateHomepageSlot = (slotIndex: number, newProductId: string) => {
-    const nextIds = [...currentHomepageProductIds];
-    const targetProd = productsList.find((p) => p.id === newProductId);
-    if (!targetProd) return;
+  const handleToggleHomepageProduct = (productId: string) => {
+    let nextIds: string[];
+    const isCurrentlyActive = currentHomepageProductIds.includes(productId);
 
-    // Clean swap if newProductId is already assigned to another slot to guarantee 0 duplicates
-    const existingSlot = nextIds.indexOf(targetProd.id);
-    if (existingSlot !== -1 && existingSlot !== slotIndex) {
-      nextIds[existingSlot] = nextIds[slotIndex];
+    if (isCurrentlyActive) {
+      if (currentHomepageProductIds.length <= 1) {
+        showToast('At least 1 product must remain active on the Homepage!');
+        return;
+      }
+      nextIds = currentHomepageProductIds.filter((id) => id !== productId);
+    } else {
+      nextIds = [...currentHomepageProductIds, productId];
     }
-    nextIds[slotIndex] = targetProd.id;
 
     const newSettings = { ...settings, homepageProductIds: nextIds };
     setSettings(newSettings);
     updateStoreSettings({ homepageProductIds: nextIds });
-    showToast(`Slot ${slotIndex + 1} updated to "${targetProd.name}"! ✨`);
+
+    const prod = productsList.find((p) => p.id === productId);
+    if (prod) {
+      contextUpdateProduct({ ...prod, featured: !isCurrentlyActive });
+    }
+    const prodName = prod?.name || 'Product';
+    if (isCurrentlyActive) {
+      showToast(`"${prodName}" removed from Homepage.`);
+    } else {
+      showToast(`"${prodName}" is now active on Homepage! ⭐`);
+    }
   };
 
   // -------------------------------------------------------------
@@ -978,8 +1006,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
             { id: 'bottles', label: 'Standing Bottles / Cans', icon: Droplets, count: bottlesList.filter(b => b.enabled !== false).length },
-            { id: 'featured-products', label: 'Homepage 4 Products', icon: Star, count: 4 },
-            { id: 'products', label: 'Products', icon: Package, count: productsList.length },
+            { id: 'products', label: 'Our Pure Oils & Products', icon: Package, count: productsList.length },
             { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
             { id: 'videos', label: 'Homepage Video', icon: Video, count: 1 },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
@@ -1104,11 +1131,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
                 {activeTab === 'bottles' && 'Standing Bottles & Cans (பாட்டில்கள் / கேன்கள் மேலாண்மை)'}
-                {activeTab === 'featured-products' && 'Homepage 4 Featured Products (முகப்பு பக்க 4 பொருட்கள்)'}
+                {activeTab === 'products' && 'Our Pure Oils & Products (எங்களின் தூய எண்ணெய்கள் & பொருட்கள்)'}
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
-                {activeTab === 'products' && 'Product Inventory'}
                 {activeTab === 'orders' && 'Orders Management'}
                 {activeTab === 'offers' && 'Offers & Coupons'}
                 {activeTab === 'content' && 'Content Management'}
@@ -1138,21 +1164,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </button>
                 </div>
               )}
-              {activeTab === 'featured-products' && (
+              {activeTab === 'products' && (
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      updateStoreSettings({ homepageProductIds: currentHomepageProductIds });
-                      showToast('Homepage 4 Products configuration saved! ✨');
-                    }}
-                    className="px-4 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Save className="w-3.5 h-3.5 text-gold-300" />
-                    <span>Save 4 Products</span>
-                  </button>
-                  <button
                     onClick={onBackToStore}
-                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>View on Home</span>
@@ -1455,21 +1471,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </button>
 
                 <button
-                  onClick={() => handleTabChange('featured-products')}
+                  onClick={() => handleTabChange('products')}
                   className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-200 hover:border-amber-400 text-left transition-all cursor-pointer group shadow-xs"
                 >
-                  <Star className="w-5 h-5 text-amber-600 group-hover:scale-110 mb-2 fill-amber-400" />
-                  <h4 className="font-bold text-xs text-stone-900">Homepage 4 Products</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">Edit 4 Featured Showcase Oils</p>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange('products')}
-                  className="p-4 rounded-2xl bg-white border border-stone-200 hover:border-gold-500 text-left transition-all cursor-pointer group shadow-xs"
-                >
-                  <Package className="w-5 h-5 text-forest-800 group-hover:text-gold-600 mb-2" />
-                  <h4 className="font-bold text-xs text-stone-900">Product Inventory</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">{productsList.length} Edible Oils</p>
+                  <Package className="w-5 h-5 text-forest-800 group-hover:scale-110 mb-2" />
+                  <h4 className="font-bold text-xs text-stone-900">Our Pure Oils & Products</h4>
+                  <p className="text-[11px] text-stone-500 mt-0.5">{productsList.length} Edible Oils • Homepage Select</p>
                 </button>
 
                 <button
@@ -2475,186 +2482,107 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           )}
 
           {/* ============================================================ */}
-          {/* HOMEPAGE 4 FEATURED PRODUCTS MANAGEMENT VIEW                  */}
-          {/* ============================================================ */}
-          {activeTab === 'featured-products' && (
-            <div className="space-y-6">
-              {/* Header Card */}
-              <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 inline-flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                      Homepage Curated Showcase
-                    </span>
-                    <span className="text-xs font-semibold text-stone-500">
-                      • Exactly 4 Products Displayed on Storefront
-                    </span>
-                  </div>
-                  <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-900">
-                    Homepage 4 Products Showcase (முகப்பு பக்க 4 சிறப்புப் பொருட்கள்)
-                  </h3>
-                  <p className="text-xs text-stone-600 max-w-2xl leading-relaxed">
-                    முகப்புப் பக்கத்தில் (Home Page) வாடிக்கையாளர்களுக்கு முதலில் தோன்றும் 4 பொருட்களை இங்கே தேர்வு செய்யலாம். ஒவ்வொரு ஸ்லாட்டிலும் (Slot) எந்த எண்ணெய் தோன்ற வேண்டும் என்பதைத் தேர்வு செய்யலாம் அல்லது அவற்றின் விலை, பெயர், படங்களை நேரடியாக எடிட் செய்யலாம்.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2.5 shrink-0">
-                  <button
-                    onClick={() => {
-                      updateStoreSettings({ homepageProductIds: currentHomepageProductIds });
-                      showToast('Homepage 4 Products configuration saved! ✨');
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    <Save className="w-4 h-4 text-gold-300" />
-                    <span>Save Changes (சேமிக்க)</span>
-                  </button>
-
-                  <button
-                    onClick={onBackToStore}
-                    className="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>View on Home</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 4 Slots Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {[0, 1, 2, 3].map((slotIdx) => {
-                  const slotProd = current4Products[slotIdx] || productsList[slotIdx] || productsList[0];
-
-                  return (
-                    <div
-                      key={slotIdx}
-                      className="bg-white rounded-3xl border border-stone-200/90 hover:border-gold-400 p-5 shadow-xs flex flex-col justify-between space-y-4 transition-all hover:shadow-md"
-                    >
-                      {/* 1. Slot Top Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-forest-950 bg-amber-100/90 px-2.5 py-1 rounded-lg border border-amber-300 flex items-center gap-1.5">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                          Slot {slotIdx + 1}
-                        </span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          slotProd.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {slotProd.inStock ? 'In Stock 🟢' : 'Out of Stock 🔴'}
-                        </span>
-                      </div>
-
-                      {/* 2. Switch Oil Selector */}
-                      <div>
-                        <label className="block text-[11px] font-bold text-stone-600 mb-1">
-                          Display Oil (தோன்றும் எண்ணெய்):
-                        </label>
-                        <select
-                          value={slotProd.id}
-                          onChange={(e) => handleUpdateHomepageSlot(slotIdx, e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-bold text-forest-950 focus:outline-none focus:border-forest-900 bg-stone-50 cursor-pointer shadow-2xs"
-                        >
-                          {productsList.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} (₹{p.price})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* 3. Product Presentation Box */}
-                      <div className="h-44 w-full rounded-2xl bg-[#FAF8F5] p-3 flex items-center justify-center overflow-hidden border border-stone-200/70 shadow-2xs">
-                        <img
-                          src={slotProd.image}
-                          alt={slotProd.name}
-                          className="max-h-full max-w-full object-contain filter drop-shadow-sm"
-                        />
-                      </div>
-
-                      {/* 4. Product Info */}
-                      <div className="space-y-1">
-                        <h4 className="font-serif font-black text-sm text-forest-950 line-clamp-1">
-                          {slotProd.name}
-                        </h4>
-                        {slotProd.tamilName && (
-                          <p className="text-[11px] text-stone-500 line-clamp-1">
-                            {slotProd.tamilName}
-                          </p>
-                        )}
-                        <div className="flex items-baseline justify-between pt-1">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-base font-serif font-black text-forest-950">
-                              ₹{slotProd.price}
-                            </span>
-                            {slotProd.originalPrice && slotProd.originalPrice > slotProd.price && (
-                              <span className="text-xs text-stone-400 line-through">
-                                MRP ₹{slotProd.originalPrice}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] font-semibold text-stone-500">
-                            {slotProd.defaultPack || '1 Litre'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 5. Clean Single Action Button */}
-                      <button
-                        type="button"
-                        onClick={() => openEditProduct(slotProd)}
-                        className="w-full py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
-                      >
-                        <Edit className="w-3.5 h-3.5 text-gold-400" />
-                        <span>Edit Oil Details (விலை, படம், பெயர்)</span>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Informational Guidance Box */}
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
-                <p className="text-xs text-emerald-950">
-                  <strong>குறிப்பு (Note):</strong> இங்கே நீங்கள் மாற்றும் விலை, தலைப்பு அல்லது படங்கள் உடனடியாக முகப்புப் பக்கத்தின் 4 சிறப்புப் பொருட்கள் (Homepage Showcase) பகுதியில் வாடிக்கையாளர்களுக்குத் தெரியும்.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================ */}
-          {/* 4. PRODUCT VIEW                                              */}
+          {/* OUR PURE OILS & PRODUCTS (ALL PRODUCTS + HOMEPAGE SELECT)     */}
           {/* ============================================================ */}
           {activeTab === 'products' && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               
-              {/* ⭐ Homepage 4 Products Quick Switch Banner */}
-              <div className="bg-gradient-to-r from-amber-50 to-emerald-50 p-4 rounded-2xl border border-amber-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0">
-                    <Star className="w-5 h-5 fill-amber-500 text-amber-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-bold text-sm text-forest-950">
-                      Homepage 4 Featured Products (முகப்பு பக்கத்தில் தோன்றும் 4 பொருட்கள்)
-                    </h4>
-                    <p className="text-xs text-stone-600">
-                      Active on Homepage: {currentHomepageProductIds.map((id) => productsList.find((p) => p.id === id)?.name?.split(' ')[0] || id).join(', ')}
+              {/* 1. Header Card: Overview & Homepage Active Showcase Tray */}
+              <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-5 sm:p-6 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 inline-flex items-center gap-1.5">
+                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
+                        Our Pure Oils & Products
+                      </span>
+                      <span className="text-xs font-semibold text-stone-500">
+                        • {productsList.length} Total Oils in Inventory
+                      </span>
+                    </div>
+                    <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-900">
+                      Our Pure Oils & Products (எங்களின் தூய எண்ணெய்கள் & பொருட்கள்)
+                    </h3>
+                    <p className="text-xs text-stone-600 max-w-2xl leading-relaxed">
+                      இங்கே அனைத்து எண்ணெய்களையும் பார்க்கலாம், புதிய பொருட்களைச் சேர்க்கலாம் மற்றும் விலை, படங்களை எடிட் செய்யலாம். முகப்புப் பக்கத்தில் (Home Page) வாடிக்கையாளர்களுக்கு எந்தெந்த எண்ணெய்கள் தெரிய வேண்டும் என்பதை கீழே உள்ள <strong className="text-amber-800">"⭐ Active on Home"</strong> பட்டன் மூலம் நேரடியாகத் தேர்வு செய்யலாம்!
                     </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewProdName('');
+                        setNewProdTagline('');
+                        setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
+                        setNewProdPrice(350);
+                        setNewProdOriginalPrice(420);
+                        setNewProdDefaultPack('1 Litre Bottle');
+                        setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                        setNewProdImage('/products/sesame_oil.jpg');
+                        setNewProdBadge('Cold-Pressed');
+                        setNewProdSmokePoint('220°C');
+                        setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
+                        setNewProdDescription('');
+                        setNewProdInStock(true);
+                        setNewProdFeatured(false);
+                        setIsAddProductOpen(true);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4 text-gold-400" />
+                      <span>+ Add New Oil (புதிய எண்ணெய்)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={onBackToStore}
+                      className="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View on Home (முகப்பு பார்க்க)</span>
+                    </button>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleTabChange('featured-products')}
-                  className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
-                >
-                  <Star className="w-3.5 h-3.5 text-gold-300 fill-gold-400" />
-                  <span>Manage Homepage 4 Products →</span>
-                </button>
+                {/* Homepage Selected Products Tray */}
+                <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                      <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
+                      Showing on Homepage Showcase ({currentHomepageProductIds.length}):
+                    </span>
+                    {currentHomepageProductIds.map((id, idx) => {
+                      const p = productsList.find((item) => item.id === id);
+                      return (
+                        <div
+                          key={id}
+                          className="bg-white px-2.5 py-1 rounded-xl border border-amber-300 text-xs font-bold text-stone-800 flex items-center gap-2 shadow-2xs"
+                        >
+                          <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="max-w-[120px] truncate">{p?.name || id}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleHomepageProduct(id)}
+                            className="text-stone-400 hover:text-red-600 transition-colors cursor-pointer p-0.5"
+                            title="Remove from Homepage"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <p className="text-[11px] text-stone-500 italic shrink-0">
+                    💡 Click "⭐ Active on Home" on any product below to toggle
+                  </p>
+                </div>
               </div>
 
-              {/* Product Search & Category Filters */}
+              {/* 2. Search, Category Filters & View Mode Switcher */}
               <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
                 <div className="relative w-full sm:w-80">
                   <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -2702,168 +2630,353 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setNewProdName('');
-                      setNewProdTagline('');
-                      setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
-                      setNewProdPrice(350);
-                      setNewProdOriginalPrice(420);
-                      setNewProdDefaultPack('1 Litre Bottle');
-                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
-                      setNewProdImage('/products/sesame_oil.jpg');
-                      setNewProdBadge('Cold-Pressed');
-                      setNewProdSmokePoint('220°C');
-                      setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
-                      setNewProdDescription('');
-                      setNewProdInStock(true);
-                      setNewProdFeatured(false);
-                      setIsAddProductOpen(true);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-gold-400" />
-                    <span>+ Add Product</span>
-                  </button>
+                  {/* Grid vs Table View Mode Switcher */}
+                  <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setProductViewMode('grid')}
+                      className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        productViewMode === 'grid'
+                          ? 'bg-white text-forest-950 shadow-xs'
+                          : 'text-stone-500 hover:text-stone-900'
+                      }`}
+                      title="Grid Cards View"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline text-[11px]">Cards</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProductViewMode('table')}
+                      className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        productViewMode === 'table'
+                          ? 'bg-white text-forest-950 shadow-xs'
+                          : 'text-stone-500 hover:text-stone-900'
+                      }`}
+                      title="Table List View"
+                    >
+                      <List className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline text-[11px]">Table</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Products Table */}
-              <div className="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-700 font-serif">
-                      <tr>
-                        <th className="py-3 px-4 font-bold">Product</th>
-                        <th className="py-3 px-4 font-bold">Category</th>
-                        <th className="py-3 px-4 font-bold">Extraction Method</th>
-                        <th className="py-3 px-4 font-bold">Price / MRP</th>
-                        <th className="py-3 px-4 font-bold">Pack Sizes Available</th>
-                        <th className="py-3 px-4 font-bold">Stock Status</th>
-                        <th className="py-3 px-4 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {productsList
-                        .filter((p) => {
-                          const matchesCat =
-                            productCategoryFilter === 'ALL' || p.category === productCategoryFilter;
-                          const matchesSearch =
-                            !searchTerm ||
-                            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            p.tagline.toLowerCase().includes(searchTerm.toLowerCase());
-                          return matchesCat && matchesSearch;
-                        })
-                        .map((prod) => (
-                          <tr key={prod.id} className="hover:bg-amber-50/20">
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={prod.image}
-                                  alt={prod.name}
-                                  className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0 bg-stone-50"
-                                />
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-stone-900 block">{prod.name}</span>
-                                    {currentHomepageProductIds.includes(prod.id) && (
-                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
-                                        ⭐ Homepage #{currentHomepageProductIds.indexOf(prod.id) + 1}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <span className="text-[11px] text-stone-500 line-clamp-1">
-                                    {prod.tagline}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
+              {/* 3. Products List Rendering (Grid Cards OR Table) */}
+              {(() => {
+                const filteredProducts = productsList.filter((p) => {
+                  const matchesCat =
+                    productCategoryFilter === 'ALL' || p.category === productCategoryFilter;
+                  const matchesSearch =
+                    !searchTerm ||
+                    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.tagline.toLowerCase().includes(searchTerm.toLowerCase());
+                  return matchesCat && matchesSearch;
+                });
 
-                            <td className="py-3 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 text-stone-800 border border-stone-200">
+                if (filteredProducts.length === 0) {
+                  return (
+                    <div className="bg-white rounded-3xl border-2 border-dashed border-stone-300 p-12 text-center space-y-3">
+                      <Package className="w-10 h-10 text-stone-400 mx-auto" />
+                      <h4 className="font-serif font-bold text-base text-forest-950">
+                        No oils found matching your search
+                      </h4>
+                      <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                        Try clearing your search term or switching the category filter.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setProductCategoryFilter('ALL');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Reset Filters
+                      </button>
+                    </div>
+                  );
+                }
+
+                if (productViewMode === 'grid') {
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                      {filteredProducts.map((prod) => {
+                        const isHomepageActive = currentHomepageProductIds.includes(prod.id);
+                        return (
+                          <div
+                            key={prod.id}
+                            className={`bg-white rounded-3xl border p-4 shadow-xs flex flex-col justify-between space-y-3.5 transition-all hover:shadow-md relative group ${
+                              isHomepageActive
+                                ? 'border-amber-300 ring-1 ring-amber-200'
+                                : 'border-stone-200/90 hover:border-amber-400'
+                            }`}
+                          >
+                            {/* Card Top: Category & Stock Status */}
+                            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md">
                                 {prod.categoryName || prod.category}
                               </span>
-                            </td>
-
-                            <td className="py-3 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
-                                {prod.extractionMethod}
-                              </span>
-                            </td>
-
-                            <td className="py-3 px-4">
-                              <span className="font-serif font-black text-sm text-forest-950 block">
-                                ₹{prod.price}
-                              </span>
-                              <span className="text-[11px] text-stone-400 line-through">
-                                MRP ₹{prod.originalPrice}
-                              </span>
-                            </td>
-
-                            <td className="py-3 px-4">
-                              <div className="flex flex-wrap gap-1 max-w-xs">
-                                {prod.packSizes.map((pack) => (
-                                  <span
-                                    key={pack}
-                                    className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] text-stone-700"
-                                  >
-                                    {pack}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-
-                            <td className="py-3 px-4">
                               <button
                                 onClick={() => handleToggleStock(prod.id)}
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1 cursor-pointer ${
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 cursor-pointer ${
                                   prod.inStock
                                     ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                     : 'bg-red-100 text-red-800 border-red-300'
                                 }`}
+                                title="Toggle Stock Status"
                               >
-                                {prod.inStock ? (
-                                  <>
-                                    <CheckCircle className="w-3 h-3 text-emerald-600" />
-                                    <span>In Stock</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <AlertCircle className="w-3 h-3 text-red-600" />
-                                    <span>Out of Stock</span>
-                                  </>
-                                )}
+                                {prod.inStock ? 'In Stock 🟢' : 'Out of Stock 🔴'}
                               </button>
-                            </td>
+                            </div>
 
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
+                            {/* Product Presentation Box */}
+                            <div className="relative h-44 w-full rounded-2xl bg-[#FAF8F5] p-3 flex items-center justify-center overflow-hidden border border-stone-200/70">
+                              <img
+                                src={prod.image}
+                                alt={prod.name}
+                                className="max-h-full max-w-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {prod.badge && (
+                                <span className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-2xs">
+                                  {prod.badge}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="space-y-1">
+                              <h4 className="font-serif font-black text-sm text-forest-950 line-clamp-1">
+                                {prod.name}
+                              </h4>
+                              {prod.tamilName && (
+                                <p className="text-[11px] text-stone-500 line-clamp-1">
+                                  {prod.tamilName}
+                                </p>
+                              )}
+                              <div className="flex items-baseline justify-between pt-1">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-base font-serif font-black text-forest-950">
+                                    ₹{prod.price}
+                                  </span>
+                                  {prod.originalPrice && prod.originalPrice > prod.price && (
+                                    <span className="text-xs text-stone-400 line-through">
+                                      MRP ₹{prod.originalPrice}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[11px] font-semibold text-stone-500">
+                                  {prod.defaultPack || '1 Litre'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Prominent Homepage Toggle Button */}
+                            <div className="pt-2 border-t border-stone-100 space-y-2">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleHomepageProduct(prod.id)}
+                                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-98 ${
+                                  isHomepageActive
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 shadow-amber-200'
+                                    : 'bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-900 border border-stone-200'
+                                }`}
+                              >
+                                <Star
+                                  className={`w-3.5 h-3.5 ${
+                                    isHomepageActive ? 'fill-white text-white' : 'text-stone-400'
+                                  }`}
+                                />
+                                <span>
+                                  {isHomepageActive
+                                    ? '⭐ Active on Home (முகப்பில் உள்ளது)'
+                                    : '☆ Show on Home (முகப்பில் காட்டுக)'}
+                                </span>
+                              </button>
+
+                              {/* Edit & Delete Actions */}
+                              <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => openEditProduct(prod)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
-                                  title="Edit product"
+                                  className="flex-1 py-2 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                                 >
-                                  <Edit className="w-3.5 h-3.5 text-amber-600" />
-                                  <span>Edit</span>
+                                  <Edit className="w-3.5 h-3.5 text-gold-400" />
+                                  <span>Edit Oil Details (விலை, படம்)</span>
                                 </button>
+
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteProduct(prod.id)}
-                                  className="p-1.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                                  className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border border-stone-200 hover:border-red-200 transition-colors cursor-pointer"
                                   title="Delete product"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
 
+                // Table List View
+                return (
+                  <div className="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-stone-50 border-b border-stone-200 text-stone-700 font-serif">
+                          <tr>
+                            <th className="py-3 px-4 font-bold">Product</th>
+                            <th className="py-3 px-4 font-bold">Show on Home</th>
+                            <th className="py-3 px-4 font-bold">Category</th>
+                            <th className="py-3 px-4 font-bold">Extraction Method</th>
+                            <th className="py-3 px-4 font-bold">Price / MRP</th>
+                            <th className="py-3 px-4 font-bold">Pack Sizes Available</th>
+                            <th className="py-3 px-4 font-bold">Stock Status</th>
+                            <th className="py-3 px-4 font-bold text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100">
+                          {filteredProducts.map((prod) => {
+                            const isHomepageActive = currentHomepageProductIds.includes(prod.id);
+                            return (
+                              <tr key={prod.id} className="hover:bg-amber-50/20">
+                                <td className="py-3 px-4">
+                                  <div className="flex items-center gap-3">
+                                    <img
+                                      src={prod.image}
+                                      alt={prod.name}
+                                      className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0 bg-stone-50"
+                                    />
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-bold text-stone-900 block">{prod.name}</span>
+                                        {isHomepageActive && (
+                                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
+                                            ⭐ Homepage #{currentHomepageProductIds.indexOf(prod.id) + 1}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className="text-[11px] text-stone-500 line-clamp-1">
+                                        {prod.tagline}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleHomepageProduct(prod.id)}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                      isHomepageActive
+                                        ? 'bg-amber-500 text-white shadow-xs'
+                                        : 'bg-stone-100 hover:bg-amber-100 text-stone-700 border border-stone-200'
+                                    }`}
+                                  >
+                                    <Star
+                                      className={`w-3 h-3 ${
+                                        isHomepageActive ? 'fill-white text-white' : 'text-stone-400'
+                                      }`}
+                                    />
+                                    <span>
+                                      {isHomepageActive
+                                        ? `⭐ Active on Home (#${currentHomepageProductIds.indexOf(prod.id) + 1})`
+                                        : '☆ Show on Home'}
+                                    </span>
+                                  </button>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 text-stone-800 border border-stone-200">
+                                    {prod.categoryName || prod.category}
+                                  </span>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                                    {prod.extractionMethod}
+                                  </span>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <span className="font-serif font-black text-sm text-forest-950 block">
+                                    ₹{prod.price}
+                                  </span>
+                                  <span className="text-[11px] text-stone-400 line-through">
+                                    MRP ₹{prod.originalPrice}
+                                  </span>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <div className="flex flex-wrap gap-1 max-w-xs">
+                                    {prod.packSizes.map((pack) => (
+                                      <span
+                                        key={pack}
+                                        className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] text-stone-700"
+                                      >
+                                        {pack}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                  <button
+                                    onClick={() => handleToggleStock(prod.id)}
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1 cursor-pointer ${
+                                      prod.inStock
+                                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                        : 'bg-red-100 text-red-800 border-red-300'
+                                    }`}
+                                  >
+                                    {prod.inStock ? (
+                                      <>
+                                        <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                        <span>In Stock</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <AlertCircle className="w-3 h-3 text-red-600" />
+                                        <span>Out of Stock</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </td>
+
+                                <td className="py-3 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditProduct(prod)}
+                                      className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                                      title="Edit product"
+                                    >
+                                      <Edit className="w-3.5 h-3.5 text-amber-600" />
+                                      <span>Edit</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteProduct(prod.id)}
+                                      className="p-1.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                                      title="Delete product"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
 
             </div>
           )}
@@ -3023,20 +3136,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                 <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-serif font-bold text-base text-stone-900">Homepage 4 Products</h4>
+                    <h4 className="font-serif font-bold text-base text-stone-900">Our Pure Oils & Products</h4>
                     <span className="inline-block text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
-                      4 Oils Active
+                      {currentHomepageProductIds.length} Oils Active on Home
                     </span>
                   </div>
                   <p className="text-xs text-stone-600">
-                    Curated top 4 wood-pressed oils showcased prominently on the store homepage.
+                    Manage catalog oils and toggle which ones appear prominently on the storefront homepage.
                   </p>
                   <button
-                    onClick={() => handleTabChange('featured-products')}
+                    onClick={() => handleTabChange('products')}
                     className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    <Star className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
-                    <span>Edit Homepage 4 Products →</span>
+                    <Package className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Manage Oils & Homepage Selection →</span>
                   </button>
                 </div>
               </div>
