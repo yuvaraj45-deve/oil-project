@@ -239,9 +239,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     '15 Litre Tin',
   ];
 
-  // Canvas-based image resizer and optimizer (ensures logo/images never exceed localStorage quota)
-  const resizeImageFile = (file: File, maxDim = 600): Promise<string> => {
+  // Canvas-based image resizer and optimizer (preserves 100% transparent PNGs & aspect ratios)
+  const resizeImageFile = (file: File, maxDim = 800): Promise<string> => {
     return new Promise((resolve, reject) => {
+      const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+      const isWebp = file.type === 'image/webp' || file.name.toLowerCase().endsWith('.webp');
+
+      // If file is already small (< 1MB) and is PNG, read directly to preserve 100% crispness & transparency
+      if (file.size < 1024 * 1024 && isPng) {
+        const directReader = new FileReader();
+        directReader.onload = (e) => resolve(e.target?.result as string);
+        directReader.onerror = () => reject(new Error('Failed to read image file'));
+        directReader.readAsDataURL(file);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
@@ -264,8 +276,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           if (ctx) {
+            ctx.clearRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.82));
+            if (isPng) {
+              resolve(canvas.toDataURL('image/png'));
+            } else if (isWebp) {
+              resolve(canvas.toDataURL('image/webp', 0.88));
+            } else {
+              resolve(canvas.toDataURL('image/jpeg', 0.85));
+            }
           } else {
             resolve(e.target?.result as string);
           }
@@ -286,14 +305,49 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const optimized = await resizeImageFile(file, 600);
+        const optimized = await resizeImageFile(file, 800);
         setImageCallback(optimized);
-        showToast('Image uploaded and optimized successfully! 📸');
+        showToast('Image uploaded and ready! 📸');
       } catch (err) {
         console.error('Image upload error:', err);
         showToast('Failed to load image file. Please try another.');
+      } finally {
+        e.target.value = ''; // Reset input so same file can be re-selected
       }
     }
+  };
+
+  // -------------------------------------------------------------
+  // CUSTOM STANDING BOTTLE ADD STATE & HANDLERS
+  // -------------------------------------------------------------
+  const [isAddBottleModalOpen, setIsAddBottleModalOpen] = useState(false);
+  const [newBottleName, setNewBottleName] = useState('');
+  const [newBottleTamilName, setNewBottleTamilName] = useState('');
+  const [newBottleImage, setNewBottleImage] = useState('/products/sesame_oil.png');
+  const [newBottleSlug, setNewBottleSlug] = useState('sesame-oil');
+
+  const handleSaveNewBottle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBottleName.trim()) {
+      showToast('Please enter a bottle name!');
+      return;
+    }
+    const newBottle: StandingBottleItem = {
+      id: `bottle-${Date.now()}`,
+      name: newBottleName.trim(),
+      tamilName: newBottleTamilName.trim() || undefined,
+      slug: newBottleSlug,
+      image: newBottleImage || '/products/sesame_oil.png',
+      enabled: true,
+    };
+    const updated = [...bottlesList, newBottle];
+    setBottlesList(updated);
+    storeUpdateStandingBottles(updated);
+    setIsAddBottleModalOpen(false);
+    setNewBottleName('');
+    setNewBottleTamilName('');
+    setNewBottleImage('/products/sesame_oil.png');
+    showToast(`Your bottle "${newBottle.name}" was added to Homepage! 🍾✨`);
   };
 
   // -------------------------------------------------------------
@@ -1959,24 +2013,32 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      const newId = `bottle-${Date.now()}`;
-                      const newB: StandingBottleItem = {
-                        id: newId,
-                        name: 'New Pure Oil',
-                        tamilName: 'புதிய சுத்தமான எண்ணெய்',
-                        slug: 'cooking-oil',
-                        image: '/products/sesame_oil.png',
-                        enabled: true,
-                      };
-                      const updated = [...bottlesList, newB];
-                      setBottlesList(updated);
-                      storeUpdateStandingBottles(updated);
-                      showToast('New bottle added! You can now exchange its image and name. ✨');
+                      setNewBottleName('');
+                      setNewBottleTamilName('');
+                      setNewBottleImage('/products/sesame_oil.png');
+                      setNewBottleSlug(categoriesList[0]?.slug || 'sesame-oil');
+                      setIsAddBottleModalOpen(true);
                     }}
                     className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Plus className="w-4 h-4 text-gold-400" />
-                    <span>+ Add Bottle / Can</span>
+                    <span>+ Add My Own Bottle / Can (என் பாட்டில் சேர்க்க)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Clear all default bottles to keep only your custom bottles on the homepage?')) {
+                        setBottlesList([]);
+                        storeUpdateStandingBottles([]);
+                        showToast('All pre-set bottles cleared! Click "+ Add My Own Bottle" to add yours. ✨');
+                      }
+                    }}
+                    className="px-3 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                    title="Clear all default bottles"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear All (நீக்க)</span>
                   </button>
 
                   <button
@@ -2004,6 +2066,31 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Empty state when all defaults cleared */}
+              {bottlesList.length === 0 && (
+                <div className="bg-white rounded-3xl border-2 border-dashed border-stone-300 p-12 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
+                    <Droplets className="w-8 h-8 text-amber-700" />
+                  </div>
+                  <div>
+                    <h4 className="font-serif font-bold text-lg text-forest-950">
+                      No Bottles Displayed on Homepage (தற்போது பாட்டில்கள் இல்லை)
+                    </h4>
+                    <p className="text-xs text-stone-500 max-w-md mx-auto mt-1">
+                      முந்தைய மாதிரிப் பாட்டில்கள் அனைத்தும் நீக்கப்பட்டுவிட்டன. உங்கள் சொந்த பாட்டில் அல்லது கேனை முகப்பு பக்கத்தில் சேர்க்க கீழே உள்ள பட்டனைக் கிளிக் செய்யவும்.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddBottleModalOpen(true)}
+                    className="px-5 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-4 h-4 text-gold-400" />
+                    <span>+ Add My Own Bottle / Can (என் பாட்டில் சேர்க்க)</span>
+                  </button>
+                </div>
+              )}
 
               {/* Grid of Bottles / Cans */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -2261,6 +2348,181 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 })}
               </div>
 
+              {/* ADD CUSTOM BOTTLE MODAL */}
+              {isAddBottleModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                  <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-2xl space-y-5 my-8">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                          Custom Bottle / Can
+                        </span>
+                        <h3 className="font-serif font-black text-xl text-forest-950 mt-1">
+                          Add Your Own Bottle / Can (உங்கள் பாட்டில் / கேன் சேர்க்க)
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddBottleModalOpen(false)}
+                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveNewBottle} className="space-y-4">
+                      {/* Bottle Image Preview & Upload */}
+                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
+                          1. Bottle / Can Photo (பாட்டில் அல்லது கேன் புகைப்படம்)
+                        </label>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          {/* Live Standing Preview with floor shadow */}
+                          <div className="relative h-36 w-28 rounded-2xl bg-white border border-stone-200 p-2 flex flex-col items-center justify-end shrink-0 shadow-xs">
+                            {newBottleImage ? (
+                              <>
+                                <img
+                                  src={newBottleImage}
+                                  alt="New Bottle Preview"
+                                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)]"
+                                />
+                                <div className="w-14 h-2 bg-black/15 blur-xs rounded-full -bottom-1" />
+                              </>
+                            ) : (
+                              <div className="text-center p-2 text-stone-400 flex flex-col items-center">
+                                <Camera className="w-8 h-8 text-stone-300 mb-1" />
+                                <span className="text-[10px]">No image selected</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 space-y-2 w-full">
+                            {/* File upload from PC */}
+                            <label className="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs">
+                              <Upload className="w-4 h-4 text-gold-400" />
+                              <span>Upload Bottle Photo from PC (கணினியிலிருந்து படம் பதிவேற்ற)</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageFileUpload(e, setNewBottleImage)}
+                              />
+                            </label>
+
+                            {/* Direct URL input */}
+                            <input
+                              type="text"
+                              value={newBottleImage}
+                              onChange={(e) => setNewBottleImage(e.target.value)}
+                              placeholder="Or paste image URL / file path"
+                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-mono bg-white focus:outline-none focus:border-forest-900"
+                            />
+
+                            {/* Quick Presets */}
+                            <div className="pt-1">
+                              <span className="text-[10px] font-bold text-stone-500 block mb-1">
+                                Or pick from authentic bottle cutouts:
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {[
+                                  { label: 'Lamp', url: '/products/lamp_oil.png' },
+                                  { label: 'Sesame', url: '/products/sesame_oil.png' },
+                                  { label: 'Groundnut', url: '/products/groundnut_oil.png' },
+                                  { label: 'Sunflower', url: '/products/sunflower_oil.png' },
+                                  { label: 'Mustard', url: '/products/mustard_oil.png' },
+                                  { label: 'Coconut', url: '/products/coconut_oil.png' },
+                                  { label: 'Rice Bran', url: '/products/rice_bran_oil.png' },
+                                ].map((preset) => (
+                                  <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => setNewBottleImage(preset.url)}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
+                                      newBottleImage === preset.url
+                                        ? 'bg-forest-950 text-gold-300 border-forest-950'
+                                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                                    }`}
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottle Names */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            Bottle Name in English (ஆங்கிலப் பெயர்) *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newBottleName}
+                            onChange={(e) => setNewBottleName(e.target.value)}
+                            placeholder="e.g. Pure Gingelly Oil"
+                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-serif font-bold text-[#8B2323] focus:outline-none focus:border-forest-900 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 mb-1">
+                            Tamil Name (தமிழ் பெயர்)
+                          </label>
+                          <input
+                            type="text"
+                            value={newBottleTamilName}
+                            onChange={(e) => setNewBottleTamilName(e.target.value)}
+                            placeholder="e.g. மரச்செக்கு நல்லெண்ணெய்"
+                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Category link */}
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 mb-1">
+                          Category Link (கிளிக் செய்தால் திறக்க வேண்டிய பிரிவு)
+                        </label>
+                        <select
+                          value={newBottleSlug}
+                          onChange={(e) => setNewBottleSlug(e.target.value)}
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-bold text-forest-950 focus:outline-none focus:border-forest-900 bg-white cursor-pointer"
+                        >
+                          {categoriesList.map((cat) => (
+                            <option key={cat.slug} value={cat.slug}>
+                              {cat.title} ({cat.slug})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="pt-2 flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddBottleModalOpen(false)}
+                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                        >
+                          <Plus className="w-4 h-4 text-gold-400" />
+                          <span>Add Bottle to Homepage (முகப்பு பக்கத்தில் சேர்க்க)</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -2380,27 +2642,52 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             {slotProd.tagline}
                           </p>
 
-                          <div className="flex items-center gap-2 pt-1">
-                            <span className="text-base font-serif font-black text-forest-950">
-                              ₹{slotProd.price}
-                            </span>
-                            {slotProd.originalPrice && slotProd.originalPrice > slotProd.price && (
-                              <span className="text-xs text-stone-400 line-through">
-                                ₹{slotProd.originalPrice}
-                              </span>
-                            )}
+                          {/* Price & MRP Display & Quick In-Place Edit */}
+                          <div className="pt-2 border-t border-stone-200/80 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-bold text-stone-700">Quick Price (விலை):</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-serif font-black text-xs text-forest-950">₹</span>
+                                <input
+                                  type="number"
+                                  value={slotProd.price}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    contextUpdateProduct({ ...slotProd, price: val });
+                                  }}
+                                  className="w-20 px-2 py-1 rounded-lg border border-stone-300 font-bold text-xs bg-white text-forest-950 focus:outline-none focus:border-forest-900"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Quick Upload Image from PC right on slot */}
+                            <label className="w-full py-1.5 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
+                              <Upload className="w-3.5 h-3.5 text-gold-400" />
+                              <span>Quick Change Photo (படம் மாற்ற)</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  handleImageFileUpload(e, (url) => {
+                                    contextUpdateProduct({ ...slotProd, image: url });
+                                    showToast(`Photo for "${slotProd.name}" updated and saved! 📸✨`);
+                                  });
+                                }}
+                              />
+                            </label>
                           </div>
                         </div>
                       </div>
 
-                      {/* Direct Edit Button */}
+                      {/* Full Edit Modal Button */}
                       <button
                         type="button"
                         onClick={() => openEditProduct(slotProd)}
                         className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-forest-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
                       >
                         <Edit className="w-3.5 h-3.5 text-forest-950" />
-                        <span>Edit Product (விலை / படம் மாற்ற)</span>
+                        <span>Edit Full Product (முழு விவரங்கள் எடிட்)</span>
                       </button>
                     </div>
                   );
@@ -2659,752 +2946,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
 
-              {/* ============================================================ */}
-              {/* EDIT PRODUCT MODAL                                           */}
-              {/* ============================================================ */}
-              {editingProduct && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                  <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-                    
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
-                          Product Editor
-                        </span>
-                        <h3 className="font-serif font-black text-xl text-forest-950">
-                          Edit Oil: {editingProduct.name}
-                        </h3>
-                      </div>
-                      <button
-                        onClick={() => setEditingProduct(null)}
-                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleSaveEditProduct} className="space-y-5">
-                      
-                      {/* 1. Product Image (Upload / URL / Quick Presets) */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image (புகைப்படம் சேர்க்கவும்)
-                        </label>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          {/* Live Preview */}
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100 relative">
-                            {editProdImage ? (
-                              <img
-                                src={editProdImage}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-stone-400">
-                                <ImageIcon className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 space-y-2 w-full">
-                            <div className="flex items-center gap-2">
-                              <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
-                                <Upload className="w-3.5 h-3.5 text-gold-400" />
-                                <span>Upload Image from Device</span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => handleImageFileUpload(e, setEditProdImage)}
-                                />
-                              </label>
-                              <span className="text-[11px] text-stone-400">or paste URL</span>
-                            </div>
-
-                            <input
-                              type="text"
-                              value={editProdImage}
-                              onChange={(e) => setEditProdImage(e.target.value)}
-                              placeholder="https://... or /products/sesame_oil.jpg"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Quick Presets Strip */}
-                        <div className="pt-2 border-t border-stone-200">
-                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
-                            ⚡ Quick 1-Click Oil Presets:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_IMAGES.map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => setEditProdImage(preset.url)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                                  editProdImage === preset.url
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                }`}
-                              >
-                                {preset.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. Basic Details: Name, Tagline, Category, Badge */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          2. Basic Oil Information
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name (பெயர்)
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={editProdName}
-                              onChange={(e) => setEditProdName(e.target.value)}
-                              placeholder="e.g. Pure Mara Chekku Sesame Oil"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tagline / Subtitle (விவரக் குறிப்பு)
-                            </label>
-                            <input
-                              type="text"
-                              value={editProdTagline}
-                              onChange={(e) => setEditProdTagline(e.target.value)}
-                              placeholder="e.g. Traditional Gingelly Oil with Palm Jaggery"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-semibold text-stone-700">
-                                Category (பிரிவு)
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCatTitle('');
-                                  setNewCatSubtitle('');
-                                  setNewCatBadge('New Arrival');
-                                  setNewCatSlug('');
-                                  setNewCatImage('/products/sesame_oil.jpg');
-                                  setNewCatAssignedProductIds([]);
-                                  setIsAddCategoryOpen(true);
-                                }}
-                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
-                              >
-                                <Plus className="w-3 h-3 text-emerald-600" />
-                                <span>+ New Category</span>
-                              </button>
-                            </div>
-                            <select
-                              value={editProdCategory}
-                              onChange={(e) => setEditProdCategory(e.target.value)}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
-                            >
-                              {categoriesList.map((c) => (
-                                <option key={c.id || c.slug} value={c.slug}>
-                                  {c.title} ({c.slug})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Highlight Badge
-                            </label>
-                            <select
-                              value={editProdBadge}
-                              onChange={(e) => setEditProdBadge(e.target.value)}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
-                            >
-                              <option value="">No Badge</option>
-                              <option value="Bestseller">Bestseller</option>
-                              <option value="Cold-Pressed">Cold-Pressed</option>
-                              <option value="Wood-Pressed">Wood-Pressed</option>
-                              <option value="100% Pure">100% Pure</option>
-                              <option value="Popular">Popular</option>
-                              <option value="Light & Pure">Light & Pure</option>
-                              <option value="Heart Care">Heart Care</option>
-                              <option value="Temple Pooja">Temple Pooja</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 3. Pricing & Default Pack */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          3. Pricing & Default Packaging
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Selling Price (விற்பனை விலை ₹)
-                            </label>
-                            <input
-                              type="number"
-                              required
-                              min="1"
-                              value={editProdPrice}
-                              onChange={(e) => setEditProdPrice(Number(e.target.value))}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              MRP / Original Price (அசல் விலை ₹)
-                            </label>
-                            <input
-                              type="number"
-                              required
-                              min="1"
-                              value={editProdOriginalPrice}
-                              onChange={(e) => setEditProdOriginalPrice(Number(e.target.value))}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
-                            />
-                            {editProdOriginalPrice > editProdPrice && (
-                              <span className="text-[10px] text-emerald-600 font-bold block mt-1">
-                                {Math.round(((editProdOriginalPrice - editProdPrice) / editProdOriginalPrice) * 100)}% Discount Calculated
-                              </span>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Default Pack Unit
-                            </label>
-                            <input
-                              type="text"
-                              value={editProdDefaultPack}
-                              onChange={(e) => setEditProdDefaultPack(e.target.value)}
-                              placeholder="e.g. 1 Litre Bottle"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 4. Pack Sizes Checkbox Selection */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes (அளவு தேர்வுகள்)
-                        </label>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {ALL_PACK_OPTIONS.map((pack) => {
-                            const isSelected = editProdPackSizes.includes(pack);
-                            return (
-                              <button
-                                key={pack}
-                                type="button"
-                                onClick={() => handleTogglePackSizeInEdit(pack)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                                  isSelected
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
-                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
-                                }`}
-                              >
-                                {isSelected ? (
-                                  <Check className="w-3.5 h-3.5 text-gold-400" />
-                                ) : (
-                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
-                                )}
-                                <span>{pack}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* 5. Production Specifications & Inventory */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          5. Production Specs & Inventory Status
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method (செக்கு வகை)
-                            </label>
-                            <input
-                              type="text"
-                              value={editProdExtraction}
-                              onChange={(e) => setEditProdExtraction(e.target.value)}
-                              placeholder="e.g. Traditional Vaagai Mara Chekku"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Smoke Point & Dish Recommendation
-                            </label>
-                            <input
-                              type="text"
-                              value={editProdSmokePoint}
-                              onChange={(e) => setEditProdSmokePoint(e.target.value)}
-                              placeholder="e.g. 210°C (Deep Frying & Seasoning)"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stock & Featured Checkboxes */}
-                        <div className="flex flex-wrap items-center gap-4 pt-1">
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={editProdInStock}
-                              onChange={(e) => setEditProdInStock(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              In Stock (கையிருப்பு உள்ளது)
-                            </span>
-                          </label>
-
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={editProdFeatured}
-                              onChange={(e) => setEditProdFeatured(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* 6. Product Description */}
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Product Description & Health Benefits
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={editProdDescription}
-                          onChange={(e) => setEditProdDescription(e.target.value)}
-                          placeholder="Describe the purity, pressing process, and culinary benefits..."
-                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
-                        />
-                      </div>
-
-                      {/* Modal Action Buttons */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setEditingProduct(null)}
-                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                        >
-                          <Save className="w-4 h-4 text-gold-400" />
-                          <span>Save Product Changes</span>
-                        </button>
-                      </div>
-
-                    </form>
-
-                  </div>
-                </div>
-              )}
-
-              {/* ============================================================ */}
-              {/* ADD PRODUCT MODAL                                            */}
-              {/* ============================================================ */}
-              {isAddProductOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                  <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-                    
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
-                          Catalog Manager
-                        </span>
-                        <h3 className="font-serif font-black text-xl text-forest-950">
-                          Add New Wood-Pressed Oil
-                        </h3>
-                      </div>
-                      <button
-                        onClick={() => setIsAddProductOpen(false)}
-                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleAddProduct} className="space-y-5">
-                      
-                      {/* 1. Product Image */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image (புகைப்படம் சேர்க்கவும்)
-                        </label>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100 relative">
-                            {newProdImage ? (
-                              <img
-                                src={newProdImage}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-stone-400">
-                                <ImageIcon className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 space-y-2 w-full">
-                            <div className="flex items-center gap-2">
-                              <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
-                                <Upload className="w-3.5 h-3.5 text-gold-400" />
-                                <span>Upload Image from Device</span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => handleImageFileUpload(e, setNewProdImage)}
-                                />
-                              </label>
-                              <span className="text-[11px] text-stone-400">or paste URL</span>
-                            </div>
-
-                            <input
-                              type="text"
-                              value={newProdImage}
-                              onChange={(e) => setNewProdImage(e.target.value)}
-                              placeholder="https://... or /products/groundnut_oil.jpg"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Presets */}
-                        <div className="pt-2 border-t border-stone-200">
-                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
-                            ⚡ Quick 1-Click Oil Presets:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_IMAGES.map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => setNewProdImage(preset.url)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                                  newProdImage === preset.url
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                }`}
-                              >
-                                {preset.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. Basic Details */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          2. Basic Oil Information
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name (பெயர்)
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={newProdName}
-                              onChange={(e) => setNewProdName(e.target.value)}
-                              placeholder="e.g. SS Pure Castor Oil (ஆமணக்கு எண்ணெய்)"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tagline / Subtitle
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdTagline}
-                              onChange={(e) => setNewProdTagline(e.target.value)}
-                              placeholder="e.g. 100% Mara Chekku Cold-Pressed Virgin Grade"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-semibold text-stone-700">
-                                Category (பிரிவு)
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCatTitle('');
-                                  setNewCatSubtitle('');
-                                  setNewCatBadge('New Arrival');
-                                  setNewCatSlug('');
-                                  setNewCatImage('/products/sesame_oil.jpg');
-                                  setNewCatAssignedProductIds([]);
-                                  setIsAddCategoryOpen(true);
-                                }}
-                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
-                              >
-                                <Plus className="w-3 h-3 text-emerald-600" />
-                                <span>+ New Category</span>
-                              </button>
-                            </div>
-                            <select
-                              value={newProdCategory}
-                              onChange={(e) => setNewProdCategory(e.target.value)}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
-                            >
-                              {categoriesList.map((c) => (
-                                <option key={c.id || c.slug} value={c.slug}>
-                                  {c.title} ({c.slug})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Highlight Badge
-                            </label>
-                            <select
-                              value={newProdBadge}
-                              onChange={(e) => setNewProdBadge(e.target.value)}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
-                            >
-                              <option value="Cold-Pressed">Cold-Pressed</option>
-                              <option value="Wood-Pressed">Wood-Pressed</option>
-                              <option value="Bestseller">Bestseller</option>
-                              <option value="100% Pure">100% Pure</option>
-                              <option value="Popular">Popular</option>
-                              <option value="Light & Pure">Light & Pure</option>
-                              <option value="Temple Pooja">Temple Pooja</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 3. Pricing */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          3. Pricing & Default Packaging
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Selling Price (விற்பனை விலை ₹)
-                            </label>
-                            <input
-                              type="number"
-                              required
-                              min="1"
-                              value={newProdPrice}
-                              onChange={(e) => setNewProdPrice(Number(e.target.value))}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              MRP / Original Price (அசல் விலை ₹)
-                            </label>
-                            <input
-                              type="number"
-                              required
-                              min="1"
-                              value={newProdOriginalPrice}
-                              onChange={(e) => setNewProdOriginalPrice(Number(e.target.value))}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
-                            />
-                            {newProdOriginalPrice > newProdPrice && (
-                              <span className="text-[10px] text-emerald-600 font-bold block mt-1">
-                                {Math.round(((newProdOriginalPrice - newProdPrice) / newProdOriginalPrice) * 100)}% Discount Calculated
-                              </span>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Default Pack Unit
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdDefaultPack}
-                              onChange={(e) => setNewProdDefaultPack(e.target.value)}
-                              placeholder="e.g. 1 Litre Bottle"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 4. Pack Sizes */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes (அளவு தேர்வுகள்)
-                        </label>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {ALL_PACK_OPTIONS.map((pack) => {
-                            const isSelected = newProdPackSizes.includes(pack);
-                            return (
-                              <button
-                                key={pack}
-                                type="button"
-                                onClick={() => handleTogglePackSizeInNew(pack)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                                  isSelected
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
-                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
-                                }`}
-                              >
-                                {isSelected ? (
-                                  <Check className="w-3.5 h-3.5 text-gold-400" />
-                                ) : (
-                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
-                                )}
-                                <span>{pack}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* 5. Production Specs & Inventory */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          5. Production Specs & Inventory Status
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method (செக்கு வகை)
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdExtraction}
-                              onChange={(e) => setNewProdExtraction(e.target.value)}
-                              placeholder="e.g. Traditional Vaagai Mara Chekku"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Smoke Point & Dish Recommendation
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdSmokePoint}
-                              onChange={(e) => setNewProdSmokePoint(e.target.value)}
-                              placeholder="e.g. 220°C (High Smoke Point)"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stock & Featured */}
-                        <div className="flex flex-wrap items-center gap-4 pt-1">
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={newProdInStock}
-                              onChange={(e) => setNewProdInStock(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              In Stock (கையிருப்பு உள்ளது)
-                            </span>
-                          </label>
-
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={newProdFeatured}
-                              onChange={(e) => setNewProdFeatured(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* 6. Description */}
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Product Description & Health Benefits
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={newProdDescription}
-                          onChange={(e) => setNewProdDescription(e.target.value)}
-                          placeholder="Describe the purity, pressing process, and culinary benefits..."
-                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
-                        />
-                      </div>
-
-                      {/* Buttons */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setIsAddProductOpen(false)}
-                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                        >
-                          <Plus className="w-4 h-4 text-gold-400" />
-                          <span>Add Product to Store</span>
-                        </button>
-                      </div>
-
-                    </form>
-
-                  </div>
-                </div>
-              )}
 
             </div>
           )}
@@ -4704,6 +4245,754 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
           )}
 
+
+
+              {/* ============================================================ */}
+              {/* EDIT PRODUCT MODAL                                           */}
+              {/* ============================================================ */}
+              {editingProduct && (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                  <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+                    
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
+                          Product Editor
+                        </span>
+                        <h3 className="font-serif font-black text-xl text-forest-950">
+                          Edit Oil: {editingProduct.name}
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setEditingProduct(null)}
+                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveEditProduct} className="space-y-5">
+                      
+                      {/* 1. Product Image (Upload / URL / Quick Presets) */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          1. Product Image (புகைப்படம் சேர்க்கவும்)
+                        </label>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          {/* Live Preview */}
+                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100 relative">
+                            {editProdImage ? (
+                              <img
+                                src={editProdImage}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-stone-400">
+                                <ImageIcon className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 space-y-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
+                                <Upload className="w-3.5 h-3.5 text-gold-400" />
+                                <span>Upload Image from Device</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleImageFileUpload(e, setEditProdImage)}
+                                />
+                              </label>
+                              <span className="text-[11px] text-stone-400">or paste URL</span>
+                            </div>
+
+                            <input
+                              type="text"
+                              value={editProdImage}
+                              onChange={(e) => setEditProdImage(e.target.value)}
+                              placeholder="https://... or /products/sesame_oil.jpg"
+                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Quick Presets Strip */}
+                        <div className="pt-2 border-t border-stone-200">
+                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                            ⚡ Quick 1-Click Oil Presets:
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PRESET_IMAGES.map((preset) => (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => setEditProdImage(preset.url)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
+                                  editProdImage === preset.url
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
+                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                                }`}
+                              >
+                                {preset.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 2. Basic Details: Name, Tagline, Category, Badge */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          2. Basic Oil Information
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Product Name (பெயர்)
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={editProdName}
+                              onChange={(e) => setEditProdName(e.target.value)}
+                              placeholder="e.g. Pure Mara Chekku Sesame Oil"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Tagline / Subtitle (விவரக் குறிப்பு)
+                            </label>
+                            <input
+                              type="text"
+                              value={editProdTagline}
+                              onChange={(e) => setEditProdTagline(e.target.value)}
+                              placeholder="e.g. Traditional Gingelly Oil with Palm Jaggery"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-xs font-semibold text-stone-700">
+                                Category (பிரிவு)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCatTitle('');
+                                  setNewCatSubtitle('');
+                                  setNewCatBadge('New Arrival');
+                                  setNewCatSlug('');
+                                  setNewCatImage('/products/sesame_oil.jpg');
+                                  setNewCatAssignedProductIds([]);
+                                  setIsAddCategoryOpen(true);
+                                }}
+                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
+                              >
+                                <Plus className="w-3 h-3 text-emerald-600" />
+                                <span>+ New Category</span>
+                              </button>
+                            </div>
+                            <select
+                              value={editProdCategory}
+                              onChange={(e) => setEditProdCategory(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                            >
+                              {categoriesList.map((c) => (
+                                <option key={c.id || c.slug} value={c.slug}>
+                                  {c.title} ({c.slug})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Highlight Badge
+                            </label>
+                            <select
+                              value={editProdBadge}
+                              onChange={(e) => setEditProdBadge(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                            >
+                              <option value="">No Badge</option>
+                              <option value="Bestseller">Bestseller</option>
+                              <option value="Cold-Pressed">Cold-Pressed</option>
+                              <option value="Wood-Pressed">Wood-Pressed</option>
+                              <option value="100% Pure">100% Pure</option>
+                              <option value="Popular">Popular</option>
+                              <option value="Light & Pure">Light & Pure</option>
+                              <option value="Heart Care">Heart Care</option>
+                              <option value="Temple Pooja">Temple Pooja</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3. Pricing & Default Pack */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          3. Pricing & Default Packaging
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Selling Price (விற்பனை விலை ₹)
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="1"
+                              value={editProdPrice}
+                              onChange={(e) => setEditProdPrice(Number(e.target.value))}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              MRP / Original Price (அசல் விலை ₹)
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="1"
+                              value={editProdOriginalPrice}
+                              onChange={(e) => setEditProdOriginalPrice(Number(e.target.value))}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
+                            />
+                            {editProdOriginalPrice > editProdPrice && (
+                              <span className="text-[10px] text-emerald-600 font-bold block mt-1">
+                                {Math.round(((editProdOriginalPrice - editProdPrice) / editProdOriginalPrice) * 100)}% Discount Calculated
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Default Pack Unit
+                            </label>
+                            <input
+                              type="text"
+                              value={editProdDefaultPack}
+                              onChange={(e) => setEditProdDefaultPack(e.target.value)}
+                              placeholder="e.g. 1 Litre Bottle"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4. Pack Sizes Checkbox Selection */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          4. Available Pack Sizes (அளவு தேர்வுகள்)
+                        </label>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {ALL_PACK_OPTIONS.map((pack) => {
+                            const isSelected = editProdPackSizes.includes(pack);
+                            return (
+                              <button
+                                key={pack}
+                                type="button"
+                                onClick={() => handleTogglePackSizeInEdit(pack)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                                  isSelected
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
+                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <Check className="w-3.5 h-3.5 text-gold-400" />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
+                                )}
+                                <span>{pack}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 5. Production Specifications & Inventory */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          5. Production Specs & Inventory Status
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Extraction Method (செக்கு வகை)
+                            </label>
+                            <input
+                              type="text"
+                              value={editProdExtraction}
+                              onChange={(e) => setEditProdExtraction(e.target.value)}
+                              placeholder="e.g. Traditional Vaagai Mara Chekku"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Smoke Point & Dish Recommendation
+                            </label>
+                            <input
+                              type="text"
+                              value={editProdSmokePoint}
+                              onChange={(e) => setEditProdSmokePoint(e.target.value)}
+                              placeholder="e.g. 210°C (Deep Frying & Seasoning)"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Stock & Featured Checkboxes */}
+                        <div className="flex flex-wrap items-center gap-4 pt-1">
+                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
+                            <input
+                              type="checkbox"
+                              checked={editProdInStock}
+                              onChange={(e) => setEditProdInStock(e.target.checked)}
+                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-stone-800">
+                              In Stock (கையிருப்பு உள்ளது)
+                            </span>
+                          </label>
+
+                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
+                            <input
+                              type="checkbox"
+                              checked={editProdFeatured}
+                              onChange={(e) => setEditProdFeatured(e.target.checked)}
+                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-stone-800">
+                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* 6. Product Description */}
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Product Description & Health Benefits
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={editProdDescription}
+                          onChange={(e) => setEditProdDescription(e.target.value)}
+                          placeholder="Describe the purity, pressing process, and culinary benefits..."
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Modal Action Buttons */}
+                      <div className="pt-2 flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct(null)}
+                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                        >
+                          <Save className="w-4 h-4 text-gold-400" />
+                          <span>Save Product Changes</span>
+                        </button>
+                      </div>
+
+                    </form>
+
+                  </div>
+                </div>
+              )}
+
+              {/* ============================================================ */}
+              {/* ADD PRODUCT MODAL                                            */}
+              {/* ============================================================ */}
+              {isAddProductOpen && (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                  <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+                    
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold-600">
+                          Catalog Manager
+                        </span>
+                        <h3 className="font-serif font-black text-xl text-forest-950">
+                          Add New Wood-Pressed Oil
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setIsAddProductOpen(false)}
+                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleAddProduct} className="space-y-5">
+                      
+                      {/* 1. Product Image */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          1. Product Image (புகைப்படம் சேர்க்கவும்)
+                        </label>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100 relative">
+                            {newProdImage ? (
+                              <img
+                                src={newProdImage}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-stone-400">
+                                <ImageIcon className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 space-y-2 w-full">
+                            <div className="flex items-center gap-2">
+                              <label className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 shadow-xs">
+                                <Upload className="w-3.5 h-3.5 text-gold-400" />
+                                <span>Upload Image from Device</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleImageFileUpload(e, setNewProdImage)}
+                                />
+                              </label>
+                              <span className="text-[11px] text-stone-400">or paste URL</span>
+                            </div>
+
+                            <input
+                              type="text"
+                              value={newProdImage}
+                              onChange={(e) => setNewProdImage(e.target.value)}
+                              placeholder="https://... or /products/groundnut_oil.jpg"
+                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Presets */}
+                        <div className="pt-2 border-t border-stone-200">
+                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                            ⚡ Quick 1-Click Oil Presets:
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PRESET_IMAGES.map((preset) => (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => setNewProdImage(preset.url)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
+                                  newProdImage === preset.url
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
+                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                                }`}
+                              >
+                                {preset.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 2. Basic Details */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          2. Basic Oil Information
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Product Name (பெயர்)
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={newProdName}
+                              onChange={(e) => setNewProdName(e.target.value)}
+                              placeholder="e.g. SS Pure Castor Oil (ஆமணக்கு எண்ணெய்)"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Tagline / Subtitle
+                            </label>
+                            <input
+                              type="text"
+                              value={newProdTagline}
+                              onChange={(e) => setNewProdTagline(e.target.value)}
+                              placeholder="e.g. 100% Mara Chekku Cold-Pressed Virgin Grade"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-xs font-semibold text-stone-700">
+                                Category (பிரிவு)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCatTitle('');
+                                  setNewCatSubtitle('');
+                                  setNewCatBadge('New Arrival');
+                                  setNewCatSlug('');
+                                  setNewCatImage('/products/sesame_oil.jpg');
+                                  setNewCatAssignedProductIds([]);
+                                  setIsAddCategoryOpen(true);
+                                }}
+                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
+                              >
+                                <Plus className="w-3 h-3 text-emerald-600" />
+                                <span>+ New Category</span>
+                              </button>
+                            </div>
+                            <select
+                              value={newProdCategory}
+                              onChange={(e) => setNewProdCategory(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                            >
+                              {categoriesList.map((c) => (
+                                <option key={c.id || c.slug} value={c.slug}>
+                                  {c.title} ({c.slug})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Highlight Badge
+                            </label>
+                            <select
+                              value={newProdBadge}
+                              onChange={(e) => setNewProdBadge(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
+                            >
+                              <option value="Cold-Pressed">Cold-Pressed</option>
+                              <option value="Wood-Pressed">Wood-Pressed</option>
+                              <option value="Bestseller">Bestseller</option>
+                              <option value="100% Pure">100% Pure</option>
+                              <option value="Popular">Popular</option>
+                              <option value="Light & Pure">Light & Pure</option>
+                              <option value="Temple Pooja">Temple Pooja</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3. Pricing */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          3. Pricing & Default Packaging
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Selling Price (விற்பனை விலை ₹)
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="1"
+                              value={newProdPrice}
+                              onChange={(e) => setNewProdPrice(Number(e.target.value))}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              MRP / Original Price (அசல் விலை ₹)
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              min="1"
+                              value={newProdOriginalPrice}
+                              onChange={(e) => setNewProdOriginalPrice(Number(e.target.value))}
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
+                            />
+                            {newProdOriginalPrice > newProdPrice && (
+                              <span className="text-[10px] text-emerald-600 font-bold block mt-1">
+                                {Math.round(((newProdOriginalPrice - newProdPrice) / newProdOriginalPrice) * 100)}% Discount Calculated
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Default Pack Unit
+                            </label>
+                            <input
+                              type="text"
+                              value={newProdDefaultPack}
+                              onChange={(e) => setNewProdDefaultPack(e.target.value)}
+                              placeholder="e.g. 1 Litre Bottle"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4. Pack Sizes */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          4. Available Pack Sizes (அளவு தேர்வுகள்)
+                        </label>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {ALL_PACK_OPTIONS.map((pack) => {
+                            const isSelected = newProdPackSizes.includes(pack);
+                            return (
+                              <button
+                                key={pack}
+                                type="button"
+                                onClick={() => handleTogglePackSizeInNew(pack)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                                  isSelected
+                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
+                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <Check className="w-3.5 h-3.5 text-gold-400" />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
+                                )}
+                                <span>{pack}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 5. Production Specs & Inventory */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                          5. Production Specs & Inventory Status
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Extraction Method (செக்கு வகை)
+                            </label>
+                            <input
+                              type="text"
+                              value={newProdExtraction}
+                              onChange={(e) => setNewProdExtraction(e.target.value)}
+                              placeholder="e.g. Traditional Vaagai Mara Chekku"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Smoke Point & Dish Recommendation
+                            </label>
+                            <input
+                              type="text"
+                              value={newProdSmokePoint}
+                              onChange={(e) => setNewProdSmokePoint(e.target.value)}
+                              placeholder="e.g. 220°C (High Smoke Point)"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Stock & Featured */}
+                        <div className="flex flex-wrap items-center gap-4 pt-1">
+                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
+                            <input
+                              type="checkbox"
+                              checked={newProdInStock}
+                              onChange={(e) => setNewProdInStock(e.target.checked)}
+                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-stone-800">
+                              In Stock (கையிருப்பு உள்ளது)
+                            </span>
+                          </label>
+
+                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
+                            <input
+                              type="checkbox"
+                              checked={newProdFeatured}
+                              onChange={(e) => setNewProdFeatured(e.target.checked)}
+                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-stone-800">
+                              Feature on Homepage Showcase (முகப்புப் பக்கத்தில் காட்டவும்)
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* 6. Description */}
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Product Description & Health Benefits
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={newProdDescription}
+                          onChange={(e) => setNewProdDescription(e.target.value)}
+                          placeholder="Describe the purity, pressing process, and culinary benefits..."
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Buttons */}
+                      <div className="pt-2 flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddProductOpen(false)}
+                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                        >
+                          <Plus className="w-4 h-4 text-gold-400" />
+                          <span>Add Product to Store</span>
+                        </button>
+                      </div>
+
+                    </form>
+
+                  </div>
+                </div>
+              )}
 
         </main>
 

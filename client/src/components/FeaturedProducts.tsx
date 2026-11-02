@@ -52,7 +52,14 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         : ['ss-sesame-1000', 'ss-coconut-1000', 'ss-cooking-daily-1000', 'ss-groundnut-1000'];
 
     const matched = configuredIds
-      .map((id) => sourceProducts.find((p) => p.id === id))
+      .map((id) =>
+        sourceProducts.find(
+          (p) =>
+            p.id === id ||
+            p.slug === id ||
+            (p.name && id && p.name.toLowerCase().trim() === id.toLowerCase().trim())
+        )
+      )
       .filter((p): p is Product => Boolean(p));
 
     if (matched.length < (maxProducts || 4)) {
