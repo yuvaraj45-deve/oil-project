@@ -401,6 +401,7 @@ export function App() {
               setIsAdminUnlocked(true);
               try {
                 sessionStorage.setItem('pureva_admin_unlocked', 'true');
+                sessionStorage.setItem('admin_active_tab', 'dashboard');
               } catch (e) {}
               setToastMessage(`Welcome back, ${user.name}! Admin Portal Unlocked 🛡️`);
               navigateTo('/admin');

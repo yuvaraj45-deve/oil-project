@@ -148,7 +148,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       const saved = sessionStorage.getItem('admin_active_tab') as AdminTab;
       if (saved && (saved as string) !== 'featured-products' && (saved as string) !== 'bottles') return saved;
     } catch {}
-    return 'products';
+    return 'dashboard';
   });
 
   const handleTabChange = (tab: AdminTab) => {

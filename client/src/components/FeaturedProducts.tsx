@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { useLanguage } from '../context/LanguageContext';
@@ -31,6 +31,14 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -310 : 310;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     const handleFavChange = (e: any) => {
@@ -138,18 +146,63 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     <section id="products" className="py-14 sm:py-20 bg-[#f7f6f2] border-b border-cream-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Title */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
-            {t('prod.title')}
-          </h2>
-          <p className="mt-2 text-stone-600 text-sm sm:text-base">
-            {t('prod.subtitle')}
-          </p>
+        {/* Section Title & Header with Horizontal Navigation Arrows */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
+              {t('prod.title')}
+            </h2>
+            <p className="mt-2 text-stone-600 text-sm sm:text-base">
+              {t('prod.subtitle')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end shrink-0">
+            <button
+              type="button"
+              onClick={() => scroll('left')}
+              className="w-10 h-10 rounded-full bg-white hover:bg-forest-950 text-forest-950 hover:text-white border border-stone-200 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+              title="Previous"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="w-10 h-10 rounded-full bg-white hover:bg-forest-950 text-forest-950 hover:text-white border border-stone-200 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+              title="Next"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Responsive Grid: All Products + View All */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${displayedProducts.length <= 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-5 sm:gap-6 items-stretch`}>
+        {/* Horizontal Products Slider: 5th product sits right next to 4th, never wraps below */}
+        <div className="relative group/slider">
+          {/* Floating Left Arrow on desktop */}
+          <button
+            type="button"
+            onClick={() => scroll('left')}
+            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 text-forest-950 border border-stone-200 shadow-xl items-center justify-center hover:bg-forest-950 hover:text-white transition-all cursor-pointer"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Floating Right Arrow on desktop */}
+          <button
+            type="button"
+            onClick={() => scroll('right')}
+            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 text-forest-950 border border-stone-200 shadow-xl items-center justify-center hover:bg-forest-950 hover:text-white transition-all cursor-pointer"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Continuous Horizontal Row Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 scroll-smooth no-scrollbar"
+          >
           {displayedProducts.map((product) => {
             const defaultPack = formatPack(product.defaultPack, language);
             const basePrice = product.price;
@@ -170,7 +223,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             return (
               <div
                 key={product.id}
-                className="relative group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                className="w-[280px] sm:w-[290px] shrink-0 relative group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
                 {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (வாங்கும் போது மட்டும் எத்தனை லிட்டர் வேணும்னு காட்டும்) */}
                 {isBuying && (
@@ -343,7 +396,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           {onViewAllProducts && (
             <div
               onClick={onViewAllProducts}
-              className="group rounded-3xl bg-white border border-cream-300/80 hover:border-forest-900 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
+              className="w-[250px] sm:w-[270px] shrink-0 group rounded-3xl bg-white border border-cream-300/80 hover:border-forest-900 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
             >
               {/* Upper Visual Area (Matching exact image container of product cards with rich photo) */}
               <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
@@ -386,6 +439,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             </div>
           )}
         </div>
+      </div>
 
       </div>
     </section>

@@ -23,19 +23,23 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
     return null;
   }
 
+  // Double duplicate for smooth infinite continuous loop from right to left
+  const baseList = [...bottles, ...bottles];
+  const marqueeBottles = [...baseList, ...baseList];
+
   return (
     <div className="w-full bg-white border-b border-stone-200/90 py-4 sm:py-6 select-none relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Standing Bottles Row: Exact Match to screenshot (Clean standing bottles with names below) */}
-        <div className="flex items-end justify-center gap-8 sm:gap-14 md:gap-16 lg:gap-20 overflow-x-auto no-scrollbar py-2">
-          {bottles.map((bottle) => {
+      {/* Moving Oil Cans / Standing Bottles Marquee (Right to Left Continuous Motion) */}
+      <div className="flex overflow-hidden relative w-full">
+        <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee py-2 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
+          {marqueeBottles.map((bottle, idx) => {
             const isSelected = selectedCategory === bottle.slug;
             const displayName =
               language === 'ta' && bottle.tamilName ? bottle.tamilName : bottle.name;
 
             return (
               <button
-                key={bottle.id}
+                key={`${bottle.id}-${idx}`}
                 onClick={() => onSelectCategory(bottle.slug)}
                 title={displayName}
                 className="group flex flex-col items-center shrink-0 cursor-pointer focus:outline-none transition-transform duration-300 hover:-translate-y-2"

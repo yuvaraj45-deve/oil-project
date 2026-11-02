@@ -67,6 +67,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         if (adminPasswords.includes(cleanPass)) {
           try {
             sessionStorage.setItem('pureva_admin_unlocked', 'true');
+            sessionStorage.setItem('admin_active_tab', 'dashboard');
           } catch (e) {}
 
           const adminUser: UserProfile = {
