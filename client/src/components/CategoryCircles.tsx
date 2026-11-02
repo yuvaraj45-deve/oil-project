@@ -15,9 +15,13 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   const { language } = useLanguage();
   const { standingBottles } = useStore();
   const bottles =
-    standingBottles && standingBottles.length > 0
+    standingBottles !== undefined && standingBottles !== null
       ? standingBottles.filter((b) => b.enabled !== false)
       : DEFAULT_STANDING_BOTTLES;
+
+  if (!bottles || bottles.length === 0) {
+    return null;
+  }
 
   return (
     <div className="w-full bg-white border-b border-stone-200/90 py-4 sm:py-6 select-none relative overflow-hidden">

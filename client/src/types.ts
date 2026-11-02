@@ -16,6 +16,7 @@ export interface Product {
   name: string;
   tamilName?: string;
   tagline: string;
+  tamilTagline?: string;
   category: 'cooking-oil' | 'sesame-oil' | 'groundnut-oil' | 'coconut-oil' | 'mustard-oil' | 'pooja-special' | 'a2-desi-ghee' | 'palm-jaggery-special' | string;
   categoryName: string;
   price: number;

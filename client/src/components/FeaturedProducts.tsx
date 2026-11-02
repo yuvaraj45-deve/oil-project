@@ -160,13 +160,13 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             const isJustAdded = addedItemEffect === product.id;
 
             const productName =
-              language === 'ta' && t(`prod.${product.id}.name`)
-                ? t(`prod.${product.id}.name`)
+              language === 'ta' && product.tamilName
+                ? product.tamilName
                 : product.name;
 
             const productTagline =
-              language === 'ta' && t(`prod.${product.id}.tagline`)
-                ? t(`prod.${product.id}.tagline`)
+              language === 'ta' && product.tamilTagline
+                ? product.tamilTagline
                 : product.tagline;
 
             return (

@@ -242,7 +242,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem('ssoil_standing_bottles');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (e) {
       console.error('Error reading saved standing bottles:', e);
@@ -466,7 +466,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Product CRUD
   const updateProduct = useCallback(async (updatedProduct: Product) => {
     setProducts((prev) => {
-      const next = prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
+      const next = prev.map((p) =>
+        p.id === updatedProduct.id ||
+        (p.slug && updatedProduct.slug && p.slug === updatedProduct.slug) ||
+        (p.name && updatedProduct.name && p.name.toLowerCase().trim() === updatedProduct.name.toLowerCase().trim())
+          ? { ...p, ...updatedProduct }
+          : p
+      );
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
         window.dispatchEvent(new Event('ssoil_products_updated'));
@@ -606,9 +612,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Category CRUD
   const updateCategory = useCallback(async (updatedCategory: Category) => {
     setCategories((prev) => {
-      const next = prev.map((c) => (c.id === updatedCategory.id ? updatedCategory : c));
+      const next = prev.map((c) =>
+        c.id === updatedCategory.id || (c.slug && updatedCategory.slug && c.slug === updatedCategory.slug)
+          ? { ...c, ...updatedCategory }
+          : c
+      );
       try {
         localStorage.setItem('ssoil_categories', JSON.stringify(next));
+        window.dispatchEvent(new Event('ssoil_categories_updated'));
       } catch (e) {}
       return next;
     });

@@ -101,13 +101,13 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
     return {
       id: c.id || c.slug,
       name: c.title,
-      tamilName: c.tamilTitle || meta.tamilName || c.title,
+      tamilName: c.tamilTitle || c.title || meta.tamilName || '',
       slug: c.slug,
       image: c.image || '/products/sesame_oil.jpg',
       badge: c.badge || meta.badge || '100% Pure',
-      badgeTa: c.badgeTa || meta.badgeTa || c.badge || '100% தூய்மை',
+      badgeTa: c.badgeTa || c.badge || meta.badgeTa || '100% தூய்மை',
       benefit: c.subtitle || meta.benefit || 'Traditional cold-pressed authentic extraction',
-      startingPrice: meta.startingPrice || '₹150',
+      startingPrice: getStartingPrice(c.slug, meta.startingPrice || '₹150'),
       group: (meta.group as any) || 'all',
     };
   });
@@ -160,10 +160,10 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
           {filteredCategories.map((item) => {
             const displayName =
-              language === 'ta' && (item.tamilName || t(`cat.${item.id}.name`))
-                ? (item.tamilName || t(`cat.${item.id}.name`))
+              language === 'ta' && item.tamilName
+                ? item.tamilName
                 : item.name;
-            const displayBenefit = (language === 'ta' && t(`cat.${item.id}.benefit`)) || item.benefit;
+            const displayBenefit = item.benefit;
             const displayBadge = language === 'ta' ? (item.badgeTa || item.badge) : item.badge;
 
             return (
