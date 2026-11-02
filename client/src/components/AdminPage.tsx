@@ -135,7 +135,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Admin Tab Navigation (default to 'products' and remember tab across reloads)
   type AdminTab =
     | 'dashboard'
-    | 'bottles'
     | 'products'
     | 'orders'
     | 'customers'
@@ -149,7 +148,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [activeTab, setActiveTab] = useState<AdminTab>(() => {
     try {
       const saved = sessionStorage.getItem('admin_active_tab') as AdminTab;
-      if (saved && (saved as string) !== 'featured-products') return saved;
+      if (saved && (saved as string) !== 'featured-products' && (saved as string) !== 'bottles') return saved;
     } catch {}
     return 'products';
   });
@@ -1030,7 +1029,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto select-none relative z-10">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
-            { id: 'bottles', label: 'Standing Bottles / Cans', icon: Droplets, count: bottlesList.filter(b => b.enabled !== false).length },
             { id: 'products', label: 'Products', icon: Package, count: productsList.length },
             { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
             { id: 'videos', label: 'Homepage Video', icon: Video, count: 1 },
@@ -1155,7 +1153,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
                 {activeTab === 'dashboard' && 'Mill Dashboard'}
-                {activeTab === 'bottles' && 'Standing Bottles & Cans (பாட்டில்கள் / கேன்கள் மேலாண்மை)'}
                 {activeTab === 'products' && 'Products (பொருட்கள்)'}
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
@@ -1168,27 +1165,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              {activeTab === 'bottles' && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      storeUpdateStandingBottles(bottlesList);
-                      showToast('Standing bottles & cans updated and saved! ✨');
-                    }}
-                    className="px-4 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Save className="w-3.5 h-3.5 text-gold-300" />
-                    <span>Save Bottles</span>
-                  </button>
-                  <button
-                    onClick={onBackToStore}
-                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>View on Home</span>
-                  </button>
-                </div>
-              )}
               {activeTab === 'products' && (
                 <div className="flex items-center gap-2">
                   <button
@@ -2079,513 +2055,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             </div>
           )}
-
           {/* ============================================================ */}
-          {/* HOMEPAGE STANDING BOTTLES & CANS SHOWCASE VIEW                */}
-          {/* ============================================================ */}
-          {activeTab === 'bottles' && (
-            <div className="space-y-6">
-              
-              {/* Top Banner / Description Card */}
-              <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 inline-flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5 text-amber-700" />
-                      Homepage Header Showcase
-                    </span>
-                    <span className="text-xs font-semibold text-stone-500">
-                      • {bottlesList.filter((b) => b.enabled !== false).length} Active Bottles Shown Below Navbar
-                    </span>
-                  </div>
-                  <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-900">
-                    Homepage Standing Bottles & Cans (முகப்புப் பக்க பாட்டில்கள் / கேன்கள் மேலாண்மை)
-                  </h3>
-                  <p className="text-xs text-stone-600 max-w-2xl leading-relaxed">
-                    முகப்புப் பக்கத்தின் உச்சியில் நேவிகேஷன் பாருக்குக் கீழே தோன்றும் பாட்டில்கள் மற்றும் கேன்களை இங்கே மாற்றலாம் (Exchange / Replace). புதிய பாட்டில் படம் பதிவேற்றலாம், பெயர் மாற்றலாம் அல்லது புதிய பாட்டில்களைச் சேர்க்கலாம்.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewBottleName('');
-                      setNewBottleTamilName('');
-                      setNewBottleImage('/products/sesame_oil.png');
-                      setNewBottleSlug(categoriesList[0]?.slug || 'sesame-oil');
-                      setIsAddBottleModalOpen(true);
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-4 h-4 text-gold-400" />
-                    <span>+ Add My Own Bottle / Can (என் பாட்டில் சேர்க்க)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm('Clear all default bottles to keep only your custom bottles on the homepage?')) {
-                        setBottlesList([]);
-                        storeUpdateStandingBottles([]);
-                        showToast('All pre-set bottles cleared! Click "+ Add My Own Bottle" to add yours. ✨');
-                      }
-                    }}
-                    className="px-3 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                    title="Clear all default bottles"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Clear All (நீக்க)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBottlesList(DEFAULT_STANDING_BOTTLES);
-                      storeUpdateStandingBottles(DEFAULT_STANDING_BOTTLES);
-                      showToast('Reset to original default standing bottles! ✨');
-                    }}
-                    className="px-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-bold transition-all cursor-pointer"
-                  >
-                    Reset Defaults
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      storeUpdateStandingBottles(bottlesList);
-                      showToast('Standing bottles & cans configuration saved! ✨');
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Save className="w-4 h-4 text-gold-300" />
-                    <span>Save All (சேமிக்க)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Empty state when all defaults cleared */}
-              {bottlesList.length === 0 && (
-                <div className="bg-white rounded-3xl border-2 border-dashed border-stone-300 p-12 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
-                    <Droplets className="w-8 h-8 text-amber-700" />
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-bold text-lg text-forest-950">
-                      No Bottles Displayed on Homepage (தற்போது பாட்டில்கள் இல்லை)
-                    </h4>
-                    <p className="text-xs text-stone-500 max-w-md mx-auto mt-1">
-                      முந்தைய மாதிரிப் பாட்டில்கள் அனைத்தும் நீக்கப்பட்டுவிட்டன. உங்கள் சொந்த பாட்டில் அல்லது கேனை முகப்பு பக்கத்தில் சேர்க்க கீழே உள்ள பட்டனைக் கிளிக் செய்யவும்.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddBottleModalOpen(true)}
-                    className="px-5 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-4 h-4 text-gold-400" />
-                    <span>+ Add My Own Bottle / Can (என் பாட்டில் சேர்க்க)</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Clean Grid of Bottles / Cans */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {bottlesList.map((bottle, idx) => {
-                  const linkedCat = categoriesList.find((c) => c.slug === bottle.slug);
-                  return (
-                    <div
-                      key={bottle.id}
-                      className={`bg-white rounded-3xl border-2 transition-all p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md ${
-                        bottle.enabled !== false
-                          ? 'border-stone-200/90 hover:border-gold-400'
-                          : 'border-stone-200/50 opacity-60 bg-stone-50'
-                      }`}
-                    >
-                      {/* Top Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-forest-950 bg-amber-100/90 px-2.5 py-1 rounded-lg border border-amber-300">
-                          #{idx + 1} {bottle.name}
-                        </span>
-
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => {
-                              if (idx === 0) return;
-                              const updated = [...bottlesList];
-                              const temp = updated[idx];
-                              updated[idx] = updated[idx - 1];
-                              updated[idx - 1] = temp;
-                              setBottlesList(updated);
-                              storeUpdateStandingBottles(updated);
-                            }}
-                            title="Move Left"
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 disabled:opacity-20 cursor-pointer text-xs"
-                          >
-                            ◀
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === bottlesList.length - 1}
-                            onClick={() => {
-                              if (idx === bottlesList.length - 1) return;
-                              const updated = [...bottlesList];
-                              const temp = updated[idx];
-                              updated[idx] = updated[idx + 1];
-                              updated[idx + 1] = temp;
-                              setBottlesList(updated);
-                              storeUpdateStandingBottles(updated);
-                            }}
-                            title="Move Right"
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 disabled:opacity-20 cursor-pointer text-xs"
-                          >
-                            ▶
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (window.confirm(`Delete bottle "${bottle.name}"?`)) {
-                                const updated = bottlesList.filter((_, i) => i !== idx);
-                                setBottlesList(updated);
-                                storeUpdateStandingBottles(updated);
-                                showToast(`Bottle "${bottle.name}" removed.`);
-                              }
-                            }}
-                            title="Delete Bottle"
-                            className="p-1.5 text-stone-300 hover:text-red-600 cursor-pointer ml-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Standing Bottle Presentation Box */}
-                      <div className="relative h-48 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 p-3 flex flex-col items-center justify-end overflow-hidden group shadow-2xs">
-                        <img
-                          src={bottle.image}
-                          alt={bottle.name}
-                          className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)] group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="w-16 h-2 bg-black/15 blur-xs rounded-full -bottom-1" />
-                      </div>
-
-                      {/* Bottle Info */}
-                      <div className="space-y-1">
-                        <h4 className="font-serif font-black text-base text-[#8B2323] line-clamp-1">
-                          {bottle.name}
-                        </h4>
-                        {bottle.tamilName && (
-                          <p className="text-xs text-stone-500 line-clamp-1">
-                            {bottle.tamilName}
-                          </p>
-                        )}
-                        <div className="pt-1 flex items-center justify-between text-xs">
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 border border-stone-200">
-                            Category: {linkedCat?.title || bottle.slug}
-                          </span>
-                          <span className={`text-[10px] font-bold ${bottle.enabled !== false ? 'text-emerald-700' : 'text-stone-400'}`}>
-                            {bottle.enabled !== false ? 'Active 🟢' : 'Hidden ⚪'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Clean Action Buttons */}
-                      <div className="space-y-2 pt-2 border-t border-stone-100">
-                        {/* Direct 1-Click Upload Photo */}
-                        <label className="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                          <Upload className="w-3.5 h-3.5 text-amber-700" />
-                          <span>Upload Photo from PC (படம் மாற்றுக)</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              handleImageFileUpload(e, (url) => {
-                                const updated = [...bottlesList];
-                                updated[idx] = { ...updated[idx], image: url };
-                                setBottlesList(updated);
-                                storeUpdateStandingBottles(updated);
-                                showToast(`Photo for "${bottle.name}" updated successfully! ✨`);
-                              });
-                            }}
-                          />
-                        </label>
-
-                        {/* Full Edit Modal Trigger */}
-                        <button
-                          type="button"
-                          onClick={() => openEditBottle(bottle)}
-                          className="w-full py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
-                        >
-                          <Edit className="w-3.5 h-3.5 text-gold-400" />
-                          <span>Edit Details & Presets (விவரங்கள்)</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* ADD CUSTOM BOTTLE MODAL */}
-              {isAddBottleModalOpen && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                  <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-2xl space-y-5 my-8">
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
-                          Custom Bottle / Can
-                        </span>
-                        <h3 className="font-serif font-black text-xl text-forest-950 mt-1">
-                          Add Your Own Bottle / Can (உங்கள் பாட்டில் / கேன் சேர்க்க)
-                        </h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsAddBottleModalOpen(false)}
-                        className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <form onSubmit={handleSaveNewBottle} className="space-y-4">
-                      {/* Bottle Image Preview & Upload */}
-                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
-                          1. Bottle / Can Photo (பாட்டில் அல்லது கேன் புகைப்படம்)
-                        </label>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          {/* Live Standing Preview with floor shadow */}
-                          <div className="relative h-36 w-28 rounded-2xl bg-white border border-stone-200 p-2 flex flex-col items-center justify-end shrink-0 shadow-xs">
-                            {newBottleImage ? (
-                              <>
-                                <img
-                                  src={newBottleImage}
-                                  alt="New Bottle Preview"
-                                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)]"
-                                />
-                                <div className="w-14 h-2 bg-black/15 blur-xs rounded-full -bottom-1" />
-                              </>
-                            ) : (
-                              <div className="text-center p-2 text-stone-400 flex flex-col items-center">
-                                <Camera className="w-8 h-8 text-stone-300 mb-1" />
-                                <span className="text-[10px]">No image selected</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 space-y-2 w-full">
-                            {/* File upload from PC */}
-                            <label className="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs">
-                              <Upload className="w-4 h-4 text-gold-400" />
-                              <span>Upload Bottle Photo from PC (கணினியிலிருந்து படம் பதிவேற்ற)</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleImageFileUpload(e, setNewBottleImage)}
-                              />
-                            </label>
-
-                            {/* Direct URL input */}
-                            <input
-                              type="text"
-                              value={newBottleImage}
-                              onChange={(e) => setNewBottleImage(e.target.value)}
-                              placeholder="Or paste image URL / file path"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-mono bg-white focus:outline-none focus:border-forest-900"
-                            />
-
-                            {/* Quick Presets */}
-                            <div className="pt-1">
-                              <span className="text-[10px] font-bold text-stone-500 block mb-1">
-                                Or pick from authentic bottle cutouts:
-                              </span>
-                              <div className="flex flex-wrap gap-1">
-                                {[
-                                  { label: 'Lamp', url: '/products/lamp_oil.png' },
-                                  { label: 'Sesame', url: '/products/sesame_oil.png' },
-                                  { label: 'Groundnut', url: '/products/groundnut_oil.png' },
-                                  { label: 'Sunflower', url: '/products/sunflower_oil.png' },
-                                  { label: 'Mustard', url: '/products/mustard_oil.png' },
-                                  { label: 'Coconut', url: '/products/coconut_oil.png' },
-                                  { label: 'Rice Bran', url: '/products/rice_bran_oil.png' },
-                                ].map((preset) => (
-                                  <button
-                                    key={preset.label}
-                                    type="button"
-                                    onClick={() => setNewBottleImage(preset.url)}
-                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${
-                                      newBottleImage === preset.url
-                                        ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                    }`}
-                                  >
-                                    {preset.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottle Names */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Bottle Name in English (ஆங்கிலப் பெயர்) *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={newBottleName}
-                            onChange={(e) => setNewBottleName(e.target.value)}
-                            placeholder="e.g. Pure Gingelly Oil"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-serif font-bold text-[#8B2323] focus:outline-none focus:border-forest-900 bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-stone-700 mb-1">
-                            Tamil Name (தமிழ் பெயர்)
-                          </label>
-                          <input
-                            type="text"
-                            value={newBottleTamilName}
-                            onChange={(e) => setNewBottleTamilName(e.target.value)}
-                            placeholder="e.g. மரச்செக்கு நல்லெண்ணெய்"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Category link */}
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">
-                          Category Link (கிளிக் செய்தால் திறக்க வேண்டிய பிரிவு)
-                        </label>
-                        <select
-                          value={newBottleSlug}
-                          onChange={(e) => setNewBottleSlug(e.target.value)}
-                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-bold text-forest-950 focus:outline-none focus:border-forest-900 bg-white cursor-pointer"
-                        >
-                          {categoriesList.map((cat) => (
-                            <option key={cat.slug} value={cat.slug}>
-                              {cat.title} ({cat.slug})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setIsAddBottleModalOpen(false)}
-                          className="flex-1 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                        >
-                          <Plus className="w-4 h-4 text-gold-400" />
-                          <span>Add Bottle to Homepage (முகப்பு பக்கத்தில் சேர்க்க)</span>
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-
-            </div>
-          )}
-
-          {/* ============================================================ */}
-          {/* ============================================================ */}
-          {/* PRODUCTS MANAGEMENT (CLEAN & COMPACT)                        */}
+          {/* PRODUCTS MANAGEMENT                                          */}
           {/* ============================================================ */}
           {activeTab === 'products' && (
             <div className="space-y-4">
               
-              {/* Compact Homepage 4 Products Showcase Box ("Chinna Box") */}
-              <div className="bg-white rounded-2xl border border-amber-200/90 p-3.5 sm:p-4 shadow-2xs space-y-2.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-serif font-bold text-xs sm:text-sm text-forest-950">
-                        Homepage Showcase Products (முகப்பு பக்க 4 சிறப்புப் பொருட்கள்)
-                      </h3>
-                      <p className="text-[10px] text-stone-500">
-                        முகப்புப் பக்கத்தில் முதலில் தோன்றும் 4 எண்ணெய்களை இங்கே நேரடியாகத் தேர்வு செய்யலாம்.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={onBackToStore}
-                    className="self-start sm:self-auto px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>View on Home (முகப்பு பார்க்க)</span>
-                  </button>
-                </div>
-
-                {/* 4 Compact Slot Selectors in a Single Neat Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                  {[0, 1, 2, 3].map((slotIdx) => {
-                    const assignedId = currentHomepageProductIds[slotIdx];
-                    const slotProd =
-                      productsList.find((p) => p.id === assignedId) ||
-                      productsList[slotIdx] ||
-                      productsList[0];
-
-                    return (
-                      <div
-                        key={slotIdx}
-                        className="flex items-center gap-2 p-2 rounded-xl border border-amber-200/80 bg-[#FAF8F5] hover:border-amber-400 transition-colors shadow-2xs"
-                      >
-                        <span className="w-5 h-5 rounded-md bg-amber-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs">
-                          {slotIdx + 1}
-                        </span>
-
-                        <img
-                          src={slotProd.image}
-                          alt={slotProd.name}
-                          className="w-9 h-9 rounded-lg object-contain bg-white border border-stone-200 p-0.5 shrink-0"
-                        />
-
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-[9px] font-bold text-amber-900 uppercase tracking-wider">
-                            Slot {slotIdx + 1}
-                          </label>
-                          <select
-                            value={slotProd.id}
-                            onChange={(e) => handleSetHomepageSlot(slotIdx, e.target.value)}
-                            className="w-full text-xs font-bold text-forest-950 bg-white border border-stone-300 rounded-lg px-2 py-1 focus:outline-none focus:border-forest-900 cursor-pointer truncate shadow-2xs"
-                          >
-                            {productsList.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name} (₹{p.price})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* 2. Search, Category Filters & View Mode Switcher */}
               <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
                 <div className="relative w-full sm:w-80">
@@ -2775,14 +2250,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               </div>
                             </div>
 
-                            {/* Actions & Homepage Slot Badge */}
+                            {/* Actions & Checkbox: Show on Home */}
                             <div className="pt-2 border-t border-stone-100 space-y-2">
-                              {isHomepageActive && (
-                                <div className="flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold">
-                                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
-                                  <span>Showcase Slot #{currentHomepageProductIds.indexOf(prod.id) + 1}</span>
-                                </div>
-                              )}
+                              <label className="flex items-center gap-2 cursor-pointer select-none bg-stone-50 hover:bg-amber-50/70 p-2 rounded-xl border border-stone-200 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isHomepageActive}
+                                  onChange={() => handleToggleHomepageProduct(prod.id)}
+                                  className="w-4 h-4 rounded text-forest-900 border-stone-300 focus:ring-forest-900 cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+                                  <span>Show on Home (முகப்பு பக்கத்தில் காட்டுக)</span>
+                                  {isHomepageActive && <span className="text-amber-600 font-black">⭐ Active</span>}
+                                </span>
+                              </label>
 
                               <div className="flex items-center gap-2">
                                 <button
@@ -2857,14 +2338,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 </td>
 
                                 <td className="py-3 px-4">
-                                  {isHomepageActive ? (
-                                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
-                                      <Star className="w-3 h-3 fill-amber-500 text-amber-600" />
-                                      <span>Slot {currentHomepageProductIds.indexOf(prod.id) + 1}</span>
+                                  <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input
+                                      type="checkbox"
+                                      checked={isHomepageActive}
+                                      onChange={() => handleToggleHomepageProduct(prod.id)}
+                                      className="w-4 h-4 rounded text-forest-900 border-stone-300 focus:ring-forest-900 cursor-pointer"
+                                    />
+                                    <span className={`text-[11px] font-bold ${isHomepageActive ? 'text-amber-800' : 'text-stone-400'}`}>
+                                      {isHomepageActive ? 'Show on Home ⭐' : 'Off'}
                                     </span>
-                                  ) : (
-                                    <span className="text-stone-300 text-xs">—</span>
-                                  )}
+                                  </label>
                                 </td>
 
                                 <td className="py-3 px-4">
