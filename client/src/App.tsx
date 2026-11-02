@@ -420,7 +420,10 @@ export function App() {
       <AdminPage
         orders={orders}
         onUpdateOrderStatus={handleUpdateOrderStatus}
-        onBackToStore={() => navigateTo('/')}
+        onBackToStore={() => {
+          setSelectedCategory('all');
+          navigateTo('/');
+        }}
         onLogout={handleGlobalSignOut}
       />
     );

@@ -45,7 +45,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   // Curated Homepage Products logic:
   // Show exactly the 4 products configured in settings.homepageProductIds (deduplicated & normalized)
   let displayedProducts: Product[];
-  if (selectedCategory === 'all') {
+  if (selectedCategory === 'all' || maxProducts === 4) {
     displayedProducts = normalizeHomepage4(settings?.homepageProductIds, sourceProducts);
   } else {
     const filtered = sourceProducts.filter((p) => p.category === selectedCategory);

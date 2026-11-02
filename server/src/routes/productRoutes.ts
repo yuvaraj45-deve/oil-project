@@ -428,8 +428,6 @@ productRouter.put('/:id', async (req: Request, res: Response) => {
       });
       return res.status(201).json({ success: true, data: created, message: 'Product created successfully' });
     }
-
-    res.json({ success: true, data: updated, message: 'Product updated successfully' });
   } catch (error) {
     console.error('Error updating product:', error);
     res.status(500).json({ success: false, message: 'Server error updating product' });
