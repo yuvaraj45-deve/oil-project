@@ -727,6 +727,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newProdDescription, setNewProdDescription] = useState('');
   const [newProdInStock, setNewProdInStock] = useState(true);
   const [newProdFeatured, setNewProdFeatured] = useState(false);
+  const [addProdError, setAddProdError] = useState<string | null>(null);
 
   const handleTogglePackSizeInNew = (pack: string) => {
     setNewProdPackSizes((prev) =>
@@ -750,7 +751,53 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProdName.trim()) return;
+    setAddProdError(null);
+
+    // Full oil can details mandatory validation
+    if (!newProdImage.trim()) {
+      setAddProdError(
+        'தயவுசெய்து ஆயில் கேன் படம் (Image) பதிவேற்றவும் அல்லது தேர்ந்தெடுக்கவும். (Product image is required)'
+      );
+      return;
+    }
+    if (!newProdName.trim()) {
+      setAddProdError('தயவுசெய்து தயாரிப்பு பெயரை (Product Name) உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdTagline.trim()) {
+      setAddProdError('தயவுசெய்து Tagline / Subtitle உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdPrice || Number(newProdPrice) <= 0) {
+      setAddProdError('தயவுசெய்து சரியான விற்பனை விலையை (Selling Price) உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdOriginalPrice || Number(newProdOriginalPrice) <= 0) {
+      setAddProdError('தயவுசெய்து சரியான MRP விலையை உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdDefaultPack.trim()) {
+      setAddProdError('தயவுசெய்து Default Pack Unit (எ.கா: 1 Litre Bottle) உள்ளிடவும்.');
+      return;
+    }
+    if (newProdPackSizes.length === 0) {
+      setAddProdError(
+        'தயவுசெய்து குறைந்தபட்சம் ஒரு Can / Pack Size-ஐ டைப் செய்து சேர்க்கவும் (At least one can/pack size required).'
+      );
+      return;
+    }
+    if (!newProdExtraction.trim()) {
+      setAddProdError('தயவுசெய்து எண்ணெய் தயாரிப்பு முறை (Extraction Method) உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdSmokePoint.trim()) {
+      setAddProdError('தயவுசெய்து Smoke Point & பயன்பாட்டு பரிந்துரை உள்ளிடவும்.');
+      return;
+    }
+    if (!newProdDescription.trim()) {
+      setAddProdError('தயவுசெய்து தயாரிப்பு விவரம் & நன்மைகள் (Product Description) உள்ளிடவும்.');
+      return;
+    }
 
     const matchedCat = categoriesList.find((c) => c.slug === newProdCategory) || categoriesList[0];
     const createdId = `prod-${Date.now()}`;
@@ -769,25 +816,32 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           : 0,
       rating: 5.0,
       reviewsCount: 1,
-      packSizes: newProdPackSizes.length > 0 ? newProdPackSizes : ['1 Litre Bottle'],
-      defaultPack: newProdDefaultPack,
-      image: newProdImage || '/products/groundnut_oil.jpg',
+      packSizes: newProdPackSizes,
+      defaultPack: newProdDefaultPack.trim(),
+      image: newProdImage.trim(),
       badge: newProdBadge || undefined,
-      description: newProdDescription || 'Authentic traditional cold-pressed oil.',
+      description: newProdDescription.trim(),
       benefits: ['Zero Chemical Solvents', 'Unrefined & Pure', 'Naturally Rich in Vitamin E'],
-      smokePoint: newProdSmokePoint || '220°C',
-      extractionMethod: newProdExtraction || 'Traditional Vaagai Mara Chekku',
+      smokePoint: newProdSmokePoint.trim(),
+      extractionMethod: newProdExtraction.trim(),
       inStock: newProdInStock,
       featured: newProdFeatured,
     };
 
-    await contextAddProduct(newProduct);
+    // Close modal immediately upon successful addition ("add panna oda close aganum")
     setIsAddProductOpen(false);
+
+    await contextAddProduct(newProduct);
+
+    // Reset all input fields
     setNewProdName('');
     setNewProdTagline('');
     setNewProdDescription('');
     setNewProdImage('');
     setNewCustomPackInput('');
+    setNewProdPackSizes([]);
+    setNewProdDefaultPack('');
+    setAddProdError(null);
     showToast(`Product "${newProduct.name}" added to catalog! 🛢️`);
   };
 
@@ -1087,6 +1141,74 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const activeOrdersCount = orders.filter((o) => o.orderStatus !== 'DELIVERED').length;
   const inStockProductsCount = productsList.filter((p) => p.inStock).length;
 
+  // -------------------------------------------------------------
+  // Unread Items Tracking: Badges only appear when unviewed, and disappear once seen!
+  // -------------------------------------------------------------
+  const [seenOrderIds, setSeenOrderIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_seen_order_ids');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    const initial = orders.map((o) => o.id);
+    try {
+      localStorage.setItem('ssoil_seen_order_ids', JSON.stringify(initial));
+    } catch {}
+    return initial;
+  });
+
+  const [seenCustomerIds, setSeenCustomerIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_seen_customer_ids');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    const initial = usersList.map((u) => u.id || u.email || u.phone);
+    try {
+      localStorage.setItem('ssoil_seen_customer_ids', JSON.stringify(initial));
+    } catch {}
+    return initial;
+  });
+
+  // When admin visits the Orders tab, mark all current orders as seen!
+  useEffect(() => {
+    if (activeTab === 'orders' && orders.length > 0) {
+      const allOrderIds = orders.map((o) => o.id);
+      const hasUnseen = allOrderIds.some((id) => !seenOrderIds.includes(id));
+      if (hasUnseen) {
+        const merged = Array.from(new Set([...seenOrderIds, ...allOrderIds]));
+        setSeenOrderIds(merged);
+        try {
+          localStorage.setItem('ssoil_seen_order_ids', JSON.stringify(merged));
+        } catch {}
+      }
+    }
+  }, [activeTab, orders, seenOrderIds]);
+
+  // When admin visits the Customers tab, mark all current customers as seen!
+  useEffect(() => {
+    if (activeTab === 'customers' && usersList.length > 0) {
+      const allCustomerKeys = usersList.map((u) => u.id || u.email || u.phone);
+      const hasUnseen = allCustomerKeys.some((key) => !seenCustomerIds.includes(key));
+      if (hasUnseen) {
+        const merged = Array.from(new Set([...seenCustomerIds, ...allCustomerKeys]));
+        setSeenCustomerIds(merged);
+        try {
+          localStorage.setItem('ssoil_seen_customer_ids', JSON.stringify(merged));
+        } catch {}
+      }
+    }
+  }, [activeTab, usersList, seenCustomerIds]);
+
+  // Unread badge count: only shown if admin has not opened the tab yet
+  const unreadOrdersCount =
+    activeTab === 'orders'
+      ? 0
+      : orders.filter((o) => !seenOrderIds.includes(o.id)).length;
+
+  const unreadCustomersCount =
+    activeTab === 'customers'
+      ? 0
+      : usersList.filter((u) => !seenCustomerIds.includes(u.id || u.email || u.phone)).length;
+
   const exportCSV = () => {
     const headers = ['Order Number', 'Customer Name', 'Phone', 'Total Amount', 'Status', 'Date'];
     const rows = orders.map((o) => [
@@ -1152,8 +1274,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             { id: 'products', label: 'Products', icon: Package },
             { id: 'categories', label: 'Categories', icon: Layers },
             { id: 'videos', label: 'Homepage Video', icon: Video },
-            { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
-            { id: 'customers', label: 'Customers', icon: Users, count: usersList.length },
+            { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
+            { id: 'customers', label: 'Customers', icon: Users, count: unreadCustomersCount },
             { id: 'offers', label: 'Offers & Coupons', icon: Tag },
             { id: 'content', label: 'Content', icon: FileText },
             { id: 'settings', label: 'Settings', icon: Settings },
@@ -1182,7 +1304,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {item.count !== undefined && item.count > 0 && (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-[#132c19] text-white' : 'bg-black/20 text-stone-300'
+                      isActive ? 'bg-[#132c19] text-white' : 'bg-amber-400 text-stone-900 shadow-2xs font-extrabold'
                     }`}
                   >
                     {item.count}
@@ -1301,16 +1423,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
                       setNewProdPrice(350);
                       setNewProdOriginalPrice(420);
-                      setNewProdDefaultPack('1 Litre Bottle');
-                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                      setNewProdDefaultPack('');
+                      setNewProdPackSizes([]);
                       setNewProdImage('');
                       setNewCustomPackInput('');
                       setNewProdBadge('Cold-Pressed');
                       setNewProdSmokePoint('220°C');
-                      setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
+                      setNewProdExtraction('Traditional Vaagai Mara Chekku');
                       setNewProdDescription('');
                       setNewProdInStock(true);
                       setNewProdFeatured(false);
+                      setAddProdError(null);
                       setIsAddProductOpen(true);
                     }}
                     className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
@@ -4159,11 +4282,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </div>
 
                     <form onSubmit={handleAddProduct} className="space-y-5">
+
+                      {/* Error Alert Banner */}
+                      {addProdError && (
+                        <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5 animate-fadeIn shadow-xs">
+                          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                          <span className="font-semibold leading-relaxed">{addProdError}</span>
+                        </div>
+                      )}
                       
                       {/* 1. Product Image */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                         <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image
+                          1. Product Image <span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -4201,7 +4332,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               type="text"
                               value={newProdImage}
                               onChange={(e) => setNewProdImage(e.target.value)}
-                              placeholder="Upload image or enter image URL (optional)"
+                              placeholder="Upload oil can image or enter image URL (Required)"
                               className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-forest-900 bg-white"
                             />
                           </div>
@@ -4240,7 +4371,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name
+                              Product Name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -4254,7 +4385,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tagline / Subtitle
+                              Tagline / Subtitle <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -4268,7 +4399,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="text-xs font-semibold text-stone-700">
-                                Category
+                                Category <span className="text-red-500">*</span>
                               </label>
                               <button
                                 type="button"
@@ -4330,7 +4461,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Selling Price (₹)
+                              Selling Price (₹) <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="number"
@@ -4344,7 +4475,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              MRP / Original Price (₹)
+                              MRP / Original Price (₹) <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="number"
@@ -4363,7 +4494,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Default Pack Unit
+                              Default Pack Unit <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -4380,7 +4511,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                            4. Available Can / Pack Sizes
+                            4. Available Can / Pack Sizes <span className="text-red-500">*</span>
                           </label>
                           <span className="text-[11px] text-stone-500 font-medium">
                             {newProdPackSizes.length} sizes configured
@@ -4478,7 +4609,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method
+                              Extraction Method <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -4491,7 +4622,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Smoke Point & Dish Recommendation
+                              Smoke Point & Dish Recommendation <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -4534,7 +4665,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       {/* 6. Description */}
                       <div>
                         <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Product Description & Health Benefits
+                          Product Description & Health Benefits <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           rows={3}
