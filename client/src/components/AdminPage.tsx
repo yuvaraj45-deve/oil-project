@@ -96,6 +96,10 @@ interface UserRecord {
 // Preset High Quality Oil Images for Categories
 const PRESET_IMAGES = [
   {
+    name: 'SS Oil 5L Can',
+    url: '/products/ss_oil_can.jpg',
+  },
+  {
     name: 'Sesame Oil',
     url: '/products/sesame_oil.jpg',
   },
@@ -105,15 +109,27 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Coconut Oil',
-    url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
+    url: '/products/coconut_oil.jpg',
   },
   {
     name: 'Cooking Oil',
-    url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+    url: '/products/ss_oil_can.jpg',
+  },
+  {
+    name: 'Sunflower Oil',
+    url: '/products/sunflower_oil.jpg',
+  },
+  {
+    name: 'Mustard Oil',
+    url: '/products/mustard_oil.jpg',
   },
   {
     name: 'Pooja Deepam Oil',
-    url: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=800&q=80',
+    url: '/products/lamp_oil.jpg',
+  },
+  {
+    name: 'Rice Bran Oil',
+    url: '/products/rice_bran_oil.jpg',
   },
 ];
 
@@ -754,13 +770,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   // -------------------------------------------------------------
-  // 3. DATA: User Login List State
+  // 3. DATA: User Login List State (Synced with localStorage login records)
   // -------------------------------------------------------------
-  const [usersList, setUsersList] = useState<UserRecord[]>([
+  const DEFAULT_INITIAL_USERS: UserRecord[] = [
     {
       id: 'usr_admin',
-      name: 'PureVa Admin',
-      email: 'admin@pureva.com',
+      name: 'SS OIL Admin',
+      email: 'admin@ssoil.com',
       phone: '1800 425 7764',
       role: 'admin',
       memberTier: 'Platinum Member',
@@ -822,7 +838,74 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       totalOrders: 4,
       totalSpent: 3490,
     },
-  ]);
+  ];
+
+  const loadUsersList = (): UserRecord[] => {
+    try {
+      let merged = [...DEFAULT_INITIAL_USERS];
+      const savedDirectory = localStorage.getItem('ssoil_users_directory');
+      if (savedDirectory) {
+        const parsed = JSON.parse(savedDirectory);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          parsed.forEach((savedUser: UserRecord) => {
+            const idx = merged.findIndex((m) => m.id === savedUser.id || m.email === savedUser.email);
+            if (idx >= 0) {
+              merged[idx] = { ...merged[idx], ...savedUser };
+            } else {
+              merged.unshift(savedUser);
+            }
+          });
+        }
+      }
+
+      // Check current active logged-in user in 'ssoil_user'
+      const activeUserStr = localStorage.getItem('ssoil_user');
+      if (activeUserStr) {
+        const activeUser = JSON.parse(activeUserStr);
+        if (activeUser && (activeUser.name || activeUser.email)) {
+          const idx = merged.findIndex(
+            (m) => (activeUser.id && m.id === activeUser.id) || (activeUser.email && m.email === activeUser.email)
+          );
+          const liveUserRecord: UserRecord = {
+            id: activeUser.id || `usr_${Date.now()}`,
+            name: activeUser.name || 'Logged User',
+            email: activeUser.email || 'user@ssoil.com',
+            phone: activeUser.phone || '98421 45620',
+            role: activeUser.role || 'customer',
+            memberTier: activeUser.memberTier || 'Gold Member',
+            purityPoints: activeUser.purityPoints || 240,
+            lastLogin: 'Just Now (Online)',
+            status: 'Active',
+            totalOrders: activeUser.totalOrders || 1,
+            totalSpent: activeUser.totalSpent || 780,
+          };
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], ...liveUserRecord, lastLogin: 'Just Now (Online)' };
+          } else {
+            merged.unshift(liveUserRecord);
+          }
+        }
+      }
+
+      return merged;
+    } catch (e) {
+      return DEFAULT_INITIAL_USERS;
+    }
+  };
+
+  const [usersList, setUsersList] = useState<UserRecord[]>(loadUsersList);
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUsersList(loadUsersList());
+    };
+    window.addEventListener('storage', handleUserUpdate);
+    window.addEventListener('ssoil_user_logged_in', handleUserUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUserUpdate);
+      window.removeEventListener('ssoil_user_logged_in', handleUserUpdate);
+    };
+  }, []);
 
   const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | 'customer' | 'admin'>('ALL');
 
@@ -1942,7 +2025,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <th className="py-3 px-4 font-bold">Orders / Spent</th>
                         <th className="py-3 px-4 font-bold">Last Login Activity</th>
                         <th className="py-3 px-4 font-bold">Status</th>
-                        <th className="py-3 px-4 font-bold text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100">
@@ -2023,15 +2105,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               >
                                 {user.status}
                               </span>
-                            </td>
-
-                            <td className="py-3 px-4 text-right">
-                              <button
-                                onClick={() => handleToggleUserStatus(user.id)}
-                                className="text-xs font-semibold text-stone-600 hover:text-forest-950 underline cursor-pointer"
-                              >
-                                {user.status === 'Active' ? 'Deactivate' : 'Activate'}
-                              </button>
                             </td>
                           </tr>
                         ))}

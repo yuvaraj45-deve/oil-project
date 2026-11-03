@@ -82,6 +82,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
           try {
             localStorage.setItem('ssoil_user', JSON.stringify(adminUser));
+            const dirStr = localStorage.getItem('ssoil_users_directory');
+            const dir = dirStr ? JSON.parse(dirStr) : [];
+            const existingIdx = dir.findIndex(
+              (u: any) => u.email === adminUser.email || (adminUser.id && u.id === adminUser.id)
+            );
+            const record = {
+              id: adminUser.id,
+              name: adminUser.name,
+              email: adminUser.email,
+              phone: adminUser.phone,
+              role: adminUser.role,
+              memberTier: adminUser.memberTier,
+              purityPoints: adminUser.purityPoints,
+              lastLogin: 'Just Now (Online)',
+              status: 'Active',
+              totalOrders: 0,
+              totalSpent: 0,
+            };
+            if (existingIdx >= 0) {
+              dir[existingIdx] = { ...dir[existingIdx], ...record };
+            } else {
+              dir.unshift(record);
+            }
+            localStorage.setItem('ssoil_users_directory', JSON.stringify(dir));
+            window.dispatchEvent(new Event('ssoil_user_logged_in'));
           } catch (e) {}
 
           setIsLoading(false);
@@ -126,6 +151,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       try {
         localStorage.setItem('ssoil_user', JSON.stringify(customerUser));
+        const dirStr = localStorage.getItem('ssoil_users_directory');
+        const dir = dirStr ? JSON.parse(dirStr) : [];
+        const existingIdx = dir.findIndex(
+          (u: any) => u.email === customerUser.email || (customerUser.id && u.id === customerUser.id)
+        );
+        const record = {
+          id: customerUser.id,
+          name: customerUser.name,
+          email: customerUser.email,
+          phone: customerUser.phone,
+          role: customerUser.role,
+          memberTier: customerUser.memberTier,
+          purityPoints: customerUser.purityPoints,
+          lastLogin: 'Just Now (Online)',
+          status: 'Active',
+          totalOrders: 1,
+          totalSpent: 780,
+        };
+        if (existingIdx >= 0) {
+          dir[existingIdx] = { ...dir[existingIdx], ...record };
+        } else {
+          dir.unshift(record);
+        }
+        localStorage.setItem('ssoil_users_directory', JSON.stringify(dir));
+        window.dispatchEvent(new Event('ssoil_user_logged_in'));
       } catch (e) {}
 
       setIsLoading(false);

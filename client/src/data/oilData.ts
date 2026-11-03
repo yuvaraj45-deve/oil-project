@@ -185,7 +185,7 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'cooking-oil',
     title: 'Cooking Oil',
     subtitle: 'Everyday Light & Healthy Blends',
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+    image: '/products/ss_oil_can.jpg',
     itemCount: '',
     badge: 'Daily Essential',
     highlightText: 'Chemical-Free & High Smoke Point'
@@ -215,7 +215,7 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'pooja-special',
     title: 'Pooja Deepam Oil',
     subtitle: 'Sacred 5-Oil Blend with Sugandha Herbs',
-    image: 'https://images.unsplash.com/photo-1606293926075-69a00dbfde81?auto=format&fit=crop&w=800&q=80',
+    image: '/products/lamp_oil.jpg',
     itemCount: '',
     badge: 'Temple Pooja',
     highlightText: 'Divine Sugandha Fragrance'

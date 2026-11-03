@@ -155,11 +155,11 @@ export const DEFAULT_STANDING_BOTTLES: StandingBottleItem[] = [
     enabled: true,
   },
   {
-    id: 'bottle-ricebran',
-    name: 'Rice Bran Oil',
-    tamilName: 'தூய தவிட்டு எண்ணெய்',
+    id: 'bottle-can',
+    name: 'SS Oil Can',
+    tamilName: 'SS ஆயில் கேன்',
     slug: 'cooking-oil',
-    image: '/products/rice_bran_oil.png',
+    image: '/products/ss_oil_can.png',
     enabled: true,
   },
 ];

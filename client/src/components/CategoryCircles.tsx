@@ -14,10 +14,43 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
 }) => {
   const { language } = useLanguage();
   const { standingBottles } = useStore();
-  const bottles =
+  const rawBottles =
     standingBottles !== undefined && standingBottles !== null
       ? standingBottles.filter((b) => b.enabled !== false)
       : DEFAULT_STANDING_BOTTLES;
+
+  const bottles = rawBottles.map((b) => {
+    if (
+      b.id === 'bottle-ricebran' ||
+      b.name.toLowerCase().includes('rice') ||
+      b.image.includes('rice_bran') ||
+      b.image.includes('photo-1474979266404-7eaacbcd87c5')
+    ) {
+      return {
+        ...b,
+        id: 'bottle-can',
+        name: 'SS Oil Can',
+        tamilName: 'SS ஆயில் கேன்',
+        image: '/products/ss_oil_can.png',
+      };
+    }
+    if (b.image && b.image.includes('unsplash')) {
+      if (b.slug === 'coconut-oil' || b.name.toLowerCase().includes('coconut')) {
+        return { ...b, image: '/products/coconut_oil.png' };
+      }
+      if (b.slug === 'sesame-oil' || b.name.toLowerCase().includes('sesame')) {
+        return { ...b, image: '/products/sesame_oil.png' };
+      }
+      if (b.slug === 'groundnut-oil' || b.name.toLowerCase().includes('groundnut')) {
+        return { ...b, image: '/products/groundnut_oil.png' };
+      }
+      if (b.slug === 'pooja-special' || b.name.toLowerCase().includes('lamp') || b.name.toLowerCase().includes('pooja')) {
+        return { ...b, image: '/products/lamp_oil.png' };
+      }
+      return { ...b, image: '/products/ss_oil_can.png' };
+    }
+    return b;
+  });
 
   if (!bottles || bottles.length === 0) {
     return null;

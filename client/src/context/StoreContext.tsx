@@ -296,13 +296,54 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {}
   }, []);
 
+  // Helper to sanitize bottle entries, removing unsplash landscape photos and replacing rice bran with authentic SS Oil Can packshot
+  const sanitizeBottlesList = (list: StandingBottleItem[]): StandingBottleItem[] => {
+    return list.map((b) => {
+      if (
+        b.id === 'bottle-ricebran' ||
+        b.name.toLowerCase().includes('rice') ||
+        b.image.includes('rice_bran') ||
+        b.image.includes('photo-1474979266404-7eaacbcd87c5')
+      ) {
+        return {
+          id: 'bottle-can',
+          name: 'SS Oil Can',
+          tamilName: 'SS ஆயில் கேன்',
+          slug: 'cooking-oil',
+          image: '/products/ss_oil_can.png',
+          enabled: b.enabled !== false,
+        };
+      }
+      if (b.image && b.image.includes('unsplash')) {
+        if (b.slug === 'coconut-oil' || b.name.toLowerCase().includes('coconut')) {
+          return { ...b, image: '/products/coconut_oil.png' };
+        }
+        if (b.slug === 'sesame-oil' || b.name.toLowerCase().includes('sesame')) {
+          return { ...b, image: '/products/sesame_oil.png' };
+        }
+        if (b.slug === 'groundnut-oil' || b.name.toLowerCase().includes('groundnut')) {
+          return { ...b, image: '/products/groundnut_oil.png' };
+        }
+        if (b.slug === 'pooja-special' || b.name.toLowerCase().includes('lamp') || b.name.toLowerCase().includes('pooja')) {
+          return { ...b, image: '/products/lamp_oil.png' };
+        }
+        return { ...b, image: '/products/ss_oil_can.png' };
+      }
+      return b;
+    });
+  };
+
   // 6. Standing Bottles & Cans Showcase State (Sync with localStorage 'ssoil_standing_bottles')
   const [standingBottles, setStandingBottles] = useState<StandingBottleItem[]>(() => {
     try {
       const saved = localStorage.getItem('ssoil_standing_bottles');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = sanitizeBottlesList(parsed);
+          localStorage.setItem('ssoil_standing_bottles', JSON.stringify(sanitized));
+          return sanitized;
+        }
       }
     } catch (e) {
       console.error('Error reading saved standing bottles:', e);
@@ -311,9 +352,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const updateStandingBottles = useCallback((newBottles: StandingBottleItem[]) => {
-    setStandingBottles(newBottles);
+    const sanitized = sanitizeBottlesList(newBottles);
+    setStandingBottles(sanitized);
     try {
-      localStorage.setItem('ssoil_standing_bottles', JSON.stringify(newBottles));
+      localStorage.setItem('ssoil_standing_bottles', JSON.stringify(sanitized));
       window.dispatchEvent(new Event('ssoil_bottles_updated'));
     } catch (e) {
       console.error('Error saving standing bottles:', e);
@@ -536,7 +578,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setStandingBottles(parsed);
+            setStandingBottles(sanitizeBottlesList(parsed));
           }
         }
       } catch (e) {}
