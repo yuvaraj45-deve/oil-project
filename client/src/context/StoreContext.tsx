@@ -296,23 +296,50 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {}
   }, []);
 
-  // Helper to sanitize bottle entries, removing unsplash landscape photos and replacing rice bran with authentic SS Oil Can packshot
+  // Helper to sanitize bottle entries, replacing bulky can or rogue photos with normal standing oil bottles matching the line-up
   const sanitizeBottlesList = (list: StandingBottleItem[]): StandingBottleItem[] => {
+    let seenSesame = false;
     return list.map((b) => {
       if (
+        b.id === 'bottle-can' ||
+        b.name.toLowerCase().includes('ss oil can') ||
+        b.name.toLowerCase().includes('oil can') ||
+        b.image.includes('ss_oil_can') ||
         b.id === 'bottle-ricebran' ||
         b.name.toLowerCase().includes('rice') ||
         b.image.includes('rice_bran') ||
         b.image.includes('photo-1474979266404-7eaacbcd87c5')
       ) {
         return {
-          id: 'bottle-can',
-          name: 'SS Oil Can',
-          tamilName: 'SS ஆயில் கேன்',
-          slug: 'cooking-oil',
-          image: '/products/ss_oil_can.png',
+          id: 'bottle-groundnut',
+          name: 'Groundnut Oil',
+          tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
+          slug: 'groundnut-oil',
+          image: '/products/groundnut_oil.png',
           enabled: b.enabled !== false,
         };
+      }
+      if (b.name.toLowerCase().includes('new pure') || b.image.includes('sesame_oil')) {
+        if (!seenSesame) {
+          seenSesame = true;
+          return {
+            id: 'bottle-sesame',
+            name: 'Sesame Oil',
+            tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
+            slug: 'sesame-oil',
+            image: '/products/sesame_oil.png',
+            enabled: b.enabled !== false,
+          };
+        } else {
+          return {
+            id: 'bottle-ricebran',
+            name: 'Rice Bran Oil',
+            tamilName: 'தூய தவிட்டு எண்ணெய்',
+            slug: 'cooking-oil',
+            image: '/products/rice_bran_oil.png',
+            enabled: b.enabled !== false,
+          };
+        }
       }
       if (b.image && b.image.includes('unsplash')) {
         if (b.slug === 'coconut-oil' || b.name.toLowerCase().includes('coconut')) {
@@ -327,7 +354,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (b.slug === 'pooja-special' || b.name.toLowerCase().includes('lamp') || b.name.toLowerCase().includes('pooja')) {
           return { ...b, image: '/products/lamp_oil.png' };
         }
-        return { ...b, image: '/products/ss_oil_can.png' };
+        return { ...b, image: '/products/groundnut_oil.png' };
       }
       return b;
     });

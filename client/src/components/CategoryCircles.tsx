@@ -19,8 +19,13 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
       ? standingBottles.filter((b) => b.enabled !== false)
       : DEFAULT_STANDING_BOTTLES;
 
+  let seenSesame = false;
   const bottles = rawBottles.map((b) => {
     if (
+      b.id === 'bottle-can' ||
+      b.name.toLowerCase().includes('ss oil can') ||
+      b.name.toLowerCase().includes('oil can') ||
+      b.image.includes('ss_oil_can') ||
       b.id === 'bottle-ricebran' ||
       b.name.toLowerCase().includes('rice') ||
       b.image.includes('rice_bran') ||
@@ -28,11 +33,34 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
     ) {
       return {
         ...b,
-        id: 'bottle-can',
-        name: 'SS Oil Can',
-        tamilName: 'SS ஆயில் கேன்',
-        image: '/products/ss_oil_can.png',
+        id: 'bottle-groundnut',
+        name: 'Groundnut Oil',
+        tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
+        slug: 'groundnut-oil',
+        image: '/products/groundnut_oil.png',
       };
+    }
+    if (b.name.toLowerCase().includes('new pure') || b.image.includes('sesame_oil')) {
+      if (!seenSesame) {
+        seenSesame = true;
+        return {
+          ...b,
+          id: 'bottle-sesame',
+          name: 'Sesame Oil',
+          tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
+          slug: 'sesame-oil',
+          image: '/products/sesame_oil.png',
+        };
+      } else {
+        return {
+          ...b,
+          id: 'bottle-ricebran',
+          name: 'Rice Bran Oil',
+          tamilName: 'தூய தவிட்டு எண்ணெய்',
+          slug: 'cooking-oil',
+          image: '/products/rice_bran_oil.png',
+        };
+      }
     }
     if (b.image && b.image.includes('unsplash')) {
       if (b.slug === 'coconut-oil' || b.name.toLowerCase().includes('coconut')) {
@@ -47,7 +75,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
       if (b.slug === 'pooja-special' || b.name.toLowerCase().includes('lamp') || b.name.toLowerCase().includes('pooja')) {
         return { ...b, image: '/products/lamp_oil.png' };
       }
-      return { ...b, image: '/products/ss_oil_can.png' };
+      return { ...b, image: '/products/groundnut_oil.png' };
     }
     return b;
   });
