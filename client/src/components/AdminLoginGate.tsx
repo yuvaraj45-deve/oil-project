@@ -66,16 +66,11 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
         setIsLoading(false);
         setErrorMessage(
           language === 'ta'
-            ? 'தவறான Email அல்லது Password! (admin@pureva.com / admin123)'
-            : 'Invalid Email or Password. Try: admin@pureva.com / admin123'
+            ? 'தவறான Email அல்லது Password!'
+            : 'Invalid Email or Password. Please try again.'
         );
       }
     }, 350);
-  };
-
-  const handleQuickFill = () => {
-    setEmail('admin@pureva.com');
-    setPassword('admin123');
   };
 
   return (
@@ -119,7 +114,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1">
               {language === 'ta' ? 'மின்னஞ்சல் (Email ID)' : 'Email ID'}
@@ -128,9 +123,11 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
               <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
+                name="admin_user_id"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@pureva.com"
+                placeholder={language === 'ta' ? 'மின்னஞ்சல் முகவரி' : 'Enter admin email'}
                 required
                 className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"
               />
@@ -145,9 +142,11 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
               <Lock className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? 'text' : 'password'}
+                name="admin_sec_pass"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="admin123"
+                placeholder="••••••••"
                 required
                 className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"
               />
@@ -176,19 +175,6 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
             )}
           </button>
         </form>
-
-        {/* Quick Demo Helper */}
-        <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-400">
-          <span>Demo: admin@pureva.com</span>
-          <button
-            type="button"
-            onClick={handleQuickFill}
-            className="text-stone-700 hover:text-stone-900 hover:underline cursor-pointer font-bold"
-          >
-            Auto Fill
-          </button>
-        </div>
-
       </div>
 
     </div>

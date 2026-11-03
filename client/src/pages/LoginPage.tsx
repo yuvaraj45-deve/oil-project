@@ -101,8 +101,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     return hasRegistered !== 'true'; // First time: Register! Second time: Sign In!
   });
 
-  // Flow Step: 'details' -> 'otp' -> 'verified'
-  const [step, setStep] = useState<'details' | 'otp' | 'verified'>('details');
+  // Flow Step: 'details' -> 'verified'
+  const [step, setStep] = useState<'details' | 'verified'>('details');
 
   // Registration Full Details
   const [name, setName] = useState('');
@@ -111,23 +111,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
 
-  // Sign In Credentials
+  // Sign In Credentials (always empty on mount, no admin hints)
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // OTP Verification States
-  const [otp, setOtp] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [resendTimer, setResendTimer] = useState(30);
-  const [isResendActive, setIsResendActive] = useState(false);
-
-  // Pending user object during verification
+  // Pending user object for welcome display
   const [pendingUser, setPendingUser] = useState<StoredAccount | null>(null);
 
   // Loading & error
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Reset fields when switching between sign-in and register
+  useEffect(() => {
+    setLoginIdentifier('');
+    setPassword('');
+    setErrorMessage(null);
+  }, [isRegister]);
 
   // Helper to get all registered accounts (combining seed + saved in localStorage)
   const getRegisteredAccounts = (): StoredAccount[] => {
@@ -165,20 +166,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       localStorage.setItem('ssoil_has_registered', 'true');
     } catch (e) {}
   };
-
-  // Countdown timer for OTP resend
-  useEffect(() => {
-    let interval: any = null;
-    if (step === 'otp' && resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (resendTimer === 0) {
-      setIsResendActive(true);
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [step, resendTimer]);
 
   // Handle Form Submission
   const handleSubmit = (e: React.FormEvent) => {
@@ -405,7 +392,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // Prepare pending user object
+    // Prepare new registered account
     const newAcc: StoredAccount = {
       id: `usr_${Date.now()}`,
       name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
@@ -421,55 +408,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       createdAt: new Date().toISOString(),
     };
     setPendingUser(newAcc);
-
-    // Generate 4-digit verification code
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(code);
-
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep('otp');
-      setResendTimer(30);
-      setIsResendActive(false);
-      setOtp('');
-    }, 400);
-  };
-
-  // Handle Step 2: Confirm OTP, Save Registered Account, Complete Login
-  const handleVerifyOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-
-    const cleanOtp = otp.trim();
-
-    if (cleanOtp !== generatedOtp && cleanOtp !== '1234') {
-      setErrorMessage(
-        language === 'ta'
-          ? 'தவறான சரிபார்ப்புக் குறியீடு. சரியான 4 இலக்க குறியீட்டை உள்ளிடவும்.'
-          : 'Invalid verification code. Please check and enter the correct 4-digit code.'
-      );
-      return;
-    }
-
-    if (!pendingUser) return;
-
     setIsLoading(true);
 
     setTimeout(() => {
-      setStep('verified');
-
       // 1. Save new account permanently into registered accounts database
-      saveNewAccount(pendingUser);
+      saveNewAccount(newAcc);
 
       // 2. Set current active user session
       const verifiedProfile: UserProfile = {
-        id: pendingUser.id,
-        name: pendingUser.name,
-        phone: pendingUser.phone,
-        email: pendingUser.email,
-        city: pendingUser.city,
-        address: pendingUser.address,
+        id: newAcc.id,
+        name: newAcc.name,
+        phone: newAcc.phone,
+        email: newAcc.email,
+        city: newAcc.city,
+        address: newAcc.address,
         role: 'customer',
         memberTier: 'Gold Member',
         purityPoints: 240,
@@ -499,21 +451,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         window.dispatchEvent(new Event('ssoil_user_logged_in'));
       } catch (e) {}
 
+      setStep('verified');
+
       setTimeout(() => {
         setIsLoading(false);
         onLoginSuccess(verifiedProfile);
         onNavigate('/');
-      }, 750);
-    }, 450);
-  };
-
-  const handleResendOtp = () => {
-    if (!isResendActive) return;
-    const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(newCode);
-    setResendTimer(30);
-    setIsResendActive(false);
-    setErrorMessage(null);
+      }, 700);
+    }, 350);
   };
 
   return (
@@ -566,14 +511,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
 
           <h1 className="text-2xl font-bold text-stone-900 font-serif">
-            {step === 'otp'
+            {step === 'verified'
               ? language === 'ta'
-                ? 'விவரங்களைச் சரிபார்க்கவும்'
-                : 'Verify Account Details'
-              : step === 'verified'
-              ? language === 'ta'
-                ? 'சரிபார்ப்பு முடிந்தது!'
-                : 'Verified Successfully!'
+                ? 'பதிவு முடிந்தது!'
+                : 'Registration Successful!'
               : isRegister
               ? language === 'ta'
                 ? 'புதிய பயனர் பதிவு (Register)'
@@ -584,20 +525,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </h1>
 
           <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-            {step === 'otp'
+            {step === 'verified'
               ? language === 'ta'
-                ? 'உங்கள் தொலைபேசி மற்றும் மின்னஞ்சலுக்கு அனுப்பப்பட்ட 4 இலக்க குறியீட்டை உள்ளிடவும்'
-                : 'Enter the 4-digit verification code sent to your phone and email'
-              : step === 'verified'
-              ? language === 'ta'
-                ? 'உங்கள் கணக்கு வெற்றிகரமாக சரிபார்க்கப்பட்டது. உள்நுழைகிறது...'
-                : 'Your profile has been verified. Redirecting to store...'
+                ? 'உங்கள் கணக்கு வெற்றிகரமாக உருவாக்கப்பட்டது. உள்நுழைகிறது...'
+                : 'Your profile has been created. Redirecting to store...'
               : isRegister
               ? language === 'ta'
-                ? 'முதல் முறை பயனர்: உங்கள் முழு விவரங்களை உள்ளிட்டு கணக்கை உருவாக்கவும்'
-                : 'First-time user: enter full details to register and verify your account'
+                ? 'முதல் முறை பயனர்: உங்கள் விவரங்களை உள்ளிட்டு பதிவு செய்யவும்'
+                : 'First-time customer: enter your details to register directly'
               : language === 'ta'
-              ? 'உங்கள் மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிட்டு உள்நுழையவும்'
+              ? 'உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி மற்றும் கடவுச்சொல் கொண்டு உள்நுழையவும்'
               : 'Enter your registered Email/Phone and password to sign in'}
           </p>
         </div>
@@ -649,7 +586,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         {/* STEP 1: FORM (Sign In OR Register) */}
         {step === 'details' && (
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5">
             {/* ---------------- REGISTRATION FIELDS ---------------- */}
             {isRegister ? (
               <>
@@ -786,8 +723,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <>
                       <span>
                         {language === 'ta'
-                          ? 'சரிபார்த்து பதிவு செய்க (Verify & Register)'
-                          : 'Verify Details & Register'}
+                          ? 'பதிவு செய்து தொடர்க (Register & Continue)'
+                          : 'Register & Continue'}
                       </span>
                       <ArrowRight className="w-4 h-4 text-gold-400" />
                     </>
@@ -809,15 +746,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <User className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
+                      name="ssoil_auth_id"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
                       value={loginIdentifier}
                       onChange={(e) => setLoginIdentifier(e.target.value)}
                       placeholder={
                         language === 'ta'
-                          ? 'ramesh.sundaram@gmail.com அல்லது 9842145620'
-                          : 'email@example.com or mobile number'
+                          ? 'மின்னஞ்சல் அல்லது மொபைல் எண் உள்ளிடவும்'
+                          : 'Enter email or mobile number'
                       }
                       required
-                      autoFocus
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                     />
                   </div>
@@ -835,6 +775,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <Lock className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="ssoil_auth_secret"
+                      autoComplete="new-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
@@ -868,115 +810,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </button>
               </>
             )}
-          </form>
-        )}
-
-        {/* STEP 2: OTP Verification Screen (For Registration) */}
-        {step === 'otp' && (
-          <form onSubmit={handleVerifyOtp} className="space-y-4 animate-fadeIn">
-            {/* Live Instant Demo OTP Notification Banner */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-emerald-50 border border-gold-300 shadow-2xs text-left">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-forest-950 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-gold-600 animate-pulse" />
-                  {language === 'ta' ? 'சரிபார்ப்புக் குறியீடு (SMS OTP)' : 'Live SMS & Email OTP'}
-                </span>
-                <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-xl font-mono font-black tracking-widest text-forest-950">
-                  {generatedOtp}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setOtp(generatedOtp)}
-                  className="px-2.5 py-1 rounded-lg bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                >
-                  {language === 'ta' ? 'தானாக நிரப்புக (Auto-fill)' : 'Auto-fill OTP'}
-                </button>
-              </div>
-              <p className="text-[10px] text-stone-500 mt-1">
-                {language === 'ta'
-                  ? `+91 ${phone} மற்றும் ${email}-க்கு அனுப்பப்பட்டது`
-                  : `Sent to +91 ${phone} & ${email}`}
-              </p>
-            </div>
-
-            {/* OTP Input */}
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-2 text-center">
-                {language === 'ta' ? '4 இலக்க குறியீட்டை உள்ளிடவும்' : 'Enter 4-Digit Verification Code'}
-              </label>
-              <div className="flex justify-center">
-                <input
-                  type="text"
-                  maxLength={4}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  placeholder="••••"
-                  autoFocus
-                  required
-                  className="w-48 py-3 text-center text-2xl font-mono font-bold tracking-widest rounded-2xl border-2 border-forest-900/60 focus:border-forest-900 focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50 shadow-inner"
-                />
-              </div>
-            </div>
-
-            {/* Verify & Complete Registration Button */}
-            <button
-              type="submit"
-              disabled={isLoading || otp.length < 4}
-              className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md ${
-                otp.length === 4
-                  ? 'bg-forest-950 hover:bg-forest-900 text-white cursor-pointer active:scale-98'
-                  : 'bg-stone-200 text-stone-400 cursor-not-allowed'
-              }`}
-            >
-              {isLoading ? (
-                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <ShieldCheck className="w-4 h-4 text-gold-400" />
-                  <span>
-                    {language === 'ta'
-                      ? 'சரிபார்த்து பதிவு முடிக்க (Verify & Register)'
-                      : 'Verify & Complete Registration'}
-                  </span>
-                </>
-              )}
-            </button>
-
-            {/* Resend OTP and Edit Details Links */}
-            <div className="flex items-center justify-between text-xs text-stone-600 pt-2 border-t border-stone-100">
-              <button
-                type="button"
-                onClick={() => setStep('details')}
-                className="font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
-              >
-                {language === 'ta' ? '← விவரங்களை மாற்ற' : '← Edit Details'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={!isResendActive}
-                className={`font-bold flex items-center gap-1 ${
-                  isResendActive
-                    ? 'text-forest-950 hover:underline cursor-pointer'
-                    : 'text-stone-400 cursor-not-allowed'
-                }`}
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${!isResendActive ? 'animate-spin' : ''}`} />
-                <span>
-                  {isResendActive
-                    ? language === 'ta'
-                      ? 'மீண்டும் அனுப்புக'
-                      : 'Resend Code'
-                    : `${language === 'ta' ? 'மீண்டும் அனுப்ப' : 'Resend in'} ${resendTimer}s`}
-                </span>
-              </button>
-            </div>
           </form>
         )}
 

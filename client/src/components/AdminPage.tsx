@@ -611,6 +611,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [editProdOriginalPrice, setEditProdOriginalPrice] = useState<number>(0);
   const [editProdDefaultPack, setEditProdDefaultPack] = useState('1 Litre Bottle');
   const [editProdPackSizes, setEditProdPackSizes] = useState<string[]>([]);
+  const [editCustomPackInput, setEditCustomPackInput] = useState('');
   const [editProdImage, setEditProdImage] = useState('');
   const [editProdBadge, setEditProdBadge] = useState('');
   const [editProdSmokePoint, setEditProdSmokePoint] = useState('');
@@ -642,6 +643,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setEditProdPackSizes((prev) =>
       prev.includes(pack) ? prev.filter((p) => p !== pack) : [...prev, pack]
     );
+  };
+
+  const handleAddCustomPackSizeEdit = () => {
+    const trimmed = editCustomPackInput.trim();
+    if (!trimmed) return;
+    if (!editProdPackSizes.includes(trimmed)) {
+      setEditProdPackSizes((prev) => [...prev, trimmed]);
+      if (!editProdDefaultPack) setEditProdDefaultPack(trimmed);
+    }
+    setEditCustomPackInput('');
+  };
+
+  const handleRemovePackSizeEdit = (sizeToRemove: string) => {
+    setEditProdPackSizes((prev) => prev.filter((s) => s !== sizeToRemove));
   };
 
   const handleSaveEditProduct = async (e: React.FormEvent) => {
@@ -704,7 +719,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     '2 Litre Can',
     '5 Litre Can',
   ]);
-  const [newProdImage, setNewProdImage] = useState('/products/groundnut_oil.jpg');
+  const [newProdImage, setNewProdImage] = useState('');
+  const [newCustomPackInput, setNewCustomPackInput] = useState('');
   const [newProdBadge, setNewProdBadge] = useState('Cold-Pressed');
   const [newProdSmokePoint, setNewProdSmokePoint] = useState('220°C');
   const [newProdExtraction, setNewProdExtraction] = useState('Traditional Mara Chekku Cold-Pressed');
@@ -716,6 +732,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setNewProdPackSizes((prev) =>
       prev.includes(pack) ? prev.filter((p) => p !== pack) : [...prev, pack]
     );
+  };
+
+  const handleAddCustomPackSizeNew = () => {
+    const trimmed = newCustomPackInput.trim();
+    if (!trimmed) return;
+    if (!newProdPackSizes.includes(trimmed)) {
+      setNewProdPackSizes((prev) => [...prev, trimmed]);
+      if (!newProdDefaultPack) setNewProdDefaultPack(trimmed);
+    }
+    setNewCustomPackInput('');
+  };
+
+  const handleRemovePackSizeNew = (sizeToRemove: string) => {
+    setNewProdPackSizes((prev) => prev.filter((s) => s !== sizeToRemove));
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -756,6 +786,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setNewProdName('');
     setNewProdTagline('');
     setNewProdDescription('');
+    setNewProdImage('');
+    setNewCustomPackInput('');
     showToast(`Product "${newProduct.name}" added to catalog! 🛢️`);
   };
 
@@ -1116,10 +1148,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {/* Sidebar Navigation Items from Screenshot */}
         <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto select-none relative z-10">
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: Home, count: orders.length },
-            { id: 'products', label: 'Products', icon: Package, count: productsList.length },
-            { id: 'categories', label: 'Categories', icon: Layers, count: categoriesList.length },
-            { id: 'videos', label: 'Homepage Video', icon: Video, count: 1 },
+            { id: 'dashboard', label: 'Dashboard', icon: Home },
+            { id: 'products', label: 'Products', icon: Package },
+            { id: 'categories', label: 'Categories', icon: Layers },
+            { id: 'videos', label: 'Homepage Video', icon: Video },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: activeOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: usersList.length },
             { id: 'offers', label: 'Offers & Coupons', icon: Tag },
@@ -1271,7 +1303,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       setNewProdOriginalPrice(420);
                       setNewProdDefaultPack('1 Litre Bottle');
                       setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
-                      setNewProdImage('/products/sesame_oil.jpg');
+                      setNewProdImage('');
+                      setNewCustomPackInput('');
                       setNewProdBadge('Cold-Pressed');
                       setNewProdSmokePoint('220°C');
                       setNewProdExtraction('Traditional Cold-Pressed Mara Chekku');
@@ -3908,34 +3941,96 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
                       </div>
 
-                      {/* 4. Pack Sizes Checkbox Selection */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes
-                        </label>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {ALL_PACK_OPTIONS.map((pack) => {
-                            const isSelected = editProdPackSizes.includes(pack);
-                            return (
-                              <button
+                      {/* 4. Pack & Can Sizes Section */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                            4. Available Can / Pack Sizes
+                          </label>
+                          <span className="text-[11px] text-stone-500 font-medium">
+                            {editProdPackSizes.length} sizes configured
+                          </span>
+                        </div>
+
+                        {/* Configured Pack Size Chips */}
+                        <div className="flex flex-wrap gap-2 pt-0.5 min-h-[32px]">
+                          {editProdPackSizes.length === 0 ? (
+                            <span className="text-xs text-stone-400 italic">No pack sizes configured yet. Type below to add.</span>
+                          ) : (
+                            editProdPackSizes.map((pack) => (
+                              <span
                                 key={pack}
-                                type="button"
-                                onClick={() => handleTogglePackSizeInEdit(pack)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                                  isSelected
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
-                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
-                                }`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-forest-950 text-gold-300 border border-forest-950 shadow-xs"
                               >
-                                {isSelected ? (
-                                  <Check className="w-3.5 h-3.5 text-gold-400" />
-                                ) : (
-                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
-                                )}
+                                <Check className="w-3.5 h-3.5 text-gold-400" />
                                 <span>{pack}</span>
-                              </button>
-                            );
-                          })}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePackSizeEdit(pack)}
+                                  className="w-4 h-4 ml-0.5 rounded-full bg-forest-800 hover:bg-red-600 text-white flex items-center justify-center text-[10px] cursor-pointer transition-colors"
+                                  title="Remove this size"
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Admin Type Custom Can/Pack Size Input */}
+                        <div className="pt-2 border-t border-stone-200/80">
+                          <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                            Type Custom Can / Pack Size:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={editCustomPackInput}
+                              onChange={(e) => setEditCustomPackInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddCustomPackSizeEdit();
+                                }
+                              }}
+                              placeholder="e.g. 5 Litre Can, 15 Litre Tin, 2 Litre Can, 500 ml Bottle..."
+                              className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-forest-900 bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddCustomPackSizeEdit}
+                              className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-xs active:scale-98"
+                            >
+                              <Plus className="w-3.5 h-3.5 text-gold-400" />
+                              <span>Add Size</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Presets */}
+                        <div className="pt-2 border-t border-stone-200/80">
+                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                            ⚡ Quick Presets (Click to add / remove):
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ALL_PACK_OPTIONS.map((pack) => {
+                              const isSelected = editProdPackSizes.includes(pack);
+                              return (
+                                <button
+                                  key={pack}
+                                  type="button"
+                                  onClick={() => handleTogglePackSizeInEdit(pack)}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                                    isSelected
+                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold'
+                                      : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
+                                  }`}
+                                >
+                                  {isSelected ? `✓ ${pack}` : `+ ${pack}`}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
@@ -4080,8 +4175,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-stone-400">
-                                <ImageIcon className="w-8 h-8" />
+                              <div className="w-full h-full flex flex-col items-center justify-center text-stone-400 p-2 text-center bg-stone-50">
+                                <ImageIcon className="w-7 h-7 mb-1 text-stone-300" />
+                                <span className="text-[10px] text-stone-400 font-semibold">No Image</span>
                               </div>
                             )}
                           </div>
@@ -4105,8 +4201,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               type="text"
                               value={newProdImage}
                               onChange={(e) => setNewProdImage(e.target.value)}
-                              placeholder="https://... or /products/groundnut_oil.jpg"
-                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 focus:outline-none focus:border-forest-900 bg-white"
+                              placeholder="Upload image or enter image URL (optional)"
+                              className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-forest-900 bg-white"
                             />
                           </div>
                         </div>
@@ -4280,34 +4376,96 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
                       </div>
 
-                      {/* 4. Pack Sizes */}
-                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          4. Available Pack Sizes
-                        </label>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {ALL_PACK_OPTIONS.map((pack) => {
-                            const isSelected = newProdPackSizes.includes(pack);
-                            return (
-                              <button
+                      {/* 4. Pack & Can Sizes Section */}
+                      <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                            4. Available Can / Pack Sizes
+                          </label>
+                          <span className="text-[11px] text-stone-500 font-medium">
+                            {newProdPackSizes.length} sizes configured
+                          </span>
+                        </div>
+
+                        {/* Configured Pack Size Chips */}
+                        <div className="flex flex-wrap gap-2 pt-0.5 min-h-[32px]">
+                          {newProdPackSizes.length === 0 ? (
+                            <span className="text-xs text-stone-400 italic">No can sizes added yet. Type below to add.</span>
+                          ) : (
+                            newProdPackSizes.map((pack) => (
+                              <span
                                 key={pack}
-                                type="button"
-                                onClick={() => handleTogglePackSizeInNew(pack)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                                  isSelected
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950 shadow-xs'
-                                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
-                                }`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-forest-950 text-gold-300 border border-forest-950 shadow-xs"
                               >
-                                {isSelected ? (
-                                  <Check className="w-3.5 h-3.5 text-gold-400" />
-                                ) : (
-                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
-                                )}
+                                <Check className="w-3.5 h-3.5 text-gold-400" />
                                 <span>{pack}</span>
-                              </button>
-                            );
-                          })}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePackSizeNew(pack)}
+                                  className="w-4 h-4 ml-0.5 rounded-full bg-forest-800 hover:bg-red-600 text-white flex items-center justify-center text-[10px] cursor-pointer transition-colors"
+                                  title="Remove this size"
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Admin Type Custom Can/Pack Size Input */}
+                        <div className="pt-2 border-t border-stone-200/80">
+                          <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                            Type Custom Can / Pack Size:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={newCustomPackInput}
+                              onChange={(e) => setNewCustomPackInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddCustomPackSizeNew();
+                                }
+                              }}
+                              placeholder="e.g. 5 Litre Can, 15 Litre Tin, 2 Litre Can, 500 ml Bottle..."
+                              className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-forest-900 bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddCustomPackSizeNew}
+                              className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-xs active:scale-98"
+                            >
+                              <Plus className="w-3.5 h-3.5 text-gold-400" />
+                              <span>Add Size</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Presets */}
+                        <div className="pt-2 border-t border-stone-200/80">
+                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
+                            ⚡ Quick Presets (Click to add / remove):
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ALL_PACK_OPTIONS.map((pack) => {
+                              const isSelected = newProdPackSizes.includes(pack);
+                              return (
+                                <button
+                                  key={pack}
+                                  type="button"
+                                  onClick={() => handleTogglePackSizeInNew(pack)}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                                    isSelected
+                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold'
+                                      : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
+                                  }`}
+                                >
+                                  {isSelected ? `✓ ${pack}` : `+ ${pack}`}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
