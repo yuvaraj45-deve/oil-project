@@ -91,6 +91,10 @@ interface UserRecord {
   status: 'Active' | 'Inactive';
   totalOrders: number;
   totalSpent: number;
+  address?: string;
+  city?: string;
+  pincode?: string;
+  isVerified?: boolean;
 }
 
 // Preset High Quality Oil Images for Categories
@@ -878,6 +882,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             status: 'Active',
             totalOrders: activeUser.totalOrders || 1,
             totalSpent: activeUser.totalSpent || 780,
+            city: activeUser.city,
+            address: activeUser.address,
+            pincode: activeUser.pincode,
+            isVerified: activeUser.isVerified ?? true,
           };
           if (idx >= 0) {
             merged[idx] = { ...merged[idx], ...liveUserRecord, lastLogin: 'Just Now (Online)' };
@@ -2047,9 +2055,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                   {user.name.charAt(0)}
                                 </div>
                                 <div>
-                                  <span className="font-bold text-stone-900 block">
-                                    {user.name}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-stone-900 block">
+                                      {user.name}
+                                    </span>
+                                    {user.isVerified !== false && (
+                                      <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                        ✓ Verified
+                                      </span>
+                                    )}
+                                  </div>
                                   <span className="text-[11px] text-stone-500 font-mono">
                                     {user.email}
                                   </span>
@@ -2070,7 +2085,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             </td>
 
                             <td className="py-3 px-4 font-mono text-stone-600">
-                              {user.phone}
+                              <div className="font-semibold">{user.phone}</div>
+                              {user.city && (
+                                <span className="text-[10px] text-stone-500 block font-sans">
+                                  📍 {user.city}
+                                </span>
+                              )}
                             </td>
 
                             <td className="py-3 px-4">

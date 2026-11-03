@@ -228,6 +228,10 @@ export interface UserProfile {
   role: 'customer' | 'admin';
   memberTier: 'Gold Member' | 'Silver Member' | 'Platinum Member';
   purityPoints: number;
+  address?: string;
+  city?: string;
+  pincode?: string;
+  isVerified?: boolean;
 }
 
 export interface StoreSettings {
