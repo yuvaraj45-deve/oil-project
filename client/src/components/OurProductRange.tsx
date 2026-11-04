@@ -186,13 +186,6 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
                       {displayBadge}
                     </span>
                   </div>
-
-                  {/* Price Pill */}
-                  <div className="absolute bottom-4 right-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-black bg-forest-950/90 text-gold-300 shadow-sm">
-                      {t('range.from')} {getStartingPrice(item.slug, item.startingPrice)}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Title & Benefit */}

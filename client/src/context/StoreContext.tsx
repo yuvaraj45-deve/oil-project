@@ -296,68 +296,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {}
   }, []);
 
-  // Helper to sanitize bottle entries, replacing bulky can or rogue photos with normal standing oil bottles matching the line-up
+  // Helper to sanitize bottle entries, ensuring uniform standing bottles matching the line-up
   const sanitizeBottlesList = (list: StandingBottleItem[]): StandingBottleItem[] => {
-    let seenSesame = false;
-    return list.map((b) => {
-      if (
-        b.id === 'bottle-can' ||
+    if (!Array.isArray(list) || list.length === 0) {
+      return DEFAULT_STANDING_BOTTLES;
+    }
+    const hasCorrupt = list.some(
+      (b) =>
+        !b ||
+        !b.name ||
+        b.name.toLowerCase().includes('new pure') ||
         b.name.toLowerCase().includes('ss oil can') ||
         b.name.toLowerCase().includes('oil can') ||
-        b.image.includes('ss_oil_can') ||
-        b.id === 'bottle-ricebran' ||
-        b.name.toLowerCase().includes('rice') ||
-        b.image.includes('rice_bran') ||
-        b.image.includes('photo-1474979266404-7eaacbcd87c5')
-      ) {
-        return {
-          id: 'bottle-groundnut',
-          name: 'Groundnut Oil',
-          tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
-          slug: 'groundnut-oil',
-          image: '/products/groundnut_oil.png',
-          enabled: b.enabled !== false,
-        };
-      }
-      if (b.name.toLowerCase().includes('new pure') || b.image.includes('sesame_oil')) {
-        if (!seenSesame) {
-          seenSesame = true;
-          return {
-            id: 'bottle-sesame',
-            name: 'Sesame Oil',
-            tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
-            slug: 'sesame-oil',
-            image: '/products/sesame_oil.png',
-            enabled: b.enabled !== false,
-          };
-        } else {
-          return {
-            id: 'bottle-ricebran',
-            name: 'Rice Bran Oil',
-            tamilName: 'தூய தவிட்டு எண்ணெய்',
-            slug: 'cooking-oil',
-            image: '/products/rice_bran_oil.png',
-            enabled: b.enabled !== false,
-          };
-        }
-      }
-      if (b.image && b.image.includes('unsplash')) {
-        if (b.slug === 'coconut-oil' || b.name.toLowerCase().includes('coconut')) {
-          return { ...b, image: '/products/coconut_oil.png' };
-        }
-        if (b.slug === 'sesame-oil' || b.name.toLowerCase().includes('sesame')) {
-          return { ...b, image: '/products/sesame_oil.png' };
-        }
-        if (b.slug === 'groundnut-oil' || b.name.toLowerCase().includes('groundnut')) {
-          return { ...b, image: '/products/groundnut_oil.png' };
-        }
-        if (b.slug === 'pooja-special' || b.name.toLowerCase().includes('lamp') || b.name.toLowerCase().includes('pooja')) {
-          return { ...b, image: '/products/lamp_oil.png' };
-        }
-        return { ...b, image: '/products/groundnut_oil.png' };
-      }
-      return b;
-    });
+        b.image?.includes('ss_oil_can') ||
+        b.image?.includes('unsplash') ||
+        b.image?.includes('photo-')
+    );
+    if (hasCorrupt || list.length < 7) {
+      return DEFAULT_STANDING_BOTTLES;
+    }
+    return list;
   };
 
   // 6. Standing Bottles & Cans Showcase State (Sync with localStorage 'ssoil_standing_bottles')
@@ -375,6 +333,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error('Error reading saved standing bottles:', e);
     }
+    try {
+      localStorage.setItem('ssoil_standing_bottles', JSON.stringify(DEFAULT_STANDING_BOTTLES));
+    } catch {}
     return DEFAULT_STANDING_BOTTLES;
   });
 

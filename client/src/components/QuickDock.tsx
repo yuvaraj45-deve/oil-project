@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShoppingBag, ShieldCheck, ChefHat, MessageCircle, ArrowUp } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ShoppingBag, ShieldCheck, ChefHat, MessageCircle, ArrowUp, X } from 'lucide-react';
 import { CartItem } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -17,15 +17,30 @@ export const QuickDock: React.FC<QuickDockProps> = ({
   onNavigate,
 }) => {
   const { language } = useLanguage();
+  const [isDismissed, setIsDismissed] = useState(false);
   const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // If user adds a new item to cart later, restore the dock so they see updated total
+  const prevCountRef = useRef(totalCount);
+  useEffect(() => {
+    if (totalCount > prevCountRef.current && isDismissed) {
+      setIsDismissed(false);
+    }
+    prevCountRef.current = totalCount;
+  }, [totalCount, isDismissed]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // If user clicked Cancel, hide the bottom view cart dock completely
+  if (isDismissed) {
+    return null;
+  }
+
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-lg px-4 pointer-events-none">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-lg px-4 pointer-events-none animate-fadeIn">
       <div className="glass-card shadow-2xl rounded-2xl p-2.5 sm:p-3 border border-forest-900/15 pointer-events-auto flex items-center justify-between gap-2 backdrop-blur-xl bg-white/90">
         
         {/* Cart Quick Preview Button */}
@@ -97,6 +112,22 @@ export const QuickDock: React.FC<QuickDockProps> = ({
           title="Top"
         >
           <ArrowUp className="w-4 h-4" />
+        </button>
+
+        {/* Cancel / Dismiss Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDismissed(true);
+          }}
+          className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-500 text-xs font-bold transition-all border border-stone-200 hover:border-red-200 flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
+          title={language === 'ta' ? 'கீழ் பார் ரத்து செய்க (Cancel)' : 'Cancel / Dismiss Bottom Dock'}
+          aria-label="Cancel / Dismiss"
+        >
+          <X className="w-4 h-4 text-stone-500 hover:text-red-600" />
+          <span className="hidden sm:inline text-[11px] font-bold">
+            {language === 'ta' ? 'ரத்து' : 'Cancel'}
+          </span>
         </button>
 
       </div>

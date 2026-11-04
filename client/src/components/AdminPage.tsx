@@ -100,10 +100,6 @@ interface UserRecord {
 // Preset High Quality Oil Images for Categories
 const PRESET_IMAGES = [
   {
-    name: 'SS Oil 5L Can',
-    url: '/products/ss_oil_can.jpg',
-  },
-  {
     name: 'Sesame Oil',
     url: '/products/sesame_oil.jpg',
   },
@@ -117,7 +113,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Cooking Oil',
-    url: '/products/ss_oil_can.jpg',
+    url: '/products/groundnut_oil.jpg',
   },
   {
     name: 'Sunflower Oil',

@@ -185,7 +185,7 @@ export const CATEGORIES_DATA: Category[] = [
     slug: 'cooking-oil',
     title: 'Cooking Oil',
     subtitle: 'Everyday Light & Healthy Blends',
-    image: '/products/ss_oil_can.jpg',
+    image: '/products/groundnut_oil.jpg?v=ssoil',
     itemCount: '',
     badge: 'Daily Essential',
     highlightText: 'Chemical-Free & High Smoke Point'
