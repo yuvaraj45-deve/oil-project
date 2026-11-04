@@ -309,12 +309,33 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           const existingIdx = dir.findIndex(
             (u: any) => u.phone === verifiedUser.phone || u.email === verifiedUser.email
           );
+          // Calculate actual orders placed by this user (0 if they haven't ordered yet)
+          let userOrdersCount = 0;
+          let userOrdersSpent = 0;
+          try {
+            const savedOrdersStr = localStorage.getItem('ssoil_orders');
+            if (savedOrdersStr) {
+              const savedOrders = JSON.parse(savedOrdersStr);
+              if (Array.isArray(savedOrders)) {
+                const userOrders = savedOrders.filter((o: any) => {
+                  const oEmail = (o.customerEmail || '').toLowerCase().trim();
+                  const oPhone = (o.customerPhone || '').replace(/\D/g, '');
+                  const uEmail = (verifiedUser.email || '').toLowerCase().trim();
+                  const uPhone = (verifiedUser.phone || '').replace(/\D/g, '');
+                  return (uEmail && oEmail === uEmail) || (uPhone && oPhone === uPhone);
+                });
+                userOrdersCount = userOrders.length;
+                userOrdersSpent = userOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
+              }
+            }
+          } catch (e) {}
+
           const record = {
             ...verifiedUser,
             lastLogin: 'Just Now (Online)',
             status: 'Active',
-            totalOrders: 1,
-            totalSpent: 780,
+            totalOrders: userOrdersCount,
+            totalSpent: userOrdersSpent,
           };
           if (existingIdx >= 0) dir[existingIdx] = { ...dir[existingIdx], ...record };
           else dir.unshift(record);
@@ -461,8 +482,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           ...verifiedProfile,
           lastLogin: 'Just Now (Online)',
           status: 'Active',
-          totalOrders: 1,
-          totalSpent: 780,
+          totalOrders: 0,
+          totalSpent: 0,
         };
         if (existingIdx >= 0) {
           dir[existingIdx] = { ...dir[existingIdx], ...record };

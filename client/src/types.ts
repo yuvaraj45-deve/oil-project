@@ -107,30 +107,6 @@ export interface StandingBottleItem {
 
 export const DEFAULT_STANDING_BOTTLES: StandingBottleItem[] = [
   {
-    id: 'bottle-sunflower',
-    name: 'Sunflower Oil',
-    tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
-    slug: 'sunflower-oil',
-    image: '/products/sunflower_oil.png',
-    enabled: true,
-  },
-  {
-    id: 'bottle-mustard',
-    name: 'Mustard Oil',
-    tamilName: 'தூய கடுகு எண்ணெய்',
-    slug: 'cooking-oil',
-    image: '/products/mustard_oil.png',
-    enabled: true,
-  },
-  {
-    id: 'bottle-coconut',
-    name: 'Coconut Oil',
-    tamilName: 'பாரம்பரிய தேங்காய் எண்ணெய்',
-    slug: 'coconut-oil',
-    image: '/products/coconut_oil.png',
-    enabled: true,
-  },
-  {
     id: 'bottle-groundnut',
     name: 'Groundnut Oil',
     tamilName: 'மரச்செக்கு கடலை எண்ணெய்',
@@ -144,6 +120,30 @@ export const DEFAULT_STANDING_BOTTLES: StandingBottleItem[] = [
     tamilName: 'மரச்செக்கு நல்லெண்ணெய்',
     slug: 'sesame-oil',
     image: '/products/sesame_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-coconut',
+    name: 'Coconut Oil',
+    tamilName: 'பாரம்பரிய தேங்காய் எண்ணெய்',
+    slug: 'coconut-oil',
+    image: '/products/coconut_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-sunflower',
+    name: 'Sunflower Oil',
+    tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
+    slug: 'sunflower-oil',
+    image: '/products/sunflower_oil.png',
+    enabled: true,
+  },
+  {
+    id: 'bottle-mustard',
+    name: 'Mustard Oil',
+    tamilName: 'தூய கடுகு எண்ணெய்',
+    slug: 'cooking-oil',
+    image: '/products/mustard_oil.png',
     enabled: true,
   },
   {

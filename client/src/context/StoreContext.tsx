@@ -312,7 +312,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         b.image?.includes('unsplash') ||
         b.image?.includes('photo-')
     );
-    if (hasCorrupt || list.length < 7) {
+    if (hasCorrupt || list.length < 7 || list[0]?.slug !== 'groundnut-oil') {
       return DEFAULT_STANDING_BOTTLES;
     }
     return list;

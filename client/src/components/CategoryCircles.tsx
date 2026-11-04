@@ -26,7 +26,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
     b.image?.includes('photo-');
 
   const rawBottles =
-    standingBottles && standingBottles.length >= 7 && !standingBottles.some(isCorrupt)
+    standingBottles && standingBottles.length >= 7 && !standingBottles.some(isCorrupt) && standingBottles[0]?.slug === 'groundnut-oil'
       ? standingBottles.filter((b) => b.enabled !== false)
       : DEFAULT_STANDING_BOTTLES;
 
@@ -36,9 +36,9 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
     return null;
   }
 
-  // Double duplicate for smooth infinite continuous loop from right to left
-  const baseList = [...bottles, ...bottles];
-  const marqueeBottles = [...baseList, ...baseList];
+  // Exactly two sets (Set A: all 7 bottles in sequence, Set B: all 7 bottles in sequence)
+  // Ensures all 7 bottles complete their sequence from 1 to 7 before repeating from 1
+  const marqueeBottles = [...bottles, ...bottles];
 
   return (
     <div className="w-full bg-white border-b border-stone-200/90 py-4 sm:py-6 select-none relative overflow-hidden">

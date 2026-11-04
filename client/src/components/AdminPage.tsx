@@ -961,8 +961,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             purityPoints: activeUser.purityPoints || 240,
             lastLogin: 'Just Now (Online)',
             status: 'Active',
-            totalOrders: activeUser.totalOrders || 1,
-            totalSpent: activeUser.totalSpent || 780,
+            totalOrders: activeUser.totalOrders || 0,
+            totalSpent: activeUser.totalSpent || 0,
             city: activeUser.city,
             address: activeUser.address,
             pincode: activeUser.pincode,
@@ -2254,12 +2254,41 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             </td>
 
                             <td className="py-3 px-4">
-                              <span className="font-bold text-forest-950 block">
-                                {user.totalOrders} Orders
-                              </span>
-                              <span className="text-[11px] text-stone-500">
-                                ₹{user.totalSpent} spent
-                              </span>
+                              {(() => {
+                                const cleanPhone = (user.phone || '').replace(/\D/g, '');
+                                const cleanEmail = (user.email || '').toLowerCase().trim();
+                                const userOrders = orders.filter((o) => {
+                                  const oPhone = (o.customerPhone || '').replace(/\D/g, '');
+                                  const oEmail = (o.customerEmail || '').toLowerCase().trim();
+                                  return (cleanEmail && oEmail === cleanEmail) || (cleanPhone && oPhone === cleanPhone);
+                                });
+                                const orderCount = userOrders.length;
+                                const spentAmount = userOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+                                if (orderCount === 0) {
+                                  return (
+                                    <div>
+                                      <span className="font-semibold text-stone-400 block text-xs">
+                                        0 Orders
+                                      </span>
+                                      <span className="text-[10px] text-stone-400">
+                                        No purchases yet
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div>
+                                    <span className="font-bold text-forest-950 block">
+                                      {orderCount} {orderCount === 1 ? 'Order' : 'Orders'}
+                                    </span>
+                                    <span className="text-[11px] text-emerald-700 font-semibold">
+                                      ₹{spentAmount} spent
+                                    </span>
+                                  </div>
+                                );
+                              })()}
                             </td>
 
                             <td className="py-3 px-4 font-mono text-stone-600">
