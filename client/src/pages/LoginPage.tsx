@@ -337,8 +337,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             totalOrders: userOrdersCount,
             totalSpent: userOrdersSpent,
           };
-          if (existingIdx >= 0) dir[existingIdx] = { ...dir[existingIdx], ...record };
-          else dir.unshift(record);
+          if (existingIdx >= 0) dir.splice(existingIdx, 1);
+          dir.unshift(record);
           localStorage.setItem('ssoil_users_directory', JSON.stringify(dir));
           window.dispatchEvent(new Event('ssoil_user_logged_in'));
         } catch (e) {}
@@ -485,11 +485,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           totalOrders: 0,
           totalSpent: 0,
         };
-        if (existingIdx >= 0) {
-          dir[existingIdx] = { ...dir[existingIdx], ...record };
-        } else {
-          dir.unshift(record);
-        }
+        if (existingIdx >= 0) dir.splice(existingIdx, 1);
+        dir.unshift(record);
         localStorage.setItem('ssoil_users_directory', JSON.stringify(dir));
         window.dispatchEvent(new Event('ssoil_user_logged_in'));
       } catch (e) {}

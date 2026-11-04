@@ -927,30 +927,57 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const loadUsersList = (): UserRecord[] => {
     try {
-      let merged = [...DEFAULT_INITIAL_USERS];
+      const userMap = new Map<string, UserRecord>();
+      const userList: UserRecord[] = [];
+
+      const addUser = (u: UserRecord, toFront: boolean = false) => {
+        const key = (u.email || u.phone || u.id || '').toLowerCase().trim();
+        if (!key) return;
+        if (userMap.has(key)) {
+          const existingIdx = userList.findIndex(
+            (item) => (item.email || item.phone || item.id || '').toLowerCase().trim() === key
+          );
+          if (existingIdx >= 0) {
+            const updated = { ...userList[existingIdx], ...u };
+            userList.splice(existingIdx, 1);
+            if (toFront) {
+              userList.unshift(updated);
+            } else {
+              userList.push(updated);
+            }
+            userMap.set(key, updated);
+          }
+        } else {
+          userMap.set(key, u);
+          if (toFront) {
+            userList.unshift(u);
+          } else {
+            userList.push(u);
+          }
+        }
+      };
+
+      // 1. Saved registered users from ssoil_users_directory (latest users first)
       const savedDirectory = localStorage.getItem('ssoil_users_directory');
       if (savedDirectory) {
         const parsed = JSON.parse(savedDirectory);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           parsed.forEach((savedUser: UserRecord) => {
-            const idx = merged.findIndex((m) => m.id === savedUser.id || m.email === savedUser.email);
-            if (idx >= 0) {
-              merged[idx] = { ...merged[idx], ...savedUser };
-            } else {
-              merged.unshift(savedUser);
-            }
+            addUser(savedUser, false);
           });
         }
       }
 
-      // Check current active logged-in user in 'ssoil_user'
+      // 2. Demo initial seed users at the bottom
+      DEFAULT_INITIAL_USERS.forEach((seed) => {
+        addUser(seed, false);
+      });
+
+      // 3. Put current active logged-in user at the ABSOLUTE TOP (index 0)!
       const activeUserStr = localStorage.getItem('ssoil_user');
       if (activeUserStr) {
         const activeUser = JSON.parse(activeUserStr);
         if (activeUser && (activeUser.name || activeUser.email)) {
-          const idx = merged.findIndex(
-            (m) => (activeUser.id && m.id === activeUser.id) || (activeUser.email && m.email === activeUser.email)
-          );
           const liveUserRecord: UserRecord = {
             id: activeUser.id || `usr_${Date.now()}`,
             name: activeUser.name || 'Logged User',
@@ -968,15 +995,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             pincode: activeUser.pincode,
             isVerified: activeUser.isVerified ?? true,
           };
-          if (idx >= 0) {
-            merged[idx] = { ...merged[idx], ...liveUserRecord, lastLogin: 'Just Now (Online)' };
-          } else {
-            merged.unshift(liveUserRecord);
-          }
+          addUser(liveUserRecord, true);
         }
       }
 
-      return merged;
+      return userList;
     } catch (e) {
       return DEFAULT_INITIAL_USERS;
     }
@@ -2180,7 +2203,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <th className="py-3 px-4 font-bold">User Name & Email</th>
                         <th className="py-3 px-4 font-bold">Role</th>
                         <th className="py-3 px-4 font-bold">Contact Phone</th>
-                        <th className="py-3 px-4 font-bold">Tier & Purity Points</th>
                         <th className="py-3 px-4 font-bold">Orders / Spent</th>
                         <th className="py-3 px-4 font-bold">Last Login Activity</th>
                         <th className="py-3 px-4 font-bold">Status</th>
@@ -2242,15 +2264,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                   📍 {user.city}
                                 </span>
                               )}
-                            </td>
-
-                            <td className="py-3 px-4">
-                              <span className="font-bold text-stone-800 block">
-                                {user.memberTier}
-                              </span>
-                              <span className="text-[10px] text-gold-700 font-semibold">
-                                🌿 {user.purityPoints} Purity Pts
-                              </span>
                             </td>
 
                             <td className="py-3 px-4">
