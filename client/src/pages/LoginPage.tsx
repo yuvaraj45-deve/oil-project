@@ -600,9 +600,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <User className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
+                      name="reg_fullname"
+                      autoComplete="off"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Ramesh Sundaram"
+                      placeholder=""
                       required
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                     />
@@ -621,10 +623,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     </span>
                     <input
                       type="tel"
+                      name="reg_phone"
+                      autoComplete="off"
                       maxLength={10}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="98421 45620"
+                      placeholder=""
                       required
                       className="w-full pl-12 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm font-mono text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                     />
@@ -642,9 +646,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
+                      name="reg_email"
+                      autoComplete="off"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ramesh.sundaram@gmail.com"
+                      placeholder=""
                       required
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                     />
@@ -662,9 +668,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <MapPin className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
+                        name="reg_city"
+                        autoComplete="off"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        placeholder="Coimbatore"
+                        placeholder=""
                         required
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                       />
@@ -677,9 +685,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     </label>
                     <input
                       type="text"
+                      name="reg_address"
+                      autoComplete="off"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Cross Cut Road"
+                      placeholder=""
                       className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
                     />
                   </div>
@@ -695,11 +705,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <Lock className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="reg_password"
+                      autoComplete="new-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder=""
                       required
-                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                     />
                     <button
                       type="button"
@@ -779,9 +791,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       autoComplete="new-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder=""
                       required
-                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                     />
                     <button
                       type="button"
