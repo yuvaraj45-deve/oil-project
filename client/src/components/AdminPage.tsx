@@ -237,7 +237,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const productsList = storeProducts && storeProducts.length > 0 ? storeProducts : PRODUCTS_DATA;
   const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
-  const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
 
   // Refresh live data on mount
   useEffect(() => {
@@ -2297,9 +2296,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {activeTab === 'products' && (
             <div className="space-y-4">
               
-              {/* 2. Search, Category Filters & View Mode Switcher */}
+              {/* 2. Search Bar */}
               <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div className="relative w-full sm:w-80">
+                <div className="relative w-full sm:w-96">
                   <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
@@ -2309,41 +2308,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-stone-50/50"
                   />
                 </div>
-
-                <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto justify-between sm:justify-end">
-                  <div className="flex items-center gap-1.5 overflow-x-auto">
-                    {['ALL', ...Array.from(new Set(categoriesList.map((c) => c.slug)))].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setProductCategoryFilter(cat)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                          productCategoryFilter === cat
-                            ? 'bg-forest-950 text-white shadow-xs'
-                            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                        }`}
-                      >
-                        {cat === 'ALL'
-                          ? 'All Oils'
-                          : categoriesList.find((c) => c.slug === cat)?.title || cat}
-                      </button>
-                    ))}
-
-                  </div>
-
-
+                <div className="text-xs text-stone-500 font-semibold">
+                  Total Products: <span className="text-forest-950 font-bold">{productsList.length}</span>
                 </div>
               </div>
 
-              {/* 3. Products List Rendering (Grid Cards OR Table) */}
+              {/* 3. Products List Rendering (Table) */}
               {(() => {
                 const filteredProducts = productsList.filter((p) => {
-                  const matchesCat =
-                    productCategoryFilter === 'ALL' || p.category === productCategoryFilter;
                   const matchesSearch =
                     !searchTerm ||
                     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.tagline.toLowerCase().includes(searchTerm.toLowerCase());
-                  return matchesCat && matchesSearch;
+                    p.tagline.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (p.categoryName && p.categoryName.toLowerCase().includes(searchTerm.toLowerCase()));
+                  return matchesSearch;
                 });
 
                 if (filteredProducts.length === 0) {
@@ -2354,17 +2332,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         No oils found matching your search
                       </h4>
                       <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                        Try clearing your search term or switching the category filter.
+                        Try typing a different name or clearing your search term.
                       </p>
                       <button
                         type="button"
                         onClick={() => {
                           setSearchTerm('');
-                          setProductCategoryFilter('ALL');
                         }}
                         className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all cursor-pointer"
                       >
-                        Reset Filters
+                        Clear Search
                       </button>
                     </div>
                   );
