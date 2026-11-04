@@ -196,3 +196,17 @@
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-out forwards;
 }
+
+/* Force hide browser default password reveal and clear buttons across all browsers (Edge, IE, Chrome) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+

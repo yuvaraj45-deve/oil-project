@@ -1128,7 +1128,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleSaveFeaturedVideo = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    updateHomeFeaturedVideo(videoForm);
+    updateHomeFeaturedVideo({
+      ...videoForm,
+      title: DEFAULT_HOME_FEATURED_VIDEO.title,
+      tamilTitle: DEFAULT_HOME_FEATURED_VIDEO.tamilTitle,
+      subtitle: DEFAULT_HOME_FEATURED_VIDEO.subtitle,
+      tamilSubtitle: DEFAULT_HOME_FEATURED_VIDEO.tamilSubtitle,
+    });
     showToast('Homepage featured video updated successfully!');
   };
 
@@ -2989,35 +2995,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </div>
                   </div>
 
-                  {/* 3. Video Title */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                      Video Heading Title
-                    </label>
-                    <input
-                      type="text"
-                      value={videoForm.title}
-                      onChange={(e) => setVideoForm((prev) => ({ ...prev, title: e.target.value }))}
-                      placeholder="e.g. Mara Chekku Heritage: The Live Wood Pressing Experience"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs font-bold focus:outline-none focus:border-forest-900 bg-white"
-                    />
-                  </div>
-
-                  {/* 4. Subtitle / Description */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                      Subtitle / Description
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={videoForm.subtitle}
-                      onChange={(e) => setVideoForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                      placeholder="Watch how native seeds are crushed cold in Vaagai wood pestles..."
-                      className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 resize-none bg-white"
-                    />
-                  </div>
-
-                  {/* 5. Clean Save Button Bar */}
+                  {/* Clean Save Button Bar */}
                   <div className="pt-2 flex gap-3">
                     <button
                       type="submit"
