@@ -115,6 +115,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Pending user object for welcome display
   const [pendingUser, setPendingUser] = useState<StoredAccount | null>(null);
@@ -127,6 +129,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   useEffect(() => {
     setLoginIdentifier('');
     setPassword('');
+    setConfirmPassword('');
     setErrorMessage(null);
   }, [isRegister]);
 
@@ -335,6 +338,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const cleanEmail = email.trim().toLowerCase();
     const cleanCity = city.trim();
     const cleanPass = password.trim();
+    const cleanConfirmPass = confirmPassword.trim();
 
     if (!cleanName) {
       setErrorMessage(
@@ -373,6 +377,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         language === 'ta'
           ? 'கடவுச்சொல் குறைந்தபட்சம் 4 எழுத்துக்கள் இருக்க வேண்டும்.'
           : 'Password must be at least 4 characters long.'
+      );
+      return;
+    }
+
+    if (!cleanConfirmPass) {
+      setErrorMessage(
+        language === 'ta'
+          ? 'தயவுசெய்து கடவுச்சொல்லை உறுதிப்படுத்தவும் (Confirm Password).'
+          : 'Please enter confirm password.'
+      );
+      return;
+    }
+
+    if (cleanPass !== cleanConfirmPass) {
+      setErrorMessage(
+        language === 'ta'
+          ? 'கடவுச்சொல் மற்றும் உறுதிப்படுத்தல் கடவுச்சொல் பொருந்தவில்லை (Passwords do not match).'
+          : 'Password and Confirm Password do not match.'
       );
       return;
     }
@@ -719,6 +741,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">
+                    {language === 'ta' ? 'கடவுச்சொல்லை உறுதிப்படுத்துக (Confirm Password)' : 'Confirm Password'}{' '}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="reg_confirm_password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder=""
+                      required
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-forest-900 focus:ring-1 focus:ring-forest-900 transition-all bg-stone-50/50 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
