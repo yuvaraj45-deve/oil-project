@@ -114,20 +114,17 @@ export const QuickDock: React.FC<QuickDockProps> = ({
           <ArrowUp className="w-4 h-4" />
         </button>
 
-        {/* Cancel / Dismiss Button */}
+        {/* Cancel / Dismiss Button (Icon Only) */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             setIsDismissed(true);
           }}
-          className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-500 text-xs font-bold transition-all border border-stone-200 hover:border-red-200 flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
-          title={language === 'ta' ? 'கீழ் பார் ரத்து செய்க (Cancel)' : 'Cancel / Dismiss Bottom Dock'}
-          aria-label="Cancel / Dismiss"
+          className="p-2 rounded-xl bg-stone-100 hover:bg-red-50 text-stone-400 hover:text-red-600 transition-colors border border-stone-200 hover:border-red-200 flex items-center justify-center shrink-0 cursor-pointer shadow-2xs"
+          title={language === 'ta' ? 'ரத்து செய்க' : 'Close'}
+          aria-label="Close"
         >
-          <X className="w-4 h-4 text-stone-500 hover:text-red-600" />
-          <span className="hidden sm:inline text-[11px] font-bold">
-            {language === 'ta' ? 'ரத்து' : 'Cancel'}
-          </span>
+          <X className="w-4 h-4" />
         </button>
 
       </div>
