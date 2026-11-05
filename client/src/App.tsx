@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { CategoryCircles } from './components/CategoryCircles';
@@ -50,20 +50,32 @@ import { CancelOrderPage } from './pages/CancelOrderPage';
 import { ShippingReturnsPage } from './pages/ShippingReturnsPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { CartPage } from './pages/CartPage';
+import { FaqPage } from './pages/FaqPage';
+import { OffersPage } from './pages/OffersPage';
 
 export function App() {
   const { products, categories, settings } = useStore();
   const effectiveProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Shopping Cart state
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      product: effectiveProducts[0] || PRODUCTS_DATA[0],
-      packSize: '1 Litre Bottle',
-      quantity: 1,
-      price: (effectiveProducts[0] || PRODUCTS_DATA[0]).price,
-    },
-  ]);
+  // Shopping Cart state (starts 100% empty until user explicitly adds an item)
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_cart');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  // Sync cart to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('ssoil_cart', JSON.stringify(cartItems));
+    } catch (e) {}
+  }, [cartItems]);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -102,28 +114,33 @@ export function App() {
   }, []);
 
   const navigateTo = (path: string) => {
+    // When visiting /shop, always reset category to 'all' so every single admin product is visible
+    if (path === '/shop') {
+      setSelectedCategory('all');
+    }
     window.history.pushState({}, '', path);
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenProduct = (product: Product) => {
-    navigateTo(`/product/${product.slug || product.id}`);
+    // Navigate with unique product.id so it never collides or falls back to the wrong product
+    navigateTo(`/product/${product.id}`);
   };
 
   // Dedicated Product Route Helper (/product/:slug or /product/:id)
   const isProductRoute = currentPath.startsWith('/product/');
   const productIdentifier = isProductRoute
-    ? currentPath.replace('/product/', '').replace(/\/$/, '')
+    ? decodeURIComponent(currentPath.replace('/product/', '').replace(/\/$/, '')).trim()
     : null;
   const currentProduct = productIdentifier
-    ? effectiveProducts.find(
-        (p) =>
-          p.id === productIdentifier ||
-          p.slug === productIdentifier ||
-          p.category === productIdentifier ||
-          p.name.toLowerCase().includes(productIdentifier.toLowerCase().replace(/-/g, ' '))
-      ) || effectiveProducts[0] || PRODUCTS_DATA[0]
+    ? effectiveProducts.find((p) => p.id === productIdentifier) ||
+      effectiveProducts.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
+      effectiveProducts.find((p) => p.name && p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === productIdentifier.toLowerCase()) ||
+      effectiveProducts.find((p) => p.name && p.name.toLowerCase().trim() === productIdentifier.toLowerCase()) ||
+      PRODUCTS_DATA.find((p) => p.id === productIdentifier) ||
+      PRODUCTS_DATA.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
+      null
     : null;
 
   // Dedicated Category Route Helper (/category/:slug)
@@ -137,104 +154,45 @@ export function App() {
   const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
   const [lastPlacedOrder, setLastPlacedOrder] = useState<PlacedOrder | null>(null);
 
-  // Live Orders List with initial seed data and localStorage persistence
+  // Helper to filter out fake demo/seed orders
+  const isGenuineOrder = (o: any): boolean => {
+    if (!o || typeof o !== 'object') return false;
+    if (['ord_1', 'ord_2', 'ord_3', 'ord-1', 'ord-2', 'ord-3', 'demo_1', 'demo_2'].includes(o.id)) return false;
+    if (o.customerName === 'Demo User' || o.customerName === 'Sample Customer') return false;
+    if (!o.items || !Array.isArray(o.items) || o.items.length === 0) return false;
+    return true;
+  };
+
+  // Live Orders List with localStorage persistence (no fake dummy seed orders)
   const [orders, setOrders] = useState<PlacedOrder[]>(() => {
     try {
       const saved = localStorage.getItem('ssoil_orders');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(isGenuineOrder);
+        }
+      }
     } catch (e) {}
-    return [
-      {
-        id: 'ord_1',
-        orderNumber: 'SSOIL-2026-1042',
-        customerName: 'Ramesh Sundaram',
-        customerEmail: 'ramesh.sundaram@gmail.com',
-        customerPhone: '9842145620',
-        shippingAddress: '42, Meyyanur Main Road, Salem, Tamil Nadu - 636004',
-        city: 'Salem',
-        pincode: '636004',
-        paymentMethod: 'UPI',
-        paymentStatus: 'PAID',
-        orderStatus: 'SHIPPED',
-        subtotal: 680,
-        shippingFee: 0,
-        totalAmount: 680,
-        createdAt: '2026-10-21T14:30:00.000Z',
-        items: [
-          {
-            productId: 'ss-sesame-1000',
-            productName: 'Wood-Pressed Gingelly (Sesame) Oil',
-            packSize: '1 Litre Bottle',
-            quantity: 2,
-            unitPrice: 395,
-            subtotal: 790,
-          },
-        ],
-      },
-      {
-        id: 'ord_2',
-        orderNumber: 'SSOIL-2026-1088',
-        customerName: 'Anitha Vijay',
-        customerEmail: 'anitha.vijay@yahoo.co.in',
-        customerPhone: '9789234110',
-        shippingAddress: '15, 2nd Avenue, Anna Nagar, Chennai, Tamil Nadu - 600040',
-        city: 'Chennai',
-        pincode: '600040',
-        paymentMethod: 'CARD',
-        paymentStatus: 'PAID',
-        orderStatus: 'PACKED',
-        subtotal: 570,
-        shippingFee: 0,
-        totalAmount: 570,
-        createdAt: '2026-10-21T18:15:00.000Z',
-        items: [
-          {
-            productId: 'prod_coconut',
-            productName: 'Pure Cold-Pressed Coconut Oil (Chekku)',
-            packSize: '1 Litre Bottle',
-            quantity: 1,
-            unitPrice: 380,
-            subtotal: 380,
-          },
-          {
-            productId: 'prod_sesame',
-            productName: 'Traditional Mara Chekku Sesame (Gingelly) Oil',
-            packSize: '500ml Bottle',
-            quantity: 1,
-            unitPrice: 190,
-            subtotal: 190,
-          },
-        ],
-      },
-      {
-        id: 'ord_3',
-        orderNumber: 'SSOIL-2026-1120',
-        customerName: 'Karthik Muthusamy',
-        customerEmail: 'karthik.m@outlook.com',
-        customerPhone: '9443219087',
-        shippingAddress: '78, Race Course Road, Coimbatore, Tamil Nadu - 641018',
-        city: 'Coimbatore',
-        pincode: '641018',
-        paymentMethod: 'COD',
-        paymentStatus: 'PENDING',
-        orderStatus: 'PROCESSING',
-        subtotal: 850,
-        shippingFee: 0,
-        totalAmount: 850,
-        createdAt: '2026-10-22T08:45:00.000Z',
-        items: [
-          {
-            productId: 'prod_ghee',
-            productName: 'A2 Desi Cow Bilona Cultured Ghee',
-            packSize: '500ml Glass Jar',
-            quantity: 1,
-            unitPrice: 850,
-            subtotal: 850,
-          },
-        ],
-      },
-    ];
+    return [];
   });
+
+  // Clean out any old dummy demo orders from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_orders');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(isGenuineOrder);
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('ssoil_orders', JSON.stringify(cleaned));
+            setOrders(cleaned);
+          }
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Sync orders to localStorage on any change
   useEffect(() => {
@@ -242,6 +200,18 @@ export function App() {
       localStorage.setItem('ssoil_orders', JSON.stringify(orders));
     } catch (e) {}
   }, [orders]);
+
+  // User-isolated genuine orders: Only show orders belonging to the logged-in user
+  const userOrders = useMemo(() => {
+    if (!currentUser) return [];
+    return orders.filter((o) => {
+      if (!isGenuineOrder(o)) return false;
+      if (o.userId && currentUser.id && o.userId === currentUser.id) return true;
+      if (currentUser.phone && o.customerPhone && o.customerPhone.replace(/\D/g, '') === currentUser.phone.replace(/\D/g, '')) return true;
+      if (currentUser.email && o.customerEmail && o.customerEmail.toLowerCase().trim() === currentUser.email.toLowerCase().trim()) return true;
+      return false;
+    });
+  }, [orders, currentUser]);
 
   // Handle Order Cancellation with Reason
   const handleCancelOrder = (orderId: string, reason: string, note?: string) => {
@@ -269,8 +239,33 @@ export function App() {
     navigateTo(`/cancel-order/${order.id}`);
   };
 
+  // Helper to calculate pack price accurately based on pack size
+  const calculatePackPrice = (basePrice: number, pack: string): number => {
+    if (!pack) return basePrice;
+    if (pack.includes('500 ml') || pack.includes('500ml') || pack.includes('500g')) {
+      return Math.round(basePrice * 0.55);
+    }
+    if (pack.includes('250 ml') || pack.includes('250g') || pack.includes('250ml')) {
+      return Math.round(basePrice * 0.32);
+    }
+    if (pack.includes('2 Litre') || pack.includes('2L') || pack.includes('2 Litre Can') || pack.includes('2 Litre Bottle') || pack.includes('2 kg')) {
+      return Math.round(basePrice * 1.95);
+    }
+    if (pack.includes('5 Litre') || pack.includes('5L') || pack.includes('5 Litre Can') || pack.includes('5 Litre Tin')) {
+      return Math.round(basePrice * 4.75);
+    }
+    if (pack.includes('15 Litre') || pack.includes('15L') || pack.includes('15 Litre Tin')) {
+      return Math.round(basePrice * 13.8);
+    }
+    if (pack.includes('1 kg') || pack.includes('1kg')) {
+      return Math.round(basePrice * 1.9);
+    }
+    return basePrice;
+  };
+
   // Cart helper functions
   const handleAddToCart = (product: Product, packSize: string, quantity = 1) => {
+    const unitPrice = calculatePackPrice(product.price, packSize);
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
         (item) => item.product.id === product.id && item.packSize === packSize
@@ -279,6 +274,7 @@ export function App() {
       if (existingIndex > -1) {
         const updated = [...prevItems];
         updated[existingIndex].quantity += quantity;
+        updated[existingIndex].price = unitPrice;
         return updated;
       } else {
         return [
@@ -287,7 +283,7 @@ export function App() {
             product,
             packSize,
             quantity,
-            price: product.price,
+            price: unitPrice,
           },
         ];
       }
@@ -497,9 +493,9 @@ export function App() {
         currentPath={currentPath}
         currentUser={currentUser}
         onNavigate={navigateTo}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={() => navigateTo('/cart')}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenFaq={() => setIsFaqOpen(true)}
+        onOpenFaq={() => navigateTo('/faq')}
         onOpenProfile={() => navigateTo('/profile')}
         onNavigateToLogin={() => navigateTo('/login')}
         onSignOut={handleGlobalSignOut}
@@ -530,8 +526,9 @@ export function App() {
         {/* Dedicated Route: /product/:slug (Full Standalone Product Detail Page) */}
         {isProductRoute && currentProduct && (
           <ProductDetailPage
+            key={currentProduct.id}
             product={currentProduct}
-            allProducts={PRODUCTS_DATA}
+            allProducts={effectiveProducts}
             onAddToCart={handleAddToCart}
             onBuyNow={(prod, pack, qty) => {
               handleAddToCart(prod, pack, qty);
@@ -605,7 +602,7 @@ export function App() {
         {currentPath === '/profile' && (
           <ProfilePage
             currentUser={currentUser}
-            orders={orders}
+            orders={userOrders}
             onNavigate={navigateTo}
             onCancelOrder={handleCancelOrder}
             onStartCancelOrder={handleStartCancelOrder}
@@ -631,9 +628,44 @@ export function App() {
           <PrivacyPolicyPage onNavigate={navigateTo} />
         )}
 
+        {/* Route: /cart (Dedicated Full-Page Cart, Favorites & Orders Page) */}
+        {currentPath === '/cart' && (
+          <CartPage
+            items={cartItems}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onClearCart={handleClearCart}
+            onProceedToCheckout={handleProceedToCheckout}
+            orders={userOrders}
+            onCancelOrder={handleCancelOrder}
+            onStartCancelOrder={handleStartCancelOrder}
+            onAddToCart={handleAddToCart}
+            onNavigate={navigateTo}
+          />
+        )}
+
         {/* Route: /terms-of-service (Terms of Service) */}
         {(currentPath === '/terms-of-service' || currentPath === '/terms') && (
           <TermsOfServicePage onNavigate={navigateTo} />
+        )}
+
+        {/* Route: /faq (Dedicated FAQs Page) */}
+        {currentPath === '/faq' && (
+          <FaqPage
+            onNavigate={navigateTo}
+            onShopOils={() => {
+              setSelectedCategory('all');
+              navigateTo('/shop');
+            }}
+          />
+        )}
+
+        {/* Route: /offers (Dedicated Offers & Discount Coupons Page) */}
+        {currentPath === '/offers' && (
+          <OffersPage
+            onNavigate={navigateTo}
+            onOpenCart={() => setIsCartOpen(true)}
+          />
         )}
 
         {/* Route: / (Default Flagship Homepage) */}
@@ -703,8 +735,8 @@ export function App() {
         )}
       </main>
 
-      {/* 13. Footer (Rendered on Home Page, Product Detail Pages, and Category Detail Pages) */}
-      {(currentPath === '/' || currentPath === '' || isProductRoute || isCategoryRoute) && (
+      {/* 13. Footer (Rendered ONLY on Home Page) */}
+      {(currentPath === '/' || currentPath === '') && (
         <Footer
           onSelectCategory={(cat) => {
             setSelectedCategory(cat);
@@ -714,13 +746,15 @@ export function App() {
         />
       )}
 
-      {/* Floating Bottom Quick-Order Dock (Desktop & Mobile) */}
-      <QuickDock
-        items={cartItems}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenLabReport={handleOpenPurityReport}
-        onNavigate={navigateTo}
-      />
+      {/* Floating Bottom Quick-Order Dock (Only when cart has items and not on /cart page or with cart drawer open) */}
+      {currentPath !== '/cart' && !isCartOpen && (
+        <QuickDock
+          items={cartItems}
+          onOpenCart={() => navigateTo('/cart')}
+          onOpenLabReport={handleOpenPurityReport}
+          onNavigate={navigateTo}
+        />
+      )}
 
       {/* Interactive Cart Drawer with Cart, Favorites & Orders Tabs */}
       <CartDrawer
@@ -731,10 +765,11 @@ export function App() {
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
         onProceedToCheckout={handleProceedToCheckout}
-        orders={orders}
+        orders={userOrders}
         onCancelOrder={handleCancelOrder}
         onStartCancelOrder={handleStartCancelOrder}
         onAddToCart={handleAddToCart}
+        onNavigate={navigateTo}
       />
 
       {/* Instant Checkout Modal */}
@@ -776,18 +811,11 @@ export function App() {
         onOpenAdmin={handleOpenAdmin}
       />
 
-      {/* Official Laboratory Gas Chromatography Report Modal */}
-      <LabReportModal
-        report={selectedLabReportProduct?.labReport || null}
-        productName={selectedLabReportProduct?.name || 'SS OIL Mara Chekku'}
-        onClose={() => setSelectedLabReportProduct(null)}
-      />
-
       {/* Customer Profile & Live Order Tracking Modal */}
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
-        orders={orders}
+        orders={userOrders}
         currentUser={currentUser}
         onSignOut={() => {
           setCurrentUser(null);

@@ -18,7 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { CartItem, PlacedOrder, Product } from '../types';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { CancelOrderModal } from './CancelOrderModal';
@@ -36,6 +36,7 @@ interface CartDrawerProps {
   onCancelOrder?: (orderId: string, reason: string, note?: string) => void;
   onStartCancelOrder?: (order: PlacedOrder) => void;
   onAddToCart?: (product: Product, packSize: string, quantity?: number) => void;
+  onNavigate?: (path: string) => void;
   initialTab?: 'cart' | 'favorites' | 'orders';
 }
 
@@ -51,6 +52,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onCancelOrder,
   onStartCancelOrder,
   onAddToCart,
+  onNavigate,
   initialTab = 'cart',
 }) => {
   const { language, t } = useLanguage();
@@ -178,7 +180,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10 h-full">
           <div
-            className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between h-full max-h-screen overflow-hidden"
+            className="w-full sm:w-[460px] max-w-full bg-white shadow-2xl flex flex-col justify-between h-full max-h-screen overflow-hidden"
             style={{ overscrollBehavior: 'contain' }}
           >
             
@@ -360,16 +362,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <img
                             src={item.product.image}
                             alt={item.product.name}
-                            className="w-18 h-18 object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
+                            className="w-20 h-20 min-w-[80px] max-w-[80px] h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
                           />
 
                           <div className="flex-1 min-w-0 flex flex-col justify-between">
                             <div>
                               <div className="flex items-start justify-between gap-1">
                                 <h4 className="font-serif font-bold text-xs text-forest-950 truncate">
-                                  {language === 'ta' && item.product.tamilName
-                                    ? item.product.tamilName
-                                    : item.product.name}
+                                  {getLocalizedProductName(item.product, language)}
                                 </h4>
                                 <div className="flex items-center gap-1 shrink-0">
                                   <button
@@ -461,6 +461,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
 
+                    {onNavigate && (
+                      <button
+                        onClick={() => {
+                          onClose();
+                          onNavigate('/cart');
+                        }}
+                        className="w-full py-2.5 px-4 rounded-xl border border-stone-200 hover:border-forest-900 text-forest-950 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer bg-stone-50 hover:bg-white"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-gold-600" />
+                        <span>{language === 'ta' ? 'முழு கார்ட் பக்கத்தைப் பார்க்க' : 'View Full Cart Page'}</span>
+                      </button>
+                    )}
+
                     <div className="flex items-center justify-center text-[11px] text-stone-500">
                       <span>
                         {language === 'ta'
@@ -545,12 +558,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <img
                             src={product.image}
                             alt={product.name}
-                            className="w-18 h-18 object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
+                            className="w-20 h-20 min-w-[80px] max-w-[80px] h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-1">
                               <h4 className="font-serif font-bold text-xs text-forest-950">
-                                {language === 'ta' && product.tamilName ? product.tamilName : product.name}
+                                {getLocalizedProductName(product, language)}
                               </h4>
                               <button
                                 onClick={() => handleToggleFav(product.id)}

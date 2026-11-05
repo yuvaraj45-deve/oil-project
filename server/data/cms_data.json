@@ -1,0 +1,311 @@
+{
+  "pages": [
+    {
+      "slug": "home",
+      "name": "Home Page",
+      "tamilName": "முகப்புப் பக்கம்",
+      "metaTitle": "SS OIL • Traditional Mara Chekku Cold-Pressed Oils Salem",
+      "metaDescription": "Authentic wood-pressed Sesame, Groundnut, Coconut, and Cooking oils crushed at 14 RPM in traditional Vaagai trees. Since 1966.",
+      "metaKeywords": "mara chekku oil, cold pressed gingelly oil, pure groundnut oil, wood ghani, salem mill, sulphur free coconut oil",
+      "updatedAt": "2026-11-05T11:07:04.247Z"
+    },
+    {
+      "slug": "about",
+      "name": "About Us Page",
+      "tamilName": "எங்கள் கதை",
+      "metaTitle": "Our Heritage & Story • 58 Years of Mara Chekku Pressing | SS OIL",
+      "metaDescription": "Learn about SS OIL legacy since 1966. Three generations of pure oil extraction using traditional Vaagai wood mortar pressing.",
+      "metaKeywords": "ss oil heritage, salem oil mill history, vaagai chekku tradition, 1966 cold press mill",
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "slug": "mill-journey",
+      "name": "Our History (Mill Journey)",
+      "tamilName": "மரச்செக்கு பயணம்",
+      "metaTitle": "The Mill Journey • Traditional Cold Pressing Process | SS OIL",
+      "metaDescription": "From handpicked sun-dried seeds to gentle gravity filtration. Experience our 5-stage native cold-pressing craft.",
+      "metaKeywords": "cold press process, wood mortar oil extraction, unrefined virgin oil steps, salem heritage mill",
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "slug": "why-us",
+      "name": "Product Quality (Why Us)",
+      "tamilName": "ஆலை தரம் & சான்றிதழ்",
+      "metaTitle": "Why Choose SS OIL • 100% Zero Hexane & Agmark Certified Pure Oils",
+      "metaDescription": "Compare refined cooking oils with native Mara Chekku oils. Lab-tested, zero chemical solvents, and high vitamin retention.",
+      "metaKeywords": "agmark grade 1 oil, zero chemical oil, chekku vs refined oil, pure wood pressed health benefits",
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "slug": "contact",
+      "name": "Contact Page",
+      "tamilName": "தொடர்பு & ஆலை அலுவலகம்",
+      "metaTitle": "Contact SS OIL • Mill Customer Care & Salem Factory Desk",
+      "metaDescription": "Get in touch with our customer care desk. Visit our traditional wood mill in Salem or order fresh batches online.",
+      "metaKeywords": "ss oil contact, salem mill address, customer care number, bulk oil inquiry",
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "slug": "offers",
+      "name": "Offers & Discounts",
+      "tamilName": "சிறப்பு சலுகைகள் & கூப்பன்கள்",
+      "metaTitle": "Exclusive Offers & Discount Coupons • Up to 20% OFF | SS OIL",
+      "metaDescription": "Save on pure cold-pressed native oils. Welcome discounts, free delivery coupons, and festive bulk offers.",
+      "metaKeywords": "oil discounts, ss oil coupon code, mara chekku offers, free shipping coupon",
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-home-hero",
+      "pageSlug": "home",
+      "sectionKey": "hero",
+      "title": "Pure Traditional Vaagai Mara Chekku Oils",
+      "tamilTitle": "பாரம்பரிய வாகை மரச்செக்கில் ஆட்டப்பட்ட தூய எண்ணெய்கள்",
+      "subtitle": "Slow-pressed at 14 RPM without artificial heat. Retaining 100% natural aroma, antioxidants, and native nutrients.",
+      "tamilSubtitle": "இயற்கையான முறையில் எந்த ரசாயன கலப்பும் இன்றி பாரம்பரிய வாகை மர உரலில் ஆட்டப்படும் தூய எண்ணெய்கள்.",
+      "body": "Our heritage mill in Salem has preserved the sacred art of wood-pressing since 1966. We source sun-dried native seeds directly from trusted local farmers and cold press them without industrial solvents.",
+      "tamilBody": "1966 முதல் மூன்று தலைமுறைகளாக எங்கள் சேலம் ஆலையில் இயற்கை முறையில் வாகை மரச்செக்கு எண்ணெய்கள் தயாரிக்கப்பட்டு வருகின்றன.",
+      "image": "/products/groundnut_oil.jpg?v=ssoil",
+      "ctaLabel": "Shop Fresh Mill Batch",
+      "ctaUrl": "/shop",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-home-story",
+      "pageSlug": "home",
+      "sectionKey": "story",
+      "title": "Generations of Purity: The Salem Heritage",
+      "tamilTitle": "தலைமுறை தலைமுறையாக தொடரும் தூய்மை: சேலம் பாரம்பரியம்",
+      "subtitle": "Three generations dedicated to delivering unadulterated oils straight from our wooden ghani to your kitchen.",
+      "tamilSubtitle": "எங்கள் மரச்செக்கிலிருந்து நேரடியாக உங்கள் குடும்ப சமையலறைக்கு வந்து சேரும் உன்னத தூய்மை.",
+      "body": "Unlike modern mass-produced refined oils that undergo high-heat caustic chemical processing, our oils are naturally settled under warm sunlight and filtered gently through unbleached cotton.",
+      "image": "/products/sesame_oil.jpg?v=ssoil",
+      "ctaLabel": "Discover Our Story",
+      "ctaUrl": "/about",
+      "status": "PUBLISHED",
+      "sortOrder": 2,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-about-mission",
+      "pageSlug": "about",
+      "sectionKey": "mission",
+      "title": "Our Mission: Native Health For Every Home",
+      "tamilTitle": "எங்கள் நோக்கம்: ஒவ்வொரு வீட்டிற்கும் பாரம்பரிய நல்வாழ்வு",
+      "subtitle": "Reviving traditional Tamil culinary wellness through authentic, unrefined wood-pressed edible oils.",
+      "body": "We believe genuine good health begins with pure cooking oil. Every drop of oil we press is completely free of chemical preservatives, paraffin, synthetic coloring, and hexane residues.",
+      "image": "/products/coconut_oil.jpg?v=ssoil",
+      "ctaLabel": "Explore Product Range",
+      "ctaUrl": "/shop",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-history-founding",
+      "pageSlug": "mill-journey",
+      "sectionKey": "craft",
+      "title": "1966: The Founding Stone Chekku",
+      "tamilTitle": "1966: பாரம்பரிய மரச்செக்கின் தொடக்கம்",
+      "subtitle": "Started with two traditional Vaagai tree mortars powered by native oxen, crushing native groundnuts for the local town.",
+      "body": "Over the past six decades, while keeping modern food-grade bottling and Agmark Grade-1 certifications, our core cold-crushing temperature has never exceeded 42°C.",
+      "image": "/products/sesame_oil.jpg?v=ssoil",
+      "ctaLabel": "Learn More",
+      "ctaUrl": "/mill-journey",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-whyus-comparison",
+      "pageSlug": "why-us",
+      "sectionKey": "quality",
+      "title": "Refined Oils vs SS OIL Mara Chekku",
+      "tamilTitle": "சுத்திகரிக்கப்பட்ட எண்ணெய் vs SS OIL மரச்செக்கு",
+      "subtitle": "Understanding the clear science between industrial refined oils and ambient wood ghani extraction.",
+      "body": "Commercial refined oils use 200°C solvent extraction with caustic soda and bleach. SS OIL uses low-shear wood pestles under 42°C, preserving active Vitamin E and native phytosterols.",
+      "image": "/products/sunflower_oil.jpg?v=ssoil",
+      "ctaLabel": "View Lab Certification",
+      "ctaUrl": "/why-us",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-contact-desk",
+      "pageSlug": "contact",
+      "sectionKey": "desk",
+      "title": "Central Mill Dispatch & Customer Care",
+      "tamilTitle": "மத்திய ஆலை விநியோக மையம் & வாடிக்கையாளர் உதவி",
+      "subtitle": "We are here to answer questions regarding batch codes, pack sizes, bulk corporate orders, or farm sourcing.",
+      "body": "Factory visits are welcomed on weekdays between 9:00 AM and 5:00 PM. Experience live wood mortar crushing in Salem.",
+      "image": "/products/groundnut_oil.jpg?v=ssoil",
+      "ctaLabel": "Call Mill Desk",
+      "ctaUrl": "tel:+919443210855",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    },
+    {
+      "id": "sec-offers-festival",
+      "pageSlug": "offers",
+      "sectionKey": "banner",
+      "title": "Seasonal Mill Celebration Vouchers",
+      "tamilTitle": "பண்டிகை கால ஆலை தள்ளுபடி வவுச்சர்கள்",
+      "subtitle": "Enjoy up to 20% discount on family combo packs and 5-litre cans with free express doorstep delivery.",
+      "body": "Enter codes FIRST10, SAVE15, or BULK20 during checkout to activate your direct mill savings on genuine cold-pressed oils.",
+      "image": "/products/rice_bran_oil.jpg",
+      "ctaLabel": "View All Vouchers",
+      "ctaUrl": "/offers",
+      "status": "PUBLISHED",
+      "sortOrder": 1,
+      "updatedAt": "2026-11-05T11:07:04.249Z"
+    }
+  ],
+  "siteContent": {
+    "home": {
+      "heroTitle": "Pure Mara Chekku Cold-Pressed Oils",
+      "heroTamilTitle": "பாரம்பரிய வாகை மரச்செக்கு தூய எண்ணெய்கள்",
+      "heroSubtitle": "Timeless Purity, Modern Convenience",
+      "heroTamilSubtitle": "காலமற்ற தூய்மை, நவீன வசதி",
+      "heroDescription": "Crafted from pesticide-free native seeds crushed at 14 RPM in traditional Vaagai wood mortars without heat or chemicals. Salem's heritage since 1966.",
+      "heroTamilDescription": "ரசாயனம் இல்லாத பாரம்பரிய வாகை மரச்செக்கில் இயற்கை முறையில் ஆட்டப்பட்ட 100% தூய சமையல் எண்ணெய்கள்.",
+      "heroBgImage": "/banners/ssoil_bottling_hero_banner.jpg",
+      "buttonText": "SHOP NOW",
+      "buttonTamilText": "இப்போதே வாங்க",
+      "featuredTitle": "Handcrafted Heritage Oils",
+      "featuredTamilTitle": "கைவினை பாரம்பரிய எண்ணெய்கள்",
+      "featuredSubtitle": "Extracted with cold-pressing below 42°C preserving native nutrients & taste",
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:52:42.111Z"
+    },
+    "about": {
+      "title": "58 Years of Mara Chekku Mill Heritage",
+      "tamilTitle": "58 வருட மரச்செக்கு ஆலை பாரம்பரியம்",
+      "companyIntro": "SS OIL was founded with a single mission: to bring unadulterated, wholesome wood-pressed oils from our Salem mill directly to healthy South Indian kitchens.",
+      "tamilCompanyIntro": "சேலம் மாநகரில் தூய, ரசாயனமற்ற மரச்செக்கு எண்ணெய்களை குடும்பங்களுக்கு நேரடியாக வழங்குவதே எங்கள் முதன்மை நோக்கம்.",
+      "ourHistory": "Founded in 1966 by our grandfather with a pair of native Kangeyam bullocks and seasoned Vaagai wood pestles. Today, three generations later, we uphold the exact same ambient cold-crushing temperature.",
+      "tamilOurHistory": "1966-ஆம் ஆண்டு தொடங்கப்பட்டு, மூன்று தலைமுறைகளாக 42°C வெப்பத்திற்குள் மரச்செக்கில் ஆட்டும் பாரம்பரியத்தைக் கட்டிக்காத்து வருகிறோம்.",
+      "ourMission": "To replace industrially refined and chemically solvent-extracted oils with clean, cold-pressed native nutrition that nurtures hearts and longevity.",
+      "tamilOurMission": "தொழிற்சாலை ரசாயன எண்ணெய்களுக்கு மாற்றாக இதயத்திற்கு நலம் சேர்க்கும் இயற்கை மரச்செக்கு எண்ணெய்களை ஒவ்வொரு வீட்டிற்கும் கொண்டு சேர்ப்பதே எங்களின் லட்சியம்.",
+      "ourVision": "To be India's most trusted cold-pressed edible oil house, championing regenerative agriculture, fair farmer wages, and uncompromised lab transparency.",
+      "tamilOurVision": "பாரம்பரிய விவசாயம் மற்றும் கலப்படமற்ற உணவுப் பொருட்களின் மூலம் இந்தியாவின் மிக நம்பகமான மரச்செக்கு பிராண்டாக விளங்குவது.",
+      "productQualityDesc": "Agmark Grade-1 certified, 100% zero hexane residue, laboratory tested for acid values, peroxide values, and high Vitamin E retention.",
+      "tamilProductQualityDesc": "அக்மார்க் முதல் தரம், பூஜ்ஜிய ரசாயனம், மற்றும் இயற்கை வைட்டமின் E சத்துக்கள் நிறைந்தது.",
+      "aboutImage": "/craft_stage_churn.jpg",
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:42:11.475Z"
+    },
+    "product": {
+      "sectionTitle": "Our Artisanal Wood-Pressed Oil Collection",
+      "tamilSectionTitle": "எங்கள் மரச்செக்கு எண்ணெய் வகைகள்",
+      "description": "Explore 100% virgin cold-pressed Sesame, Groundnut, Coconut, and specialty cooking oils crafted for authentic aroma, high smoke point, and wholesome wellness.",
+      "tamilDescription": "பாரம்பரிய மணம், சுவை மற்றும் ஆரோக்கியம் நிறைந்த வாகை மரச்செக்கு நல்லெண்ணெய், கடலை எண்ணெய், தேங்காய் எண்ணெய் தயாரிப்புகள்.",
+      "benefits": "• Cold-pressed below 42°C in Vaagai wood pestles\n• 100% Natural, zero mineral oil, paraffin or hexane\n• Rich in native antioxidants & active Vitamin E\n• Agmark Grade-1 & FSSAI certified purity standard\n• Authentic aroma that enriches traditional dishes",
+      "tamilBenefits": "• 42°C-க்கு கீழ் வாகை மரச்செக்கில் ஆட்டப்பட்டது\n• 100% இயற்கை, ரசாயனக் கலப்பற்றது\n• இயற்கை ஆன்டிஆக்ஸிடன்ட்கள் & வைட்டமின் E நிறைந்தது\n• அக்மார்க் முதல் தரச் சான்றிதழ் பெற்றது\n• பாரம்பரிய மணமும் சுவையும் கொண்டது",
+      "images": [
+        {
+          "id": "img-coconut",
+          "url": "/products/coconut_oil.jpg?v=ssoil",
+          "alt": "Coconut Oil",
+          "title": "Mara Chekku Coconut Oil"
+        },
+        {
+          "id": "img-sesame",
+          "url": "/products/sesame_oil.jpg?v=ssoil",
+          "alt": "Sesame Oil",
+          "title": "Traditional Gingelly Oil"
+        },
+        {
+          "id": "img-groundnut",
+          "url": "/products/groundnut_oil.jpg?v=ssoil",
+          "alt": "Groundnut Oil",
+          "title": "Pure Mara Chekku Groundnut Oil"
+        },
+        {
+          "id": "img-sunflower",
+          "url": "/products/sunflower_oil.jpg?v=ssoil",
+          "alt": "Sunflower Oil",
+          "title": "Natural Sunflower Cooking Oil"
+        }
+      ],
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:42:11.475Z"
+    },
+    "offers": {
+      "bannerTitle": "Festive Mill Celebration & Bulk Discounts",
+      "tamilBannerTitle": "பண்டிகை கால ஆலை தள்ளுபடி மற்றும் சலுகைகள்",
+      "description": "Save up to 20% on fresh cold-pressed oils straight from our Salem mill with free express home delivery across Tamil Nadu.",
+      "tamilDescription": "உங்கள் இல்லங்களுக்கே இலவச விரைவு டெலிவரியுடன் மரச்செக்கு எண்ணெய்களுக்கு 20% வரை சிறப்புத் தள்ளுபடி பெறுங்கள்.",
+      "discountInfo": "10% OFF on First Order (Code: FIRST10) • 15% OFF Above ₹1000 (Code: SAVE15) • 20% OFF on Bulk Cans (Code: BULK20)",
+      "tamilDiscountInfo": "முதல் ஆர்டருக்கு 10% தள்ளுபடி • ₹1000-க்கு மேல் 15% தள்ளுபடி • 5L/15L மொத்த ஆர்டருக்கு 20% தள்ளுபடி",
+      "couponSectionDesc": "Copy any coupon code below and apply during checkout to claim your instant direct mill discount.",
+      "tamilCouponSectionDesc": "கீழே உள்ள கூப்பன் குறியீட்டை காப்பி செய்து செக்அவுட் பக்கத்தில் தள்ளுபடியைப் பெறுங்கள்.",
+      "bannerImage": "/banners/ssoil_bottling_hero_banner.jpg",
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:42:11.475Z"
+    },
+    "contact": {
+      "title": "Get in Touch with SS OIL Mill Desk",
+      "tamilTitle": "எங்கள் ஆலை அலுவலகத்தைத் தொடர்பு கொள்ள",
+      "description": "Have questions regarding mill batch certificates, doorstep deliveries, wholesale dealership, or custom gift tins? Our family team is glad to assist you.",
+      "tamilDescription": "ஆலை தயாரிப்புகள், மொத்த விற்பனை அல்லது டோர் டெலிவரி குறித்த கேள்விகளுக்கு எங்கள் குழுவைத் தொடர்பு கொள்ளுங்கள்.",
+      "address": "SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Tamil Nadu – 636004",
+      "phone": "+91 98765 43210 / 1800-425-SSOIL",
+      "email": "care@ssoil.in",
+      "millHours": "Mon – Sat: 9:00 AM – 7:30 PM IST",
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:42:11.475Z"
+    },
+    "footer": {
+      "description": "SS OIL is dedicated to preserving the ancient South Indian heritage of Vaagai wood-pressing, providing wholesome cold-pressed oils with zero chemicals since 1966.",
+      "tamilDescription": "1966 முதல் ரசாயனக் கலப்பில்லாத தூய வாகை மரச்செக்கு எண்ணெய்களை பாரம்பரிய முறையில் தயாரித்து வழங்கி வருகிறோம்.",
+      "copyrightText": "SS OIL Mills Private Limited. All Rights Reserved. Traditional Mara Chekku Heritage.",
+      "quickLinks": [
+        {
+          "label": "Home",
+          "url": "/"
+        },
+        {
+          "label": "About Us",
+          "url": "/about"
+        },
+        {
+          "label": "Shop Oils",
+          "url": "/shop"
+        },
+        {
+          "label": "Our Journey",
+          "url": "/mill-journey"
+        },
+        {
+          "label": "Offers & Coupons",
+          "url": "/offers"
+        },
+        {
+          "label": "Contact Mill",
+          "url": "/contact"
+        },
+        {
+          "label": "Shipping & Returns",
+          "url": "/shipping-returns"
+        },
+        {
+          "label": "Privacy Policy",
+          "url": "/privacy-policy"
+        }
+      ],
+      "socialLinks": {
+        "facebook": "https://facebook.com/ssoilheritage",
+        "instagram": "https://instagram.com/ssoilheritage",
+        "youtube": "https://youtube.com/@ssoilheritage",
+        "whatsapp": "https://wa.me/919876543210"
+      },
+      "status": "PUBLISHED",
+      "updatedAt": "2026-11-05T11:42:11.475Z"
+    }
+  }
+}

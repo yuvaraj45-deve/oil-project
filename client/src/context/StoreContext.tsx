@@ -97,8 +97,7 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
   // Baseline products
   base.forEach((p) => {
     if (!deletedIds.includes(p.id)) {
-      const key = getProductKey(p);
-      map.set(key, p);
+      map.set(p.id, p);
     }
   });
 
@@ -107,12 +106,24 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
     if (!src || !Array.isArray(src)) return;
     src.forEach((p) => {
       if (!p || !p.id || deletedIds.includes(p.id)) return;
-      const key = getProductKey(p);
-      const existing = map.get(key);
+      const sanitized: Product = {
+        ...p,
+        tamilName: (p.tamilName && /[\u0B80-\u0BFF]/.test(p.tamilName)) ? p.tamilName : undefined,
+      };
+
+      // Self-heal: If a product's name or tagline has a raw internal technical key string
+      if (sanitized.name && (sanitized.name.startsWith('prod.') || sanitized.name.includes('.name') || (sanitized.name.startsWith('prod-') && !sanitized.name.includes(' ')))) {
+        sanitized.name = sanitized.categoryName || 'SS Mara Chekku Pure Oil';
+      }
+      if (sanitized.tagline && (sanitized.tagline.startsWith('prod.') || sanitized.tagline.includes('.tagline') || (sanitized.tagline.startsWith('prod-') && !sanitized.tagline.includes(' ')))) {
+        sanitized.tagline = '100% Traditional Mara Chekku Pure Extraction';
+      }
+
+      const existing = map.get(p.id);
       if (existing) {
-        map.set(key, { ...existing, ...p });
+        map.set(p.id, { ...existing, ...sanitized });
       } else {
-        map.set(key, p);
+        map.set(p.id, sanitized);
       }
     });
   });
@@ -582,14 +593,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Product CRUD
   const updateProduct = useCallback(async (updatedProduct: Product) => {
     setProducts((prev) => {
-      const targetKey = getProductKey(updatedProduct);
       let matched = false;
       const next = prev.map((p) => {
         if (
           p.id === updatedProduct.id ||
-          (p.slug && updatedProduct.slug && p.slug === updatedProduct.slug) ||
-          (p.name && updatedProduct.name && p.name.toLowerCase().trim() === updatedProduct.name.toLowerCase().trim()) ||
-          getProductKey(p) === targetKey
+          (Boolean(p.slug) && Boolean(updatedProduct.slug) && p.slug === updatedProduct.slug)
         ) {
           matched = true;
           return { ...p, ...updatedProduct };

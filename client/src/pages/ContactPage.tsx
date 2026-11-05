@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useCMS } from '../context/CMSContext';
 
 export const ContactPage: React.FC = () => {
   const { language, t } = useLanguage();
   const { settings } = useStore();
+  const { siteContent } = useCMS();
+  const contactCms = siteContent?.contact?.status === 'PUBLISHED' ? siteContent.contact : null;
+
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,6 +24,20 @@ export const ContactPage: React.FC = () => {
     setSubmitted(true);
   };
 
+  const contactTitle =
+    language === 'ta'
+      ? contactCms?.tamilTitle || t('contact.title')
+      : contactCms?.title || t('contact.title');
+  const contactDesc =
+    language === 'ta'
+      ? contactCms?.tamilDescription || t('contact.subtitle')
+      : contactCms?.description || t('contact.subtitle');
+  const addressText = contactCms?.address || settings.millAddress || t('contact.locationDesc');
+  const phoneText = contactCms?.phone || settings.phone || '1800-425-SSOIL / +91 98765 43210';
+  const emailText = contactCms?.email || settings.email || 'care@ssoil.in';
+  const hoursText =
+    contactCms?.millHours || settings.millHours || (language === 'ta' ? 'திங்கள் – சனி: காலை 9:00 – இரவு 7:30 IST' : 'Mon – Sat: 9:00 AM – 7:30 PM IST');
+
   return (
     <div className="bg-cream-50/50 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -27,10 +45,10 @@ export const ContactPage: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <h1 className="text-3xl sm:text-5xl font-serif font-black text-forest-950 tracking-tight">
-            {t('contact.title')}
+            {contactTitle}
           </h1>
           <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
-            {t('contact.subtitle')}
+            {contactDesc}
           </p>
         </div>
 
@@ -52,7 +70,7 @@ export const ContactPage: React.FC = () => {
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.locationTitle')}</span>
                     <p className="text-stone-600 leading-relaxed mt-0.5">
-                      {settings.millAddress || t('contact.locationDesc')}
+                      {addressText}
                     </p>
                   </div>
                 </div>
@@ -63,8 +81,8 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.phoneTitle')}</span>
-                    <a href={`tel:${settings.phone || '1800-425-7764'}`} className="text-forest-900 font-bold block hover:underline">
-                      {settings.phone || '1800-425-SSOIL / +91 98765 43210'}
+                    <a href={`tel:${phoneText}`} className="text-forest-900 font-bold block hover:underline">
+                      {phoneText}
                     </a>
                   </div>
                 </div>
@@ -75,8 +93,8 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-bold text-stone-900 block">{t('contact.emailTitle')}</span>
-                    <a href={`mailto:${settings.email || 'care@ssoil.in'}`} className="text-forest-900 font-bold block hover:underline">
-                      {settings.email || 'care@ssoil.in'}
+                    <a href={`mailto:${emailText}`} className="text-forest-900 font-bold block hover:underline">
+                      {emailText}
                     </a>
                   </div>
                 </div>
@@ -88,7 +106,7 @@ export const ContactPage: React.FC = () => {
                   <div>
                     <span className="font-bold text-stone-900 block">{language === 'ta' ? 'பணி நேரம்' : 'Mill Hours'}</span>
                     <p className="text-stone-600 mt-0.5">
-                      {settings.millHours || t('contact.phoneHours')}
+                      {hoursText}
                     </p>
                   </div>
                 </div>

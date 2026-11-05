@@ -16,6 +16,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.about': 'About Us',
     'nav.health': 'Health',
     'nav.contact': 'Contact',
+    'nav.offers': 'Offers & Coupons',
     'nav.searchPlaceholder': 'Search oils...',
     'nav.signIn': 'Sign In',
     'nav.cart': 'Cart',
@@ -84,7 +85,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'prod.ss-deepam-1000.tagline': 'Sacred 5-Oil Blend Infused with Sugandha Herbs for Divine Peace',
     'prod.ss-ghee-500.name': 'SS A2 Cultured Desi Cow Ghee',
     'prod.ss-ghee-500.tagline': 'Traditional Bilona Method from Native Bos Indicus Cow Milk',
-    'prod.ss-jaggery-500.name': 'SS Pure Udangudi Palm Jaggery (Karupatti)',
+    'prod.ss-jaggery-500.name': 'SS Pure Native Palm Jaggery (Karupatti)',
     'prod.ss-jaggery-500.tagline': 'Traditional Unrefined Palm Nectar Block Packed with Natural Iron',
 
     // Featured Products (4 items + View All)
@@ -368,6 +369,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.about': 'எங்களைப் பற்றி',
     'nav.health': 'ஆரோக்கியம்',
     'nav.contact': 'தொடர்புக்கு',
+    'nav.offers': 'சலுகைகள் & கூப்பன்கள்',
     'nav.searchPlaceholder': 'எண்ணெய் தேட...',
     'nav.signIn': 'உள்நுழைக',
     'nav.cart': 'கார்ட்',
@@ -742,7 +744,14 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       return dict[key];
     }
     // Fallback to English
-    return translations.en[key] || key;
+    if (translations.en[key]) {
+      return translations.en[key];
+    }
+    // If key starts with prod. and not found, don't return the raw internal key
+    if (key.startsWith('prod.') && (key.endsWith('.name') || key.endsWith('.tagline'))) {
+      return '';
+    }
+    return key;
   };
 
   return (
@@ -750,6 +759,174 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       {children}
     </LanguageContext.Provider>
   );
+};
+
+export const TAMIL_SCRIPT_REGEX = /[\u0B80-\u0BFF]/;
+
+export const CATEGORY_DEFAULT_TAMIL_NAMES: Record<string, string> = {
+  'sesame-oil': 'மரச்செக்கு நல்லெண்ணெய்',
+  'sesame': 'மரச்செக்கு நல்லெண்ணெய்',
+  'groundnut-oil': 'மரச்செக்கு கடலை எண்ணெய்',
+  'groundnut': 'மரச்செக்கு கடலை எண்ணெய்',
+  'coconut-oil': 'மரச்செக்கு தேங்காய் எண்ணெய்',
+  'coconut': 'மரச்செக்கு தேங்காய் எண்ணெய்',
+  'sunflower-oil': 'தூய சூரியகாந்தி எண்ணெய்',
+  'sunflower': 'தூய சூரியகாந்தி எண்ணெய்',
+  'ricebran-oil': 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+  'ricebran': 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+  'rice-bran': 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+  'pooja-oil': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'pooja': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'pooja-special': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'lamp-oil': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'lamp': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'deepam': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'cooking-oil': 'தூய தினசரி சமையல் எண்ணெய்',
+  'cooking': 'தூய தினசரி சமையல் எண்ணெய்',
+  'ghee-jaggery': 'நாட்டு மாட்டு பிலோனா நெய்',
+  'ghee': 'நாட்டு மாட்டு பிலோனா நெய்',
+  'jaggery': 'உடன்குடி பனை கருப்பட்டி',
+  'mustard-oil': 'மரச்செக்கு கடுகு எண்ணெய்',
+  'mustard': 'மரச்செக்கு கடுகு எண்ணெய்',
+  'castor-oil': 'தூய விளக்கெண்ணெய்',
+  'castor': 'தூய விளக்கெண்ணெய்',
+  'neem-oil': 'மரச்செக்கு வேப்ப எண்ணெய்',
+  'neem': 'மரச்செக்கு வேப்ப எண்ணெய்',
+};
+
+const COMMON_TAMIL_NAME_MAP: Record<string, string> = {
+  'gold winner': 'கோல்ட் வின்னர் சமையல் எண்ணெய்',
+  'gold winner oil': 'கோல்ட் வின்னர் சமையல் எண்ணெய்',
+  'kannan': 'கண்ணன் மரச்செக்கு நல்லெண்ணெய்',
+  'kannan oil': 'கண்ணன் மரச்செக்கு நல்லெண்ணெய்',
+  'groundnut oil': 'மரச்செக்கு கடலை எண்ணெய்',
+  'sesame oil': 'மரச்செக்கு நல்லெண்ணெய்',
+  'gingelly oil': 'மரச்செக்கு நல்லெண்ணெய்',
+  'coconut oil': 'மரச்செக்கு தேங்காய் எண்ணெய்',
+  'virgin coconut oil': 'மரச்செக்கு தேங்காய் எண்ணெய்',
+  'sunflower oil': 'தூய சூரியகாந்தி எண்ணெய்',
+  'rice bran oil': 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+  'ricebran oil': 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+  'cooking oil': 'தினசரி சமையல் எண்ணெய்',
+  'pooja oil': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'deepam oil': 'பஞ்ச தீப பூஜை எண்ணெய்',
+  'cow ghee': 'நாட்டு மாட்டு பிலோனா நெய்',
+  'desi ghee': 'நாட்டு மாட்டு பிலோனா நெய்',
+  'palm jaggery': 'உடன்குடி பனை கருப்பட்டி',
+  'mustard oil': 'மரச்செக்கு கடுகு எண்ணெய்',
+  'castor oil': 'தூய விளக்கெண்ணெய்',
+  'neem oil': 'மரச்செக்கு வேப்ப எண்ணெய்',
+};
+
+export const getLocalizedProductName = (
+  product: { id?: string; name: string; tamilName?: string; category?: string; categoryName?: string },
+  language: 'en' | 'ta'
+): string => {
+  const isCorruptedName = !product.name ||
+    product.name.startsWith('prod.') ||
+    product.name.includes('.name') ||
+    product.name.includes('prod-');
+
+  const resolvedCleanName = isCorruptedName
+    ? (product.categoryName || 'SS Mara Chekku Pure Oil')
+    : product.name;
+
+  if (language === 'ta') {
+    // 1. If explicit tamilName has valid Tamil characters (not English text or copy of name)
+    if (product.tamilName && TAMIL_SCRIPT_REGEX.test(product.tamilName)) {
+      return product.tamilName.trim();
+    }
+    // 2. If name itself is in Tamil characters
+    if (product.name && TAMIL_SCRIPT_REGEX.test(product.name)) {
+      return product.name.trim();
+    }
+    // 3. Known product id translation
+    if (product.id && translations.ta[`prod.${product.id}.name`]) {
+      return translations.ta[`prod.${product.id}.name`];
+    }
+    // 4. Common exact phrase map
+    const lower = (resolvedCleanName || '').toLowerCase().trim();
+    if (COMMON_TAMIL_NAME_MAP[lower]) {
+      return COMMON_TAMIL_NAME_MAP[lower];
+    }
+    // 5. Keyword mappings
+    if (lower.includes('gold winner')) return 'கோல்ட் வின்னர் சமையல் எண்ணெய்';
+    if (lower.includes('kannan')) return 'கண்ணன் நல்லெண்ணெய்';
+    if (lower.includes('sesame') || lower.includes('gingelly')) return 'மரச்செக்கு நல்லெண்ணெய்';
+    if (lower.includes('groundnut') || lower.includes('peanut')) return 'மரச்செக்கு கடலை எண்ணெய்';
+    if (lower.includes('coconut')) return 'மரச்செக்கு தேங்காய் எண்ணெய்';
+    if (lower.includes('cooking') || lower.includes('daily')) return 'தூய தினசரி சமையல் எண்ணெய்';
+    if (lower.includes('sunflower')) return 'தூய சூரியகாந்தி எண்ணெய்';
+    if (lower.includes('rice bran') || lower.includes('ricebran')) return 'இதய நலம் தரும் தவிட்டு எண்ணெய்';
+    if (lower.includes('deepam') || lower.includes('pooja') || lower.includes('lamp')) return 'பஞ்ச தீப பூஜை எண்ணெய்';
+    if (lower.includes('ghee')) return 'நாட்டு மாட்டு பிலோனா நெய்';
+    if (lower.includes('jaggery') || lower.includes('karupatti')) return 'உடன்குடி பனை கருப்பட்டி';
+    if (lower.includes('mustard')) return 'மரச்செக்கு கடுகு எண்ணெய்';
+    if (lower.includes('castor')) return 'தூய விளக்கெண்ணெய்';
+    if (lower.includes('neem')) return 'மரச்செக்கு வேப்ப எண்ணெய்';
+
+    // 6. Category-based fallback (handles any custom product or English name without Tamil translation)
+    const rawCat = (product.category || '').toLowerCase().trim();
+    const catSlug = rawCat.replace(/\s+/g, '-');
+    if (catSlug && CATEGORY_DEFAULT_TAMIL_NAMES[catSlug]) {
+      return CATEGORY_DEFAULT_TAMIL_NAMES[catSlug];
+    }
+    if (rawCat && CATEGORY_DEFAULT_TAMIL_NAMES[rawCat]) {
+      return CATEGORY_DEFAULT_TAMIL_NAMES[rawCat];
+    }
+    const catName = (product.categoryName || '').toLowerCase().trim();
+    for (const [key, val] of Object.entries(CATEGORY_DEFAULT_TAMIL_NAMES)) {
+      if (catName.includes(key) || rawCat.includes(key)) {
+        return val;
+      }
+    }
+
+    // 7. General pure oil fallback
+    return 'மரச்செக்கு தூய எண்ணெய்';
+  }
+
+  return resolvedCleanName;
+};
+
+export const getLocalizedProductTagline = (
+  product: { id?: string; tagline?: string; tamilTagline?: string; name?: string; category?: string; categoryName?: string },
+  language: 'en' | 'ta'
+): string => {
+  const isCorruptedTagline = !product.tagline ||
+    product.tagline.startsWith('prod.') ||
+    product.tagline.includes('.tagline') ||
+    product.tagline.includes('prod-');
+
+  const resolvedCleanTagline = isCorruptedTagline
+    ? '100% Traditional Mara Chekku Cold-Pressed Virgin Grade'
+    : product.tagline;
+
+  if (language === 'ta') {
+    if (product.tamilTagline && TAMIL_SCRIPT_REGEX.test(product.tamilTagline)) {
+      return product.tamilTagline.trim();
+    }
+    if (product.tagline && TAMIL_SCRIPT_REGEX.test(product.tagline)) {
+      return product.tagline.trim();
+    }
+    if (product.id && translations.ta[`prod.${product.id}.tagline`]) {
+      return translations.ta[`prod.${product.id}.tagline`];
+    }
+    const catSlug = (product.category || '').toLowerCase().trim();
+    if (catSlug.includes('sesame') || catSlug.includes('gingelly')) return 'பனை கருப்பட்டி சேர்த்து வாகை மரச்செக்கில் ஆட்டப்பட்ட தூய நல்லெண்ணெய்';
+    if (catSlug.includes('groundnut') || catSlug.includes('peanut')) return 'ரசாயனம் இல்லாத பாரம்பரிய வாகை மரச்செக்கு கடலை எண்ணெய்';
+    if (catSlug.includes('coconut')) return 'சல்ஃபர் இல்லாத இயற்கை கொப்பரைத் தேங்காய் எண்ணெய்';
+    if (catSlug.includes('cooking')) return 'சுத்திகரிக்கப்பட்ட ஆரோக்கியமான அன்றாட சமையல் எண்ணெய்';
+    if (catSlug.includes('sunflower')) return 'வைட்டமின் E நிறைந்த லேசான சமையல் எண்ணெய்';
+    if (catSlug.includes('rice')) return '10,000+ ppm ஒரிசனால் கொலஸ்ட்ரால் சமநிலைக்கு உகந்தது';
+    if (catSlug.includes('ghee')) return 'பாரம்பரிய பிலோனா முறையில் காய்ச்சப்பட்ட மணல் மணலான நெய்';
+    if (catSlug.includes('deepam') || catSlug.includes('pooja') || catSlug.includes('lamp')) return 'தெய்வீக சாந்தியும் அமைதியும் தரும் 5 புனித எண்ணெய்களின் கூட்டு';
+    if (catSlug.includes('jaggery') || catSlug.includes('karupatti')) return 'இயற்கை இரும்புச்சத்து நிறைந்த சுத்தமான பனை வெல்லம்';
+    if (catSlug.includes('mustard')) return 'இயற்கையான காரமும் மணமும் நிறைந்த தூய கடுகு எண்ணெய்';
+
+    return '100% இயற்கை முறையில் வாகை மரச்செக்கில் ஆட்டப்பட்ட தூய எண்ணெய்';
+  }
+
+  return resolvedCleanTagline || '';
 };
 
 export const useLanguage = () => useContext(LanguageContext);

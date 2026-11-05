@@ -1,9 +1,22 @@
 import React from 'react';
 import { Award, CheckCircle2, Droplets, Leaf } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useCMS } from '../context/CMSContext';
 
 export const AboutSection: React.FC = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const { siteContent } = useCMS();
+  const aboutCms = siteContent?.about?.status === 'PUBLISHED' ? siteContent.about : null;
+
+  const aboutHeadline =
+    language === 'ta'
+      ? aboutCms?.tamilTitle || t('about.storyTitle')
+      : aboutCms?.title || t('about.storyTitle');
+  const aboutStory =
+    language === 'ta'
+      ? aboutCms?.tamilCompanyIntro || t('about.storyP1')
+      : aboutCms?.companyIntro || t('about.storyP1');
+  const aboutImage = aboutCms?.aboutImage || 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=800&q=80';
 
   return (
     <section id="about" className="py-16 sm:py-24 bg-cream-100 relative">
@@ -15,7 +28,7 @@ export const AboutSection: React.FC = () => {
             <div className="relative mx-auto max-w-md lg:max-w-none">
               <div className="rounded-3xl overflow-hidden shadow-card border border-cream-300 relative group">
                 <img
-                  src="https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=800&q=80"
+                  src={aboutImage}
                   alt="Traditional Wood Press Ghani Process"
                   className="w-full h-80 sm:h-96 object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
@@ -56,11 +69,11 @@ export const AboutSection: React.FC = () => {
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-forest-950 tracking-tight leading-snug">
-              {t('about.storyTitle')}
+              {aboutHeadline}
             </h2>
 
             <p className="text-stone-600 text-base leading-relaxed">
-              {t('about.storyP1')}
+              {aboutStory}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

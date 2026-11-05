@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, X, Heart, Star, Check } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useCMS } from '../context/CMSContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface ShopPageProps {
@@ -119,27 +120,67 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     setTimeout(() => setAddedItemEffect(null), 1500);
   };
 
-  const categories = [
-    { slug: 'all', label: t('shop.cat.all') },
-    { slug: 'groundnut-oil', label: t('shop.cat.groundnut') },
-    { slug: 'sesame-oil', label: t('shop.cat.sesame') },
-    { slug: 'coconut-oil', label: t('shop.cat.coconut') },
-    { slug: 'cooking-oil', label: t('shop.cat.cooking') },
-    { slug: 'pooja-special', label: t('shop.cat.pooja') },
-    { slug: 'a2-desi-ghee', label: t('shop.cat.ghee') },
-    { slug: 'palm-jaggery-special', label: t('shop.cat.jaggery') },
-  ];
-
-  const { products } = useStore();
+  const { products, categories: storeCategories } = useStore();
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Filtering
+  // Strict 1:1 category matcher (Guarantees zero cross-category product leakage)
+  const isMatchCategory = (prodCategory: string, catSlug: string): boolean => {
+    if (catSlug === 'all') return true;
+    const pCat = (prodCategory || '').toLowerCase().trim();
+    const target = catSlug.toLowerCase().trim();
+    if (pCat === target) return true;
+    if (pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
+    return false;
+  };
+
+  // Predefined primary category filters
+  const baseCategoryPills = [
+    { slug: 'all', label: language === 'ta' ? 'அனைத்து தயாரிப்புகள்' : 'All Oils & Products', icon: '🛢️' },
+    { slug: 'groundnut-oil', label: language === 'ta' ? 'கடலை எண்ணெய்' : 'Groundnut Oil', icon: '🥜' },
+    { slug: 'sesame-oil', label: language === 'ta' ? 'நல்லெண்ணெய்' : 'Sesame Oil', icon: '🌿' },
+    { slug: 'coconut-oil', label: language === 'ta' ? 'தேங்காய் எண்ணெய்' : 'Coconut Oil', icon: '🥥' },
+    { slug: 'sunflower-oil', label: language === 'ta' ? 'சூரியகாந்தி எண்ணெய்' : 'Sunflower Oil', icon: '🌻' },
+    { slug: 'ricebran-oil', label: language === 'ta' ? 'தவிட்டு எண்ணெய்' : 'Rice Bran Oil', icon: '🌾' },
+    { slug: 'cooking-oil', label: language === 'ta' ? 'சமையல் எண்ணெய்' : 'Everyday Cooking Oil', icon: '🍳' },
+    { slug: 'pooja-special', label: language === 'ta' ? 'பூஜை எண்ணெய்' : 'Pooja Deepam Oil', icon: '🪔' },
+    { slug: 'a2-desi-ghee', label: language === 'ta' ? 'நாட்டு மாட்டு நெய்' : 'A2 Desi Ghee', icon: '🧈' },
+    { slug: 'palm-jaggery-special', label: language === 'ta' ? 'பனை கருப்பட்டி' : 'Palm Jaggery', icon: '🌴' },
+    { slug: 'mustard-oil', label: language === 'ta' ? 'கடுகு எண்ணெய்' : 'Mustard Oil', icon: '🌱' },
+  ];
+
+  // Include any extra custom categories created in Admin
+  const allCategoryPills = [...baseCategoryPills];
+  if (storeCategories && storeCategories.length > 0) {
+    storeCategories.forEach((sc) => {
+      if (!allCategoryPills.some((p) => p.slug === sc.slug)) {
+        allCategoryPills.push({
+          slug: sc.slug,
+          label: language === 'ta' ? (sc.tamilTitle || sc.title) : sc.title,
+          icon: '🛢️',
+        });
+      }
+    });
+  }
+
+  const getCategoryProductCount = (slug: string): number => {
+    if (slug === 'all') return sourceProducts.length;
+    return sourceProducts.filter((p) => isMatchCategory(p.category, slug)).length;
+  };
+
+  // Filtering: When 'all' is selected, guarantees ALL admin products appear without missing any!
   const filteredProducts = sourceProducts.filter((product) => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory = isMatchCategory(product.category, selectedCategory);
+    const prodName = (product.name || '').toLowerCase();
+    const prodTamil = (product.tamilName || '').toLowerCase();
+    const prodTagline = (product.tagline || '').toLowerCase();
+    const prodDesc = (product.description || '').toLowerCase();
+    const search = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.tagline.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      !search ||
+      prodName.includes(search) ||
+      prodTamil.includes(search) ||
+      prodTagline.includes(search) ||
+      prodDesc.includes(search);
     return matchesCategory && matchesSearch;
   });
 
@@ -151,6 +192,17 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
   });
 
+  const { siteContent } = useCMS();
+  const productCms = siteContent?.product?.status === 'PUBLISHED' ? siteContent.product : null;
+  const pageTitle =
+    language === 'ta'
+      ? productCms?.tamilSectionTitle || t('shop.title')
+      : productCms?.sectionTitle || t('shop.title');
+  const pageSubtitle =
+    language === 'ta'
+      ? productCms?.tamilDescription || t('shop.subtitle')
+      : productCms?.description || t('shop.subtitle');
+
   return (
     <div className="bg-[#FAF8F5] min-h-screen py-10 sm:py-14 text-stone-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
@@ -158,37 +210,15 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         {/* Page Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <h1 className="text-3xl sm:text-5xl font-serif font-black text-forest-950 tracking-tight">
-            {t('shop.title')}
+            {pageTitle}
           </h1>
           <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
-            {t('shop.subtitle')}
+            {pageSubtitle}
           </p>
         </div>
 
-        {/* Clean 2-Tier Filter Section */}
+        {/* Search Input & Sort Toolbar */}
         <div className="space-y-4">
-          
-          {/* Tier 1: Category Filter Buttons (Neat Centered Wrap - Zero Horizontal Scrollbar) */}
-          <div className="flex flex-wrap items-center justify-center gap-2 max-w-5xl mx-auto">
-            {categories.map((cat) => {
-              const isActive = selectedCategory === cat.slug;
-              return (
-                <button
-                  key={cat.slug}
-                  onClick={() => setSelectedCategory(cat.slug)}
-                  className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-forest-950 text-gold-300 shadow-md ring-2 ring-gold-400/30'
-                      : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200/90 shadow-2xs'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Tier 2: Search Input & Sort Toolbar */}
           <div className="bg-white rounded-2xl border border-stone-200/90 p-3 sm:px-5 sm:py-3 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 max-w-5xl mx-auto">
             
             {/* Search Input */}
@@ -238,6 +268,60 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
           </div>
 
+          {/* Interactive Category Filter Pills (Guarantees every admin category is easily accessible) */}
+          <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-none pb-1">
+            <div className="flex items-center gap-2">
+              {allCategoryPills.map((pill) => {
+                const count = getCategoryProductCount(pill.slug);
+                if (pill.slug !== 'all' && count === 0) return null;
+                const isActive = selectedCategory === pill.slug;
+                return (
+                  <button
+                    key={pill.slug}
+                    type="button"
+                    onClick={() => setSelectedCategory(pill.slug)}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${
+                      isActive
+                        ? 'bg-[#1e7e34] text-white border-[#1e7e34] shadow-sm'
+                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400 hover:bg-stone-50'
+                    }`}
+                  >
+                    <span>{pill.icon}</span>
+                    <span>{pill.label}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-600'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Filter Indicator if filtered */}
+          {selectedCategory !== 'all' && (
+            <div className="max-w-5xl mx-auto flex items-center justify-between text-xs px-2 text-stone-500">
+              <span>
+                {language === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட வகை:' : 'Filtered by:'}{' '}
+                <strong className="text-stone-900 font-bold capitalize">
+                  {allCategoryPills.find((p) => p.slug === selectedCategory)?.label || selectedCategory}
+                </strong>{' '}
+                ({sortedProducts.length}{' '}
+                {language === 'ta' ? 'தயாரிப்புகள்' : sortedProducts.length === 1 ? 'product' : 'products'})
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className="font-bold text-[#1e7e34] hover:underline cursor-pointer"
+              >
+                {language === 'ta' ? 'அனைத்து எண்ணெய்களையும் பார்க்க (View All)' : 'Show All Oils'}
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Product Grid: Clean, Modern & Consistent */}
@@ -269,15 +353,8 @@ export const ShopPage: React.FC<ShopPageProps> = ({
               const isJustAdded = addedItemEffect === product.id;
               const resolvedImage = resolveProductImage(product);
 
-              const productName =
-                language === 'ta' && t(`prod.${product.id}.name`)
-                  ? t(`prod.${product.id}.name`)
-                  : product.name;
-
-              const productTagline =
-                language === 'ta' && t(`prod.${product.id}.tagline`)
-                  ? t(`prod.${product.id}.tagline`)
-                  : product.tagline;
+              const productName = getLocalizedProductName(product, language);
+              const productTagline = getLocalizedProductTagline(product, language);
 
               return (
                 <div

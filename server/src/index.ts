@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { productRouter } from './routes/productRoutes.js';
 import { orderRouter } from './routes/orderRoutes.js';
 import { newsletterRouter } from './routes/newsletterRoutes.js';
+import { cmsRouter } from './routes/cmsRoutes.js';
 import { prisma } from './config/db.js';
 
 dotenv.config();
@@ -65,6 +66,7 @@ app.get('/health', async (_req: Request, res: Response) => {
 app.use('/api/products', productRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/newsletter', newsletterRouter);
+app.use('/api/cms', cmsRouter);
 
 // 404 Route Handler
 app.use((_req: Request, res: Response) => {

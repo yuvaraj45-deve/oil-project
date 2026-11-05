@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useCMS } from '../context/CMSContext';
 
 interface HeroProps {
   onShopNow: () => void;
@@ -10,28 +11,48 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   const { language } = useLanguage();
+  const { siteContent } = useCMS();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  const homeCms = siteContent?.home?.status === 'PUBLISHED' ? siteContent.home : null;
 
   // Slides matching the flagship homepage layout
   const slides = [
     {
       id: 'conveyor-bottling',
-      bannerImage: '/banners/ssoil_bottling_hero_banner.jpg',
+      bannerImage: homeCms?.heroBgImage || '/banners/ssoil_bottling_hero_banner.jpg',
       headline: (
         <>
           {language === 'ta' ? (
-            <>காலமற்ற தூய்மை,<br />நவீன வசதி</>
+            homeCms?.heroTamilTitle || (
+              <>
+                காலமற்ற தூய்மை,
+                <br />
+                நவீன வசதி
+              </>
+            )
           ) : (
-            <>Timeless Purity,<br />Modern Convenience</>
+            homeCms?.heroTitle || (
+              <>
+                Timeless Purity,
+                <br />
+                Modern Convenience
+              </>
+            )
           )}
         </>
       ),
       subheadline:
         language === 'ta'
-          ? 'எங்களின் நவீன, பயன்படுத்த எளிதான பேக்கேஜிங்கில் பாரம்பரிய எண்ணெய்களின் செழுமையை அனுபவியுங்கள்.'
-          : 'Experience the richness of traditional oils in our modern, easy-to-use packaging',
-      buttonText: language === 'ta' ? 'இப்போதே வாங்க' : 'SHOP NOW',
+          ? homeCms?.heroTamilSubtitle ||
+            'எங்களின் நவீன, பயன்படுத்த எளிதான பேக்கேஜிங்கில் பாரம்பரிய எண்ணெய்களின் செழுமையை அனுபவியுங்கள்.'
+          : homeCms?.heroSubtitle ||
+            'Experience the richness of traditional oils in our modern, easy-to-use packaging',
+      buttonText:
+        language === 'ta'
+          ? homeCms?.buttonTamilText || 'இப்போதே வாங்க'
+          : homeCms?.buttonText || 'SHOP NOW',
       category: 'all',
     },
     {

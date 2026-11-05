@@ -89,7 +89,7 @@ async function seed() {
     create: {
       slug: 'palm-jaggery-special',
       name: 'Palm Jaggery',
-      description: 'Traditional Unrefined Udangudi Karupatti',
+      description: 'Traditional Unrefined Native Karupatti',
       image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
     },
   });
@@ -344,7 +344,7 @@ async function seed() {
 
   const p9 = await prisma.product.create({
     data: {
-      name: 'SS Pure Udangudi Palm Jaggery (Karupatti)',
+      name: 'SS Pure Native Palm Jaggery (Karupatti)',
       slug: 'ss-pure-udangudi-palm-jaggery-karupatti',
       tagline: 'Traditional Unrefined Palm Nectar Block Packed with Natural Iron',
       description: 'Authentic palm jaggery (Karupatti) made by traditional wood-fire boiling of fresh palm nectar without bone-char or chemical clarifiers.',

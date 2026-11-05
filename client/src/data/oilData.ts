@@ -60,52 +60,52 @@ export const FLAGSHIP_HERO_OILS: FlagshipHeroOil[] = [
 export const CRAFT_STAGES_DATA: CraftStage[] = [
   {
     step: 1,
-    title: 'Sun-Cured Seed Selection',
-    traditionalName: 'Vithai Therivu (விதை தெரிவு)',
-    tagline: 'Zero moisture, chemical-free native seeds',
-    description: 'We inspect hand-sorted pods directly from organic farmer clusters. Peanuts are deshelled without steam heat; black sesame is double-sieved for dust purity.',
-    metricLabel: 'Foreign Impurities',
-    metricValue: '0.00%',
+    title: 'Handpicking Clean Native Seeds',
+    traditionalName: 'Vithai Therivu (விதை தேர்வு)',
+    tagline: 'Whole, sun-dried pods from trusted farmers',
+    description: 'We hand-check every single bag of seeds. Peanuts and sesame are spread on open mats, dried in natural village sunshine, and sieved clean by hand so only whole, healthy kernels go into the press.',
+    metricLabel: 'Clean Seed Purity',
+    metricValue: '100% Handpicked',
     image: '/craft_stage_seeds.jpg'
   },
   {
     step: 2,
-    title: 'Vaagai Mara Chekku Churn',
-    traditionalName: 'Mara Chekku (மரச்செக்கு)',
-    tagline: 'Ancient Albizia Lebbeck medicinal wood mortars',
-    description: 'Vaagai wood absorbs heat naturally. As the heavy pestle circles at only 12 to 14 revolutions per minute, seeds release their nectar without frictional burning.',
-    metricLabel: 'Extraction Heat',
-    metricValue: '< 42°C',
+    title: 'Slow Crushing in Vaagai Wood',
+    traditionalName: 'Vaagai Mara Chekku (வாகை மரச்செக்கு)',
+    tagline: 'Crushed slowly at 14 RPM without heat',
+    description: 'Our thick Vaagai wood pestle spins calmly at just 14 rotations per minute. The wood naturally absorbs any warmth, so the oil never gets hot. We add a touch of authentic Karupatti to balance the taste and bring out the natural aroma.',
+    metricLabel: 'Pressing Speed',
+    metricValue: '14 RPM Cool Press',
     image: '/craft_stage_churn.jpg'
   },
   {
     step: 3,
-    title: 'Natural Solar Clarification',
+    title: '5 Days of Natural Sun Settling',
     traditionalName: 'Veyil Thelivu (வெயில் தெளிவு)',
-    tagline: '5 Days in natural sunlight; zero chemical bleaching',
-    description: 'Instead of aggressive sulfuric acid washing or silica bleaching, freshly pressed SS OIL rests in covered food-grade glass vessels under natural warm sunlight.',
-    metricLabel: 'Solvent Hexane Used',
-    metricValue: 'Zero (0 ppm)',
+    tagline: 'Natural gravity settling under warm sun',
+    description: 'Instead of running the oil through machines or chemical filters, we pour it into clean vessels and let it rest under the sun for 5 full days. Heavy sediments gently sink to the bottom on their own, leaving clear, golden oil on top.',
+    metricLabel: 'Sun Settling',
+    metricValue: '5 Days Natural',
     image: '/craft_stage_clarification.jpg'
   },
   {
     step: 4,
-    title: '24-Point Lab Chromatography',
-    traditionalName: 'Parithothanai (பரிசோதனை)',
-    tagline: 'Spectrometric analysis for authentic iodine & acid values',
-    description: 'Every 500-liter pressing is independently tested for zero aflatoxin, low peroxide value (< 1.5 meq/kg), and rich natural Vitamin E tocopherols.',
-    metricLabel: 'Purity Clearance',
-    metricValue: '100% Certified',
+    title: 'Traditional Cotton Cloth Straining',
+    traditionalName: 'Aadai Vadiyattal (பருத்தி துணி வடிகட்டுதல்)',
+    tagline: 'Gently strained through unbleached cotton',
+    description: 'We draw the clear oil from the top and pass it gently through layers of pure organic cotton cloth. This preserves the oil\'s rich body, aroma, and natural nutrition without any harsh industrial processing.',
+    metricLabel: 'Purity Method',
+    metricValue: '100% Unrefined',
     image: '/craft_stage_lab_test.jpg'
   },
   {
     step: 5,
-    title: 'UV-Protected Airtight Bottling',
-    traditionalName: 'Pathukappu (பாதுகாப்பு)',
-    tagline: 'Hands-free bottling with airtight safety seal',
-    description: 'Sealed immediately into UV-filtered amber glass jars, premium tins, and food-grade BPA-free vessels to lock in fragrant volatile aromatics.',
-    metricLabel: 'Shelf Freshness',
-    metricValue: '12 Months',
+    title: 'Fresh Mill Bottling to Your Kitchen',
+    traditionalName: 'Aalai Pathukappu (ஆலை நேரடி பேக்கிங்)',
+    tagline: 'Poured fresh and delivered to your doorstep',
+    description: 'We fill our bottles fresh at the mill so you receive oil that smells vibrant and alive. Clean, airtight seals protect the oil from light and air, keeping it fresh and aromatic for your daily family cooking.',
+    metricLabel: 'Mill Freshness',
+    metricValue: 'Fresh Batch Guaranteed',
     image: '/craft_stage_bottling.jpg'
   }
 ];
@@ -234,7 +234,7 @@ export const CATEGORIES_DATA: Category[] = [
     id: 'cat-jaggery',
     slug: 'palm-jaggery-special',
     title: 'Palm Jaggery',
-    subtitle: 'Pure Udangudi Karupatti Block',
+    subtitle: 'Pure Native Karupatti Block',
     image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
     itemCount: '',
     badge: 'Native Pure',
@@ -565,7 +565,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-jaggery-500',
-    name: 'SS Pure Udangudi Palm Jaggery (Karupatti)',
+    name: 'SS Pure Native Palm Jaggery (Karupatti)',
     tagline: 'Traditional Unrefined Palm Nectar Block Packed with Natural Iron',
     category: 'palm-jaggery-special',
     categoryName: 'Palm Jaggery',
@@ -578,7 +578,7 @@ export const PRODUCTS_DATA: Product[] = [
     defaultPack: '500g Block',
     image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
     badge: 'Native Pure',
-    description: 'Sourced from the historic palmyra groves of Udangudi, Tamil Nadu. Extracted from fresh padani (palm nectar) and boiled in copper vats without calcium carbonate or bleach.',
+    description: 'Sourced from traditional native palmyra groves. Extracted from fresh padani (palm nectar) and boiled in copper vats without calcium carbonate or bleach.',
     benefits: [
       'Zero refined sugar and zero chemical clarifiers',
       'Abundant in natural plant iron, potassium, and magnesium',
@@ -614,9 +614,9 @@ export const WHY_CHOOSE_US_DATA: FeatureBlock[] = [
   },
   {
     title: 'Carefully Selected Products',
-    description: 'Every batch undergoes 24 rigorous lab checks for iodine value, acidity, and zero pesticide residues.',
+    description: 'Every batch undergoes rigorous quality checks for natural aroma, pure golden viscosity, and zero chemical additives.',
     iconName: 'ShieldCheck',
-    badge: 'Lab Certified'
+    badge: '100% Pure'
   },
   {
     title: 'Secure Shopping',

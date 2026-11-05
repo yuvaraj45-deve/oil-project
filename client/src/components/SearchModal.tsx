@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, ArrowRight, ShoppingBag, ShieldCheck, Lock } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 
 interface SearchModalProps {
@@ -43,8 +43,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const filtered = query.trim()
     ? sourceProducts.filter((p) => {
-        const pTamilName = t(`prod.${p.id}.name`) || '';
-        const pTamilTagline = t(`prod.${p.id}.tagline`) || '';
+        const pTamilName = getLocalizedProductName(p, 'ta');
+        const pTamilTagline = getLocalizedProductTagline(p, 'ta');
         const text = `${p.name} ${p.tagline} ${p.categoryName} ${p.description} ${p.extractionMethod} ${pTamilName} ${pTamilTagline}`.toLowerCase();
         return text.includes(query.toLowerCase());
       })
@@ -117,10 +117,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               </div>
             ) : (
               filtered.map((product) => {
-                const productName =
-                  language === 'ta' && t(`prod.${product.id}.name`)
-                    ? t(`prod.${product.id}.name`)
-                    : product.name;
+                const productName = getLocalizedProductName(product, language);
 
                 return (
                   <div

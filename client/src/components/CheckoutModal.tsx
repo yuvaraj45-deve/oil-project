@@ -13,7 +13,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { CartItem, PlacedOrder } from '../types';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -46,9 +46,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   if (!isOpen) return null;
 
+  const [appliedCouponData] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    minOrder: number;
+    maxDiscount?: number;
+    title: string;
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_applied_coupon');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingFee = subtotal >= 499 ? 0 : 50;
-  const totalAmount = subtotal + shippingFee;
+  const isFreeDelCoupon = appliedCouponData?.code === 'FREEDEL';
+  const shippingFee = (subtotal >= 499 || isFreeDelCoupon) ? 0 : 50;
+
+  let couponDiscount = 0;
+  if (appliedCouponData && subtotal >= appliedCouponData.minOrder) {
+    if (appliedCouponData.discountType === 'percentage') {
+      const disc = Math.round((subtotal * appliedCouponData.discountValue) / 100);
+      couponDiscount = appliedCouponData.maxDiscount ? Math.min(disc, appliedCouponData.maxDiscount) : disc;
+    } else if (appliedCouponData.discountType === 'fixed') {
+      couponDiscount = Math.min(subtotal, appliedCouponData.discountValue);
+    }
+  }
+
+  const totalAmount = Math.max(0, subtotal - couponDiscount + shippingFee);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -104,7 +131,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       paymentMethod: formData.paymentMethod,
       items: items.map((i) => ({
         productId: i.product.id,
-        productName: i.product.name,
+        productName: getLocalizedProductName(i.product, language) || i.product.name,
         packSize: i.packSize,
         quantity: i.quantity,
         unitPrice: i.price,
@@ -129,7 +156,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       createdAt: new Date().toISOString(),
       items: items.map((i) => ({
         productId: i.product.id,
-        productName: i.product.name,
+        productName: getLocalizedProductName(i.product, language) || i.product.name,
         packSize: i.packSize,
         quantity: i.quantity,
         unitPrice: i.price,
@@ -444,7 +471,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
                 {items.map((item) => {
-                  const pName = language === 'ta' && t(`prod.${item.product.id}.name`) ? t(`prod.${item.product.id}.name`) : item.product.name;
+                  const pName = getLocalizedProductName(item.product, language);
                   return (
                     <div
                       key={`${item.product.id}-${item.packSize}`}
@@ -479,6 +506,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <span>{t('checkout.subtotal')}:</span>
                   <span className="font-semibold text-stone-900">₹{subtotal}</span>
                 </div>
+                {couponDiscount > 0 && appliedCouponData && (
+                  <div className="flex justify-between text-emerald-700 font-bold">
+                    <span>Coupon ({appliedCouponData.code}):</span>
+                    <span>-₹{couponDiscount}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-stone-600">
                   <span>{t('checkout.delivery')}:</span>
                   <span className={`font-semibold ${shippingFee === 0 ? 'text-emerald-700' : 'text-stone-900'}`}>

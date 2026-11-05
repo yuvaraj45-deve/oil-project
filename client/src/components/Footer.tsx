@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useCMS } from '../context/CMSContext';
 
 interface FooterProps {
   onSelectCategory: (slug: string) => void;
@@ -23,6 +24,20 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) => {
   const { language, t } = useLanguage();
   const { settings, categories } = useStore();
+  const { siteContent } = useCMS();
+  const footerCms = siteContent?.footer?.status === 'PUBLISHED' ? siteContent.footer : null;
+  const contactCms = siteContent?.contact?.status === 'PUBLISHED' ? siteContent.contact : null;
+
+  const footerDesc =
+    language === 'ta'
+      ? footerCms?.tamilDescription || settings.description || t('hero.subtitle')
+      : footerCms?.description || settings.description || t('hero.subtitle');
+  const footerCopyright =
+    footerCms?.copyrightText || `${settings.storeName || 'SS OIL'}. ${t('footer.copyright')}`;
+  const addressVal = contactCms?.address || settings.millAddress;
+  const phoneVal = contactCms?.phone || settings.phone || '+91 98765 43210';
+  const emailVal = contactCms?.email || settings.email || 'care@ssoil.in';
+  const hoursVal = contactCms?.millHours || settings.millHours;
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -68,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             </div>
 
             <p className="text-stone-300 text-sm leading-relaxed max-w-sm">
-              {settings.description || t('hero.subtitle')}
+              {footerDesc}
             </p>
 
             {/* Social Icons */}
@@ -78,21 +93,27 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               </div>
               <div className="flex items-center space-x-3">
                 <a
-                  href="#instagram"
+                  href={footerCms?.socialLinks?.instagram || '#instagram'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="Instagram"
                   className="w-9 h-9 rounded-full bg-forest-900 hover:bg-gold-500 hover:text-forest-950 transition-colors flex items-center justify-center text-stone-300"
                 >
                   <Instagram className="w-4 h-4" />
                 </a>
                 <a
-                  href="#facebook"
+                  href={footerCms?.socialLinks?.facebook || '#facebook'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="Facebook"
                   className="w-9 h-9 rounded-full bg-forest-900 hover:bg-gold-500 hover:text-forest-950 transition-colors flex items-center justify-center text-stone-300"
                 >
                   <Facebook className="w-4 h-4" />
                 </a>
                 <a
-                  href="#youtube"
+                  href={footerCms?.socialLinks?.youtube || '#youtube'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="YouTube"
                   className="w-9 h-9 rounded-full bg-forest-900 hover:bg-gold-500 hover:text-forest-950 transition-colors flex items-center justify-center text-stone-300"
                 >
@@ -116,6 +137,12 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               <li>
                 <button onClick={() => handleLinkClick('/shop')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
                   {t('nav.products')}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleLinkClick('/offers')} className="hover:text-gold-400 transition-colors cursor-pointer text-left font-bold text-amber-300 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span>{language === 'ta' ? 'சலுகைகள் & கூப்பன்கள்' : 'Offers & Discount Coupons'}</span>
                 </button>
               </li>
               <li>
@@ -173,6 +200,14 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
             <ul className="space-y-2 text-sm text-stone-300">
               <li>
                 <button
+                  onClick={() => handleLinkClick('/faq')}
+                  className="hover:text-gold-400 transition-colors cursor-pointer text-left leading-snug font-semibold text-gold-300"
+                >
+                  {language === 'ta' ? 'அடிக்கடி கேட்கப்படும் கேள்விகள் (FAQs)' : 'FAQs & Oil Knowledge'}
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => handleLinkClick('/shipping-returns')}
                   className="hover:text-gold-400 transition-colors cursor-pointer text-left leading-snug"
                 >
@@ -207,27 +242,27 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 mt-1 shrink-0" />
                 <span className="leading-snug">
-                  {settings.millAddress || (language === 'ta'
+                  {addressVal || (language === 'ta'
                     ? 'SS OIL மில் & பேக்கிங் பிரிவு, எண் 42 செக்கு தெரு, தொழிற்பேட்டை, தமிழ்நாடு – 636004'
                     : 'SS OIL Mills & Packing Unit, No. 42 Chekku Street, Industrial Estate, Tamil Nadu – 636004')}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-gold-400 shrink-0" />
-                <a href={`tel:${settings.phone || '+919876543210'}`} className="hover:text-gold-400 transition-colors">
-                  {settings.phone || '+91 98765 43210 / 1800-425-SSOIL'}
+                <a href={`tel:${phoneVal}`} className="hover:text-gold-400 transition-colors">
+                  {phoneVal}
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-gold-400 shrink-0" />
-                <a href={`mailto:${settings.email || 'care@ssoil.in'}`} className="hover:text-gold-400 transition-colors">
-                  {settings.email || 'care@ssoil.in'}
+                <a href={`mailto:${emailVal}`} className="hover:text-gold-400 transition-colors">
+                  {emailVal}
                 </a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-stone-400">
                 <Clock className="w-4 h-4 text-gold-400 shrink-0" />
                 <span>
-                  {settings.millHours || (language === 'ta'
+                  {hoursVal || (language === 'ta'
                     ? 'திங்கள் – சனி: காலை 9:00 – இரவு 7:30 IST'
                     : 'Mon – Sat: 9:00 AM – 7:30 PM IST')}
                 </span>
@@ -265,7 +300,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
         {/* Bottom Bar & Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400">
           <div>
-            © {new Date().getFullYear()} {settings.storeName || 'SS OIL'}. {t('footer.copyright')}
+            © {new Date().getFullYear()} {footerCopyright}
           </div>
 
           <div className="flex items-center space-x-6">

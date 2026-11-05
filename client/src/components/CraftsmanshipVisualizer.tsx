@@ -16,62 +16,62 @@ import { useLanguage } from '../context/LanguageContext';
 const STAGE_HIGHLIGHTS: Record<number, { en: string[]; ta: string[] }> = {
   1: {
     en: [
-      'Hand-sorted native pods directly sourced from regional organic farmer clusters',
-      'Zero moisture, naturally sun-cured on open village mats without artificial heat',
-      'Double-sieved to eliminate dust, dirt, and hollow kernels (0.00% foreign impurities)',
+      'We buy whole, clean native seeds directly from trusted local farmers, never from bulk dealers',
+      'Naturally sun-dried on open village mats under breezy skies — zero artificial steam or kiln heat',
+      'Hand-sieved patiently to remove dust, stones, and hollow pods so only plump seeds enter the mortar',
     ],
     ta: [
-      'சேலம் விவசாயக் குடும்பங்களிடம் இருந்து நேரடியாகப் பெறப்படும் நாட்டு விதைகள்',
-      'செயற்கை வெப்பமின்றி இயற்கை வெயிலில் பாய்களில் பரப்பி உலர்த்தப்படுகிறது',
-      'தூசிகள் மற்றும் உமிகள் முற்றிலும் நீக்கப்பட்டு 100% தூய்மையான விதைகள் மட்டும் தேர்வு',
+      'நம்பகமான உள்ளூர் விவசாயிகளிடம் இருந்து நேரில் பார்த்து வாங்கும் தரமான நாட்டு விதைகள்',
+      'கிராமத்து தென்றல் காற்றிலும் இயற்கை வெயிலிலும் பாயில் உலர்த்தி ஈரப்பதத்தை போக்குகிறோம்',
+      'தூசி, கல், உமி எதுவும் இல்லாதவாறு கையால் சலித்து நல்ல விதைகளை மட்டும் உரலுக்குள் போடுகிறோம்',
     ],
   },
   2: {
     en: [
-      'Slowly crushed in ancient Vaagai (Albizia Lebbeck) medicinal wood mortar',
-      'Gentle 12–14 RPM rotation keeps extraction temperature strictly below 42°C',
-      'Blended with organic palm jaggery (Karupatti) for authentic fragrance and taste',
+      'Crushed slowly inside hand-carved Vaagai wood mortars, rotating at just 12 to 14 RPM',
+      'The seasoned wood naturally absorbs any warmth, so the fresh oil stays cool and never burns',
+      'We fold in a touch of authentic native Karupatti (palm jaggery) for that unforgettable aroma and taste',
     ],
     ta: [
-      'மருத்துவ குணம் கொண்ட பழமையான வாகை மர உரலில் மெதுவாக சுழற்றப்படுகிறது',
-      '12-14 RPM குறைவான வேகத்தில் அரைக்கப்படுவதால் உராய்வு சூடு ஏற்படுவதில்லை (< 42°C)',
-      'உடலுக்கு நலம் தரும் இயற்கை பனை கருப்பட்டி சேர்த்து பாரம்பரிய மணம் மாறாமல் பிழியப்படுகிறது',
+      'வாகை மர உரலில் ஒரு நிமிடத்திற்கு 14 முறை மட்டுமே சுழலும் பொறுமையான பாரம்பரிய ஆட்டுதல்',
+      'மரமே சூட்டை உறிஞ்சி விடுவதால், கையில் தொட்டால் எண்ணெய் இயல்பான குளிர்ச்சியோடு இருக்கும்',
+      'சுவையும் நறுமணமும் தூக்கலாக இருக்க அசல் நாட்டு பனை கருப்பட்டியைச் சேர்த்து பிழிகிறோம்',
     ],
   },
   3: {
     en: [
-      'Resting 5 full days under natural warm sunlight in covered food-grade glass vessels',
-      'Zero chemical bleaching, silica powder, or solvent hexane washing used',
-      'Micro seed sediments settle gently down purely by natural Earth gravity',
+      'We never use chemical bleaching powders, acid baths, or high-speed industrial filter machines',
+      'Fresh golden oil is poured into clean glass jars and left to rest under the warm sun for 5 days',
+      'Micro seed sediments settle gently down to the bottom on their own through natural Earth gravity',
     ],
     ta: [
-      'கண்ணாடிப் பாத்திரங்களில் 5 நாட்கள் இயற்கை வெயிலில் வைத்து தெளிவடைய செய்யப்படுகிறது',
-      'எந்தவித ரசாயன வெளுப்போ, சிலிக்கா தூளோ அல்லது ஆசிட் சுத்திகரிப்போ கிடையாது',
-      'புவிஈர்ப்பு விசையினால் இயற்கையாகவே அசல் தூய எண்ணெய் மட்டும் மேலே மிதக்கிறது',
+      'ரசாயன வெளுப்போ, சிலிக்கா பவுடரோ அல்லது அவசர மிஷின் பில்டரோ நாங்கள் போடுவதில்லை',
+      'சுத்தமான பாத்திரங்களில் ஊற்றி 5 நாட்கள் வெயிலில் வைத்து இயற்கையாகவே தெளிய வைக்கிறோம்',
+      'எண்ணெயில் உள்ள சிறு கசடுகள் புவிஈர்ப்பினால் தானாகவே அடியில் போய் தங்கிவிடும்',
     ],
   },
   4: {
     en: [
-      'GC-MS tested for authentic fatty acid balance and intact Vitamin E tocopherols',
-      '100% Certified free from pesticides, aflatoxins, mineral oils, and adulterants',
-      'FSSAI & Agmark Grade I quality clearance verified for every single pressing batch',
+      'Clear golden oil is drawn from the top and strained through layers of pure unbleached cotton cloth',
+      'Preserves all the natural plant nutrients, thick viscosity, and rich native fragrance',
+      'Every single press is tested and certified under government FSSAI food safety standards',
     ],
     ta: [
-      'இயற்கை வைட்டமின் E மற்றும் ஒமேகா சத்துக்கள் மாறாமல் இருப்பது ஆய்வகத்தில் உறுதி',
-      'பூச்சிக்கொல்லி மருந்துகள் மற்றும் கலப்படங்கள் அற்ற தூய்மையான எண்ணெய்',
-      'ஒவ்வொரு முறையும் FSSAI மற்றும் அக்மார்க் தரம் I ஆய்வகப் பரிசோதனை சான்றிதழ்',
+      'மேலே நிற்கும் தெளிவான எண்ணெயை எடுத்து மெல்லிய பருத்தி துணியில் பொறுமையாக வடிகட்டுகிறோம்',
+      'இயற்கையான வைட்டமின்கள், கெட்டியான பதம் மற்றும் நறுமணம் துளியும் குறையாமல் பாதுகாக்கப்படுகிறது',
+      'அரசு FSSAI உணவுத் தர விதிகளின்படி ஒவ்வொரு பேட்சும் முறையாக பரிசோதிக்கப்படுகிறது',
     ],
   },
   5: {
     en: [
-      'Untouched, hands-free hygienic bottling directly at our central mill',
-      'UV-tinted containers shield delicate unrefined nutrients from harsh sunlight degradation',
-      'Airtight hermetic sealing locks in the fresh mill fragrance for 12 months shelf-life',
+      'Bottled fresh right here at our mill — no sitting in dusty distribution warehouses for months',
+      'UV-shielded food-grade containers protect the living aroma and nutrients from heat and light',
+      'When you uncap the bottle in your kitchen, you get that vibrant fresh smell of a real village mill',
     ],
     ta: [
-      'சேலம் ஆலையிலேயே மனித கைகள் படாமல் தூய முறையில் பாட்டில்களில் அடைக்கப்படுகிறது',
-      'UV கதிர்களில் இருந்து காக்கும் சிறப்பு பாட்டில்கள் எண்ணெயின் தரத்தை அப்படியே காக்கும்',
-      'இயற்கையான மரச்செக்கு நறுமணம் மாறாமல் 12 மாதங்கள் வரை புத்துணர்ச்சியுடன் இருக்கும்',
+      'மாதக்கணக்கில் குடோனில் வைக்காமல், ஆலையிலேயே புத்தம் புதியதாக பாட்டிலில் அடைக்கிறோம்',
+      'வெப்பம் மற்றும் வெளிச்சம் படாமல் மணத்தை அப்படியே காக்கும் பாதுகாப்பான பாட்டில்கள்',
+      'பாட்டிலைத் திறந்தாலே மில்லில் நேரில் நின்று வாங்குவது போன்ற அசல் நறுமணத்தை உணரலாம்',
     ],
   },
 };
@@ -111,8 +111,8 @@ export const CraftsmanshipVisualizer: React.FC = () => {
 
           <p className="mt-3 text-stone-600 text-base sm:text-lg font-normal leading-relaxed max-w-2xl mx-auto">
             {language === 'ta'
-              ? 'வெயிலில் உலர்ந்த இயற்கை நாட்டு விதைகள் வாகை மரச்செக்கில் அரைக்கப்பட்டு, எந்தவித சூடோ ரசாயனமோ இன்றி தூய திரவத் தங்கமாக மாறும் 5 புனித நிலைகள்.'
-              : 'From sun-cured native seeds to pure liquid gold — discover how our ancient Vaagai wood cold-press extracts living nutrition with zero heat and zero chemicals.'}
+              ? 'எங்கள் ஆலையில், உள்ளூர் விவசாயிகளிடம் வாங்கிய நாட்டு விதைகளை வாகை மரச்செக்கில் மெதுவாக ஆட்டி, வெயிலில் தெளிய வைத்து உங்கள் வீட்டிற்குத் தருகிறோம். எந்திர வேகமோ, ரசாயன கலப்போ, தேவையில்லாத சூடோ துளியும் கிடையாது — அசல் கைவினைத் தூய்மை மட்டுமே.'
+              : 'At our traditional family mill, we take no shortcuts. Here is the honest, unhurried 5-step journey of how whole native seeds become fresh, aromatic oil in your kitchen — untouched by machines, high heat, or chemicals.'}
           </p>
 
           <div className="w-20 h-1 bg-gradient-to-r from-amber-400 via-amber-600 to-amber-400 mx-auto mt-4 rounded-full" />

@@ -201,6 +201,7 @@ export interface OrderItemRecord {
 
 export interface PlacedOrder {
   id: string;
+  userId?: string;
   orderNumber: string;
   customerName: string;
   customerEmail: string;

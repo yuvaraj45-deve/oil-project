@@ -1,12 +1,25 @@
 export const getFavorites = (): string[] => {
   try {
     const raw = localStorage.getItem('ssoil_favorites');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        // If it was just the old hardcoded default array, wipe it so user has clean favorites
+        if (
+          parsed.length === 2 &&
+          parsed.includes('ss-groundnut-1000') &&
+          parsed.includes('ss-sesame-1000')
+        ) {
+          localStorage.setItem('ssoil_favorites', JSON.stringify([]));
+          return [];
+        }
+        return parsed;
+      }
+    }
   } catch {
     // ignore
   }
-  // Default favorites to popular mara chekku products
-  return ['ss-groundnut-1000', 'ss-sesame-1000'];
+  return [];
 };
 
 export const toggleFavorite = (productId: string): boolean => {

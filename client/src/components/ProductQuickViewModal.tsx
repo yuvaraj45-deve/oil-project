@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText, Edit } from 'lucide-react';
 import { Product } from '../types';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -59,15 +59,8 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     return badgeMap[badge] || badge;
   };
 
-  const productName =
-    language === 'ta' && t(`prod.${product.id}.name`)
-      ? t(`prod.${product.id}.name`)
-      : product.name;
-
-  const productTagline =
-    language === 'ta' && t(`prod.${product.id}.tagline`)
-      ? t(`prod.${product.id}.tagline`)
-      : product.tagline;
+  const productName = getLocalizedProductName(product, language);
+  const productTagline = getLocalizedProductTagline(product, language);
 
   const handleAdd = () => {
     onAddToCart(product, selectedPack, quantity);

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize2, X } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -16,8 +16,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
   const { language } = useLanguage();
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   if (!homeFeaturedVideo || !homeFeaturedVideo.enabled) {
@@ -36,26 +34,22 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
   const youtubeEmbedUrl = isYouTube ? getYouTubeEmbedUrl(homeFeaturedVideo.videoUrl) : null;
 
   const handlePlayToggle = () => {
-    if (isYouTube) {
-      setIsModalOpen(true);
-      return;
-    }
+    if (isYouTube) return;
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        videoRef.current.play();
+        // Unmute upon explicit user click
+        videoRef.current.muted = false;
+        videoRef.current.play().catch(() => {
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            videoRef.current.play();
+          }
+        });
         setIsPlaying(true);
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
       }
-    }
-  };
-
-  const handleMuteToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
     }
   };
 
@@ -100,7 +94,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
                   poster={homeFeaturedVideo.posterUrl || '/products/sesame_oil.jpg'}
                   playsInline
                   loop
-                  muted={isMuted}
                   autoPlay={homeFeaturedVideo.autoplay}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
@@ -108,13 +101,12 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
                   onClick={handlePlayToggle}
                 />
 
-                {/* Vignette Overlay when paused */}
+                {/* Center Gold Play Button Overlay (when paused) */}
                 {!isPlaying && (
                   <div
                     onClick={handlePlayToggle}
-                    className="absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-all flex items-center justify-center cursor-pointer group-hover:bg-black/35"
+                    className="absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-all flex items-center justify-center cursor-pointer group-hover:bg-black/35 z-20"
                   >
-                    {/* Big Gold Play Button */}
                     <button
                       type="button"
                       aria-label="Play Video"
@@ -124,47 +116,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
                     </button>
                   </div>
                 )}
-
-                {/* Floating Bottom Controls (For Native Video) */}
-                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex items-center justify-between text-white pointer-events-none z-20">
-                  <div className="flex items-center gap-2 pointer-events-auto">
-                    <button
-                      onClick={handlePlayToggle}
-                      className="px-3.5 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-bold transition-all flex items-center gap-1.5 backdrop-blur-xs border border-white/20 cursor-pointer"
-                    >
-                      {isPlaying ? (
-                        <>
-                          <Pause className="w-3.5 h-3.5" />
-                          <span>Pause</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>Play</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={handleMuteToggle}
-                      className="w-8 h-8 rounded-xl bg-black/70 hover:bg-black text-white flex items-center justify-center transition-all backdrop-blur-xs border border-white/20 cursor-pointer"
-                      title={isMuted ? 'Unmute' : 'Mute'}
-                    >
-                      {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 pointer-events-auto">
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-bold transition-all flex items-center gap-1.5 backdrop-blur-xs border border-white/20 cursor-pointer"
-                      title="Fullscreen Lightbox"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Full View</span>
-                    </button>
-                  </div>
-                </div>
               </>
             )}
           </div>
@@ -172,45 +123,6 @@ export const HomeFeaturedVideoBanner: React.FC = () => {
         </div>
 
       </div>
-
-      {/* Full View Lightbox Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="relative w-full max-w-5xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-stone-800">
-            <div className="p-4 bg-stone-900 border-b border-stone-800 flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif font-bold text-sm sm:text-base text-stone-100">{title}</h3>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="w-full aspect-video bg-black">
-              {isYouTube && youtubeEmbedUrl ? (
-                <iframe
-                  src={youtubeEmbedUrl}
-                  title={title}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              ) : (
-                <video
-                  src={homeFeaturedVideo.videoUrl || '/videos/reel_1.mp4'}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-contain"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

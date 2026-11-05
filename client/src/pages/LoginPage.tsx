@@ -219,21 +219,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             try {
               localStorage.setItem('ssoil_user', JSON.stringify(adminUser));
+              // Ensure admin account is never stored in customer users directory
               const dirStr = localStorage.getItem('ssoil_users_directory');
-              const dir = dirStr ? JSON.parse(dirStr) : [];
-              const existingIdx = dir.findIndex(
-                (u: any) => u.email === adminUser.email || (adminUser.id && u.id === adminUser.id)
-              );
-              const record = {
-                ...adminUser,
-                lastLogin: 'Just Now (Online)',
-                status: 'Active',
-                totalOrders: 0,
-                totalSpent: 0,
-              };
-              if (existingIdx >= 0) dir[existingIdx] = { ...dir[existingIdx], ...record };
-              else dir.unshift(record);
-              localStorage.setItem('ssoil_users_directory', JSON.stringify(dir));
+              if (dirStr) {
+                const dir = JSON.parse(dirStr);
+                if (Array.isArray(dir)) {
+                  const cleaned = dir.filter(
+                    (u: any) => u.role !== 'admin' && u.email !== adminUser.email && u.id !== 'usr_admin' && !u.email?.includes('admin')
+                  );
+                  localStorage.setItem('ssoil_users_directory', JSON.stringify(cleaned));
+                }
+              }
               window.dispatchEvent(new Event('ssoil_user_logged_in'));
             } catch (e) {}
 

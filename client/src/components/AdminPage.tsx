@@ -44,7 +44,7 @@ import {
   Store,
   Palette,
   Tag,
-  FileText,
+  ExternalLink,
   Home,
   ShoppingCart,
   Globe,
@@ -70,6 +70,7 @@ import {
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 import { useStore, normalizeHomepage4 } from '../context/StoreContext';
 import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
+import { CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
 
 interface AdminPageProps {
   orders: PlacedOrder[];
@@ -133,6 +134,18 @@ const PRESET_IMAGES = [
   },
 ];
 
+const STANDARD_BADGES = [
+  'Cold-Pressed',
+  'Wood-Pressed',
+  'Bestseller',
+  '100% Pure',
+  'Popular',
+  'Light & Pure',
+  'Temple Pooja',
+  'A2 Pure',
+  'Native Pure',
+];
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (typeof window !== 'undefined' &&
@@ -156,13 +169,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     | 'categories'
     | 'videos'
     | 'offers'
-    | 'content'
     | 'settings'
     | 'analytics';
   const [activeTab, setActiveTab] = useState<AdminTab>(() => {
     try {
       const saved = sessionStorage.getItem('admin_active_tab') as AdminTab;
-      if (saved && (saved as string) !== 'featured-products' && (saved as string) !== 'bottles') return saved;
+      if (
+        saved &&
+        (saved as string) !== 'featured-products' &&
+        (saved as string) !== 'bottles' &&
+        (saved as string) !== 'content'
+      )
+        return saved;
     } catch {}
     return 'dashboard';
   });
@@ -609,6 +627,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [editCustomPackInput, setEditCustomPackInput] = useState('');
   const [editProdImage, setEditProdImage] = useState('');
   const [editProdBadge, setEditProdBadge] = useState('');
+  const [editBadgeMode, setEditBadgeMode] = useState<'standard' | 'custom'>('standard');
   const [editProdSmokePoint, setEditProdSmokePoint] = useState('');
   const [editProdExtraction, setEditProdExtraction] = useState('');
   const [editProdDescription, setEditProdDescription] = useState('');
@@ -618,7 +637,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const openEditProduct = (prod: Product) => {
     setEditingProduct(prod);
     setEditProdName(prod.name);
-    setEditProdTamilName(prod.tamilName || prod.name || '');
+    setEditProdTamilName(prod.tamilName || '');
     setEditProdTagline(prod.tagline || '');
     setEditProdCategory(prod.category);
     setEditProdPrice(prod.price);
@@ -626,7 +645,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setEditProdDefaultPack(prod.defaultPack || '1 Litre Bottle');
     setEditProdPackSizes(prod.packSizes && prod.packSizes.length > 0 ? prod.packSizes : ['1 Litre Bottle']);
     setEditProdImage(prod.image);
-    setEditProdBadge(prod.badge || '');
+    const initialBadge = prod.badge || 'Cold-Pressed';
+    setEditProdBadge(initialBadge);
+    setEditBadgeMode(STANDARD_BADGES.includes(initialBadge) ? 'standard' : 'custom');
     setEditProdSmokePoint(prod.smokePoint || '220°C');
     setEditProdExtraction(prod.extractionMethod || 'Traditional Cold-Pressed Mara Chekku');
     setEditProdDescription(prod.description || '');
@@ -659,10 +680,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     if (!editingProduct || !editProdName.trim()) return;
 
     const matchedCat = categoriesList.find((c) => c.slug === editProdCategory);
+    const cleanTamil = (editProdTamilName.trim() && /[\u0B80-\u0BFF]/.test(editProdTamilName))
+      ? editProdTamilName.trim()
+      : undefined;
+
+    const updatedSlug =
+      editingProduct.slug ||
+      editProdName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') ||
+      editingProduct.id;
+
     const updatedProduct: Product = {
       ...editingProduct,
+      slug: updatedSlug,
       name: editProdName.trim(),
-      tamilName: editProdTamilName.trim() || editProdName.trim(),
+      tamilName: cleanTamil,
       tagline: editProdTagline.trim(),
       category: editProdCategory,
       categoryName: matchedCat?.title || editingProduct.categoryName,
@@ -700,14 +735,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     showToast(`Product "${updatedProduct.name}" updated successfully!`);
   };
 
+  // CATEGORY DEDICATED PRODUCTS VIEW STATE
+  const [viewingCategory, setViewingCategory] = useState<Category | null>(null);
+
   // ADD PRODUCT STATE & HANDLERS
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProdName, setNewProdName] = useState('');
+  const [newProdTamilName, setNewProdTamilName] = useState('');
   const [newProdTagline, setNewProdTagline] = useState('');
   const [newProdCategory, setNewProdCategory] = useState('');
-  const [newProdPrice, setNewProdPrice] = useState<number>(350);
-  const [newProdOriginalPrice, setNewProdOriginalPrice] = useState<number>(420);
-  const [newProdDefaultPack, setNewProdDefaultPack] = useState('1 Litre Bottle');
+  const [newProdPrice, setNewProdPrice] = useState<number | string>(0);
+  const [newProdOriginalPrice, setNewProdOriginalPrice] = useState<number | string>(0);
+  const [newProdDefaultPack, setNewProdDefaultPack] = useState('');
   const [newProdPackSizes, setNewProdPackSizes] = useState<string[]>([
     '500 ml Bottle',
     '1 Litre Bottle',
@@ -717,6 +756,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newProdImage, setNewProdImage] = useState('');
   const [newCustomPackInput, setNewCustomPackInput] = useState('');
   const [newProdBadge, setNewProdBadge] = useState('Cold-Pressed');
+  const [newBadgeMode, setNewBadgeMode] = useState<'standard' | 'custom'>('standard');
   const [newProdSmokePoint, setNewProdSmokePoint] = useState('220°C');
   const [newProdExtraction, setNewProdExtraction] = useState('Traditional Mara Chekku Cold-Pressed');
   const [newProdDescription, setNewProdDescription] = useState('');
@@ -748,13 +788,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     e.preventDefault();
     setAddProdError(null);
 
-    // Full oil can details mandatory validation
-    if (!newProdImage.trim()) {
-      setAddProdError(
-        'தயவுசெய்து ஆயில் கேன் படம் (Image) பதிவேற்றவும் அல்லது தேர்ந்தெடுக்கவும். (Product image is required)'
-      );
-      return;
-    }
+    // Required fields: Name, Tagline, Price, MRP
     if (!newProdName.trim()) {
       setAddProdError('தயவுசெய்து தயாரிப்பு பெயரை (Product Name) உள்ளிடவும்.');
       return;
@@ -763,64 +797,76 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       setAddProdError('தயவுசெய்து Tagline / Subtitle உள்ளிடவும்.');
       return;
     }
-    if (!newProdPrice || Number(newProdPrice) <= 0) {
+    if (newProdPrice === '' || Number(newProdPrice) <= 0) {
       setAddProdError('தயவுசெய்து சரியான விற்பனை விலையை (Selling Price) உள்ளிடவும்.');
       return;
     }
-    if (!newProdOriginalPrice || Number(newProdOriginalPrice) <= 0) {
+    if (newProdOriginalPrice === '' || Number(newProdOriginalPrice) <= 0) {
       setAddProdError('தயவுசெய்து சரியான MRP விலையை உள்ளிடவும்.');
-      return;
-    }
-    if (!newProdDefaultPack.trim()) {
-      setAddProdError('தயவுசெய்து Default Pack Unit (எ.கா: 1 Litre Bottle) உள்ளிடவும்.');
-      return;
-    }
-    if (newProdPackSizes.length === 0) {
-      setAddProdError(
-        'தயவுசெய்து குறைந்தபட்சம் ஒரு Can / Pack Size-ஐ டைப் செய்து சேர்க்கவும் (At least one can/pack size required).'
-      );
-      return;
-    }
-    if (!newProdExtraction.trim()) {
-      setAddProdError('தயவுசெய்து எண்ணெய் தயாரிப்பு முறை (Extraction Method) உள்ளிடவும்.');
-      return;
-    }
-    if (!newProdSmokePoint.trim()) {
-      setAddProdError('தயவுசெய்து Smoke Point & பயன்பாட்டு பரிந்துரை உள்ளிடவும்.');
-      return;
-    }
-    if (!newProdDescription.trim()) {
-      setAddProdError('தயவுசெய்து தயாரிப்பு விவரம் & நன்மைகள் (Product Description) உள்ளிடவும்.');
       return;
     }
 
     const matchedCat = categoriesList.find((c) => c.slug === newProdCategory) || categoriesList[0];
+    const catSlug = (matchedCat?.slug || '').toLowerCase();
+
+    // 1. Image is OPTIONAL: If admin doesn't provide an image, automatically resolve authentic default category packshot
+    let resolvedImage = newProdImage.trim();
+    if (!resolvedImage) {
+      if (catSlug.includes('groundnut') || catSlug.includes('peanut')) resolvedImage = '/products/groundnut_oil.jpg?v=ssoil';
+      else if (catSlug.includes('sesame') || catSlug.includes('gingelly')) resolvedImage = '/products/sesame_oil.jpg?v=ssoil';
+      else if (catSlug.includes('coconut')) resolvedImage = '/products/coconut_oil.jpg?v=ssoil';
+      else if (catSlug.includes('sunflower')) resolvedImage = '/products/sunflower_oil.jpg?v=ssoil';
+      else if (catSlug.includes('rice')) resolvedImage = '/products/rice_bran_oil.jpg?v=ssoil';
+      else if (catSlug.includes('mustard')) resolvedImage = '/products/mustard_oil.jpg?v=ssoil';
+      else if (catSlug.includes('pooja') || catSlug.includes('deepam') || catSlug.includes('lamp')) resolvedImage = '/products/lamp_oil.jpg?v=ssoil';
+      else if (catSlug.includes('ghee')) resolvedImage = '/products/ghee_jar.jpg?v=ssoil';
+      else resolvedImage = '/products/sesame_oil.jpg?v=ssoil';
+    }
+
     const createdId = `prod-${Date.now()}`;
+    const generatedSlug =
+      newProdName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || createdId;
+
+    const cleanTamilName = (newProdTamilName.trim() && /[\u0B80-\u0BFF]/.test(newProdTamilName))
+      ? newProdTamilName.trim()
+      : undefined;
+
+    const effectivePackSizes = newProdPackSizes.length > 0
+      ? newProdPackSizes
+      : ['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can'];
+    const effectiveDefaultPack = newProdDefaultPack.trim() || effectivePackSizes[1] || effectivePackSizes[0] || '1 Litre Bottle';
+    const resolvedDescription = newProdDescription.trim() || '100% மரச்செக்கு முறையில் ஆட்டப்பட்ட தூய இயற்கை எண்ணெய். ரசாயன கலப்பற்றது.';
 
     const newProduct: Product = {
       id: createdId,
+      slug: generatedSlug,
       name: newProdName.trim(),
+      tamilName: cleanTamilName,
       tagline: newProdTagline.trim(),
       category: matchedCat?.slug || 'groundnut-oil',
       categoryName: matchedCat?.title || 'Groundnut Oil',
       price: Number(newProdPrice),
       originalPrice: Number(newProdOriginalPrice) || Number(newProdPrice),
       discountPercent:
-        newProdOriginalPrice > newProdPrice
-          ? Math.round(((newProdOriginalPrice - newProdPrice) / newProdOriginalPrice) * 100)
+        Number(newProdOriginalPrice) > Number(newProdPrice)
+          ? Math.round(((Number(newProdOriginalPrice) - Number(newProdPrice)) / Number(newProdOriginalPrice)) * 100)
           : 0,
       rating: 5.0,
       reviewsCount: 1,
-      packSizes: newProdPackSizes,
-      defaultPack: newProdDefaultPack.trim(),
-      image: newProdImage.trim(),
-      badge: newProdBadge || undefined,
-      description: newProdDescription.trim(),
+      packSizes: effectivePackSizes,
+      defaultPack: effectiveDefaultPack,
+      image: resolvedImage,
+      badge: newProdBadge?.trim() || undefined,
+      description: resolvedDescription,
       benefits: ['Zero Chemical Solvents', 'Unrefined & Pure', 'Naturally Rich in Vitamin E'],
-      smokePoint: newProdSmokePoint.trim(),
-      extractionMethod: newProdExtraction.trim(),
-      inStock: newProdInStock,
-      featured: newProdFeatured,
+      smokePoint: newProdSmokePoint.trim() || '220°C',
+      extractionMethod: newProdExtraction.trim() || 'Traditional Vaagai Mara Chekku',
+      inStock: true,
+      featured: false,
     };
 
     // Close modal immediately upon successful addition ("add panna oda close aganum")
@@ -828,14 +874,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
     await contextAddProduct(newProduct);
 
-    // Reset all input fields
+    // Reset all input fields: Price & MRP start at 0
     setNewProdName('');
+    setNewProdTamilName('');
     setNewProdTagline('');
+    setNewProdPrice(0);
+    setNewProdOriginalPrice(0);
     setNewProdDescription('');
     setNewProdImage('');
     setNewCustomPackInput('');
-    setNewProdPackSizes([]);
+    setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
     setNewProdDefaultPack('');
+    setNewProdBadge('Cold-Pressed');
+    setNewBadgeMode('standard');
     setAddProdError(null);
     showToast(`Product "${newProduct.name}" added to catalog! 🛢️`);
   };
@@ -857,73 +908,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // -------------------------------------------------------------
   // 3. DATA: User Login List State (Synced with localStorage login records)
   // -------------------------------------------------------------
-  const DEFAULT_INITIAL_USERS: UserRecord[] = [
-    {
-      id: 'usr_admin',
-      name: 'SS OIL Admin',
-      email: 'admin@ssoil.com',
-      phone: '1800 425 7764',
-      role: 'admin',
-      memberTier: 'Platinum Member',
-      purityPoints: 9999,
-      lastLogin: 'Just Now (Online)',
-      status: 'Active',
-      totalOrders: 0,
-      totalSpent: 0,
-    },
-    {
-      id: 'usr_ramesh',
-      name: 'Ramesh Sundaram',
-      email: 'ramesh.sundaram@gmail.com',
-      phone: '98421 45620',
-      role: 'customer',
-      memberTier: 'Gold Member',
-      purityPoints: 240,
-      lastLogin: 'Today, 04:30 PM',
-      status: 'Active',
-      totalOrders: 2,
-      totalSpent: 1470,
-    },
-    {
-      id: 'usr_anitha',
-      name: 'Anitha Vijay',
-      email: 'anitha.vijay@yahoo.co.in',
-      phone: '97892 34110',
-      role: 'customer',
-      memberTier: 'Silver Member',
-      purityPoints: 120,
-      lastLogin: 'Yesterday, 11:15 AM',
-      status: 'Active',
-      totalOrders: 1,
-      totalSpent: 620,
-    },
-    {
-      id: 'usr_karthik',
-      name: 'Karthik Narayanan',
-      email: 'karthik.n@gmail.com',
-      phone: '94432 89100',
-      role: 'customer',
-      memberTier: 'Gold Member',
-      purityPoints: 310,
-      lastLogin: '23 Oct, 09:20 AM',
-      status: 'Active',
-      totalOrders: 3,
-      totalSpent: 2150,
-    },
-    {
-      id: 'usr_meena',
-      name: 'Meenakshi Sundaram',
-      email: 'meena.sundaram@gmail.com',
-      phone: '98433 12450',
-      role: 'customer',
-      memberTier: 'Platinum Member',
-      purityPoints: 540,
-      lastLogin: '22 Oct, 06:45 PM',
-      status: 'Active',
-      totalOrders: 4,
-      totalSpent: 3490,
-    },
-  ];
+  // 3. DATA: User / Customer Login List State (Customer Logins Only - Zero Admin / Demo entries)
+  // -------------------------------------------------------------
+  const DEFAULT_INITIAL_USERS: UserRecord[] = [];
 
   const loadUsersList = (): UserRecord[] => {
     try {
@@ -931,6 +918,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       const userList: UserRecord[] = [];
 
       const addUser = (u: UserRecord, toFront: boolean = false) => {
+        // STRICT: Never include admin accounts, dummy seed accounts, or non-customer logins
+        if (
+          !u ||
+          u.role === 'admin' ||
+          u.id === 'usr_admin' ||
+          (u.email && u.email.toLowerCase().includes('admin')) ||
+          ['usr_ramesh', 'usr_anitha', 'usr_karthik', 'usr_meena', 'usr_admin'].includes(u.id) ||
+          ['Ramesh Sundaram', 'Anitha Vijay', 'Karthik Narayanan', 'Meenakshi Sundaram', 'SS OIL Admin'].includes(u.name)
+        ) {
+          return;
+        }
+
         const key = (u.email || u.phone || u.id || '').toLowerCase().trim();
         if (!key) return;
         if (userMap.has(key)) {
@@ -938,7 +937,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             (item) => (item.email || item.phone || item.id || '').toLowerCase().trim() === key
           );
           if (existingIdx >= 0) {
-            const updated = { ...userList[existingIdx], ...u };
+            const updated = { ...userList[existingIdx], ...u, role: 'customer' as const };
             userList.splice(existingIdx, 1);
             if (toFront) {
               userList.unshift(updated);
@@ -948,44 +947,42 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             userMap.set(key, updated);
           }
         } else {
-          userMap.set(key, u);
+          const customerRecord = { ...u, role: 'customer' as const };
+          userMap.set(key, customerRecord);
           if (toFront) {
-            userList.unshift(u);
+            userList.unshift(customerRecord);
           } else {
-            userList.push(u);
+            userList.push(customerRecord);
           }
         }
       };
 
-      // 1. Saved registered users from ssoil_users_directory (latest users first)
+      // 1. Saved registered customer accounts from ssoil_users_directory
       const savedDirectory = localStorage.getItem('ssoil_users_directory');
       if (savedDirectory) {
         const parsed = JSON.parse(savedDirectory);
         if (Array.isArray(parsed)) {
           parsed.forEach((savedUser: UserRecord) => {
-            addUser(savedUser, false);
+            if (savedUser && savedUser.role !== 'admin') {
+              addUser(savedUser, false);
+            }
           });
         }
       }
 
-      // 2. Demo initial seed users at the bottom
-      DEFAULT_INITIAL_USERS.forEach((seed) => {
-        addUser(seed, false);
-      });
-
-      // 3. Put current active logged-in user at the ABSOLUTE TOP (index 0)!
+      // 2. Put current active logged-in customer at top ONLY IF role is 'customer' (NEVER admin)
       const activeUserStr = localStorage.getItem('ssoil_user');
       if (activeUserStr) {
         const activeUser = JSON.parse(activeUserStr);
-        if (activeUser && (activeUser.name || activeUser.email)) {
+        if (activeUser && activeUser.role === 'customer' && (activeUser.name || activeUser.email)) {
           const liveUserRecord: UserRecord = {
             id: activeUser.id || `usr_${Date.now()}`,
-            name: activeUser.name || 'Logged User',
-            email: activeUser.email || 'user@ssoil.com',
-            phone: activeUser.phone || '98421 45620',
-            role: activeUser.role || 'customer',
+            name: activeUser.name || 'Customer',
+            email: activeUser.email || '',
+            phone: activeUser.phone || '',
+            role: 'customer',
             memberTier: activeUser.memberTier || 'Gold Member',
-            purityPoints: activeUser.purityPoints || 240,
+            purityPoints: activeUser.purityPoints || 0,
             lastLogin: 'Just Now (Online)',
             status: 'Active',
             totalOrders: activeUser.totalOrders || 0,
@@ -1001,7 +998,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       return userList;
     } catch (e) {
-      return DEFAULT_INITIAL_USERS;
+      return [];
     }
   };
 
@@ -1019,17 +1016,64 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     };
   }, []);
 
-  const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | 'customer' | 'admin'>('ALL');
+  // One-time cleanup on mount: Wipe out any dummy seed users or admin accounts from ssoil_users_directory
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_users_directory');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(
+            (u: any) =>
+              u &&
+              u.role === 'customer' &&
+              !['usr_admin', 'usr_ramesh', 'usr_anitha', 'usr_karthik', 'usr_meena'].includes(u.id) &&
+              !['Ramesh Sundaram', 'Anitha Vijay', 'Karthik Narayanan', 'Meenakshi Sundaram', 'SS OIL Admin'].includes(u.name) &&
+              !u.email?.toLowerCase().includes('admin')
+          );
+          if (cleaned.length === 0) {
+            localStorage.removeItem('ssoil_users_directory');
+          } else {
+            localStorage.setItem('ssoil_users_directory', JSON.stringify(cleaned));
+          }
+          setUsersList(cleaned);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
-  const handleToggleUserStatus = (userId: string) => {
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+
+  const handleToggleCustomerStatus = (customerId: string) => {
     setUsersList((prev) =>
       prev.map((u) =>
-        u.id === userId
+        u.id === customerId
           ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' }
           : u
       )
     );
-    showToast('User account status updated.');
+    showToast('Customer account status updated.');
+  };
+
+  const handleDeleteCustomer = (customerId: string) => {
+    setUsersList((prev) => {
+      const next = prev.filter((u) => u.id !== customerId);
+      try {
+        localStorage.setItem('ssoil_users_directory', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    showToast('Customer record removed.');
+  };
+
+  const handleClearAllCustomers = () => {
+    if (window.confirm('Are you sure you want to clear all customer login records?')) {
+      try {
+        localStorage.removeItem('ssoil_users_directory');
+      } catch (e) {}
+      setUsersList([]);
+      showToast('All customer login records cleared successfully.');
+    }
   };
 
   // -------------------------------------------------------------
@@ -1301,7 +1345,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: unreadCustomersCount },
             { id: 'offers', label: 'Offers & Coupons', icon: Tag },
-            { id: 'content', label: 'Content', icon: FileText },
             { id: 'settings', label: 'Settings', icon: Settings },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
           ].map((item) => {
@@ -1425,7 +1468,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {activeTab === 'customers' && 'User Login & Account Directory'}
                 {activeTab === 'orders' && 'Orders Management'}
                 {activeTab === 'offers' && 'Offers & Coupons'}
-                {activeTab === 'content' && 'Content Management'}
                 {activeTab === 'analytics' && 'Analytics & Performance'}
               </h2>
             </div>
@@ -1443,15 +1485,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <button
                     onClick={() => {
                       setNewProdName('');
+                      setNewProdTamilName('');
                       setNewProdTagline('');
                       setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
-                      setNewProdPrice(350);
-                      setNewProdOriginalPrice(420);
+                      setNewProdPrice(0);
+                      setNewProdOriginalPrice(0);
                       setNewProdDefaultPack('');
-                      setNewProdPackSizes([]);
+                      setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
                       setNewProdImage('');
                       setNewCustomPackInput('');
                       setNewProdBadge('Cold-Pressed');
+                      setNewBadgeMode('standard');
                       setNewProdSmokePoint('220°C');
                       setNewProdExtraction('Traditional Vaagai Mara Chekku');
                       setNewProdDescription('');
@@ -1752,149 +1796,409 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           )}
 
           {/* ============================================================ */}
-          {/* 2. CATEGORIES VIEW (With Edit, Product Assignment & Images)  */}
+          {/* 2. CATEGORIES VIEW (With Dedicated Category Products Page)   */}
           {/* ============================================================ */}
           {activeTab === 'categories' && (
             <div className="space-y-5">
-              
-              {/* Category Search & Counter */}
-              <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div className="relative w-full sm:w-80">
-                  <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search categories..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-stone-50/50"
-                  />
-                </div>
-                <div className="text-xs text-stone-500">
-                  Total <strong>{categoriesList.length}</strong> Categories Available • Click <strong>Edit</strong> to change details, image & products
-                </div>
-              </div>
 
-              {/* Categories Grid: Shows Image, Info & Assigned Products */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {categoriesList
-                  .filter((c) =>
-                    searchTerm
-                      ? c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        c.subtitle.toLowerCase().includes(searchTerm.toLowerCase())
-                      : true
-                  )
-                  .map((cat) => {
-                    const assignedProducts = productsList.filter(
-                      (p) => p.category === cat.slug
-                    );
-
-                    return (
-                      <div
-                        key={cat.id}
-                        className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              {viewingCategory ? (
+                /* DEDICATED FULL-PAGE VIEW FOR PRODUCTS IN SELECTED CATEGORY */
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Category Header Banner & Actions */}
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-start gap-4 sm:gap-5">
+                      <button
+                        type="button"
+                        onClick={() => setViewingCategory(null)}
+                        className="p-3 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 transition-colors cursor-pointer shrink-0 shadow-2xs border border-stone-200"
+                        title="Back to All Categories"
                       >
-                        {/* Top Category Image Banner */}
-                        <div className="relative h-44 w-full bg-stone-100 overflow-hidden group">
-                          <img
-                            src={cat.image}
-                            alt={cat.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                        <ArrowLeft className="w-5 h-5" />
+                      </button>
 
-                          {/* Badge Tag */}
-                          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
-                            {cat.badge}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shrink-0 shadow-inner">
+                        <img
+                          src={viewingCategory.image}
+                          alt={viewingCategory.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-xl sm:text-2xl font-serif font-black text-forest-950">
+                            {viewingCategory.title}
+                          </h2>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 border border-gold-300">
+                            {viewingCategory.badge}
                           </span>
-
-                          {/* Quick Edit Image Button */}
-                          <button
-                            type="button"
-                            onClick={() => openEditCategory(cat)}
-                            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 text-stone-800 hover:bg-forest-950 hover:text-gold-300 transition-colors shadow-xs cursor-pointer"
-                            title="Edit Category & Change Image"
-                          >
-                            <Camera className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* Title over gradient at bottom */}
-                          <div className="absolute bottom-3 left-4 right-4 text-white">
-                            <h3 className="font-serif font-black text-lg leading-snug drop-shadow-sm">
-                              {cat.title}
-                            </h3>
-                            <span className="text-[11px] font-mono text-gold-300 block">
-                              slug: /{cat.slug}
-                            </span>
-                          </div>
                         </div>
+                        <p className="text-xs text-stone-600 max-w-xl leading-relaxed">
+                          {viewingCategory.subtitle}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-stone-500 font-mono">
+                          <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            Slug: /{viewingCategory.slug}
+                          </span>
+                          <span>
+                            Total Oils: <strong>{productsList.filter((p) => p.category === viewingCategory.slug).length}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                        {/* Card Body */}
-                        <div className="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
-                          <div className="space-y-3">
-                            <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
-                              {cat.subtitle}
-                            </p>
+                    <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start md:self-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewProdName('');
+                          setNewProdTamilName('');
+                          setNewProdTagline('');
+                          setNewProdCategory(viewingCategory.slug);
+                          setNewProdPrice(0);
+                          setNewProdOriginalPrice(0);
+                          setNewProdDefaultPack('');
+                          setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                          setNewProdImage('');
+                          setNewCustomPackInput('');
+                          setNewProdBadge('Cold-Pressed');
+                          setNewBadgeMode('standard');
+                          setNewProdSmokePoint('220°C');
+                          setNewProdExtraction('Traditional Vaagai Mara Chekku');
+                          setNewProdDescription('');
+                          setNewProdInStock(true);
+                          setNewProdFeatured(false);
+                          setAddProdError(null);
+                          setIsAddProductOpen(true);
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-4 h-4 text-gold-400" />
+                        <span>Add Product to this Category</span>
+                      </button>
 
-                            {/* Assigned Products Section (product ahh mathikura mathiri) */}
-                            <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-bold text-stone-700 flex items-center gap-1.5">
-                                  <Package className="w-3.5 h-3.5 text-forest-800" />
-                                  <span>Assigned Oils ({assignedProducts.length})</span>
+                      <button
+                        type="button"
+                        onClick={() => openEditCategory(viewingCategory)}
+                        className="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit Category</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setViewingCategory(null)}
+                        className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-stone-600 text-xs font-bold transition-all cursor-pointer border border-stone-300"
+                      >
+                        ← Back to Categories
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Products Table for this Category */}
+                  <div className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs">
+                    <div className="p-4 sm:p-5 border-b border-stone-200 bg-stone-50/70 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-forest-900" />
+                        <h3 className="font-serif font-black text-sm text-forest-950">
+                          Products Assigned to "{viewingCategory.title}"
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-800">
+                          {productsList.filter((p) => p.category === viewingCategory.slug).length}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-stone-400">
+                        Category Isolation: Only oils belonging to this category are listed
+                      </span>
+                    </div>
+
+                    {productsList.filter((p) => p.category === viewingCategory.slug).length === 0 ? (
+                      <div className="p-12 text-center space-y-3">
+                        <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
+                          <Package className="w-7 h-7" />
+                        </div>
+                        <h4 className="font-serif font-bold text-base text-stone-800">
+                          No products in "{viewingCategory.title}" yet
+                        </h4>
+                        <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                          Click below to create and assign the first pure cold-pressed oil to this category.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewProdName('');
+                            setNewProdTamilName('');
+                            setNewProdTagline('');
+                            setNewProdCategory(viewingCategory.slug);
+                            setNewProdPrice(0);
+                            setNewProdOriginalPrice(0);
+                            setNewProdDefaultPack('');
+                            setNewProdPackSizes(['500 ml Bottle', '1 Litre Bottle', '2 Litre Can', '5 Litre Can']);
+                            setNewProdImage('');
+                            setNewCustomPackInput('');
+                            setNewProdBadge('Cold-Pressed');
+                            setNewBadgeMode('standard');
+                            setNewProdSmokePoint('220°C');
+                            setNewProdExtraction('Traditional Vaagai Mara Chekku');
+                            setNewProdDescription('');
+                            setNewProdInStock(true);
+                            setNewProdFeatured(false);
+                            setAddProdError(null);
+                            setIsAddProductOpen(true);
+                          }}
+                          className="px-4 py-2 rounded-xl bg-forest-950 text-gold-300 text-xs font-bold hover:bg-forest-900 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add First Product</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                            <tr>
+                              <th className="py-3 px-4">Product</th>
+                              <th className="py-3 px-4">Tamil Name</th>
+                              <th className="py-3 px-4">Pack Sizes</th>
+                              <th className="py-3 px-4">Selling Price</th>
+                              <th className="py-3 px-4">MRP</th>
+                              <th className="py-3 px-4">Badge</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-100">
+                            {productsList
+                              .filter((p) => p.category === viewingCategory.slug)
+                              .map((prod) => (
+                                <tr key={prod.id} className="hover:bg-stone-50/80 transition-colors">
+                                  <td className="py-3 px-4">
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src={prod.image}
+                                        alt={prod.name}
+                                        className="w-12 h-12 rounded-xl object-contain border border-stone-200 bg-stone-50 shrink-0 p-1"
+                                      />
+                                      <div>
+                                        <span className="font-bold text-stone-900 block">{prod.name}</span>
+                                        <span className="text-[11px] text-stone-500 line-clamp-1">{prod.tagline}</span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4 font-medium text-stone-800">
+                                    {prod.tamilName || '-'}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                      {prod.packSizes?.map((s) => (
+                                        <span key={s} className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] text-stone-700 font-medium">
+                                          {s}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4 font-bold text-forest-950 font-serif text-sm">
+                                    ₹{prod.price}
+                                  </td>
+                                  <td className="py-3 px-4 text-stone-400 line-through">
+                                    ₹{prod.originalPrice || prod.price}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    {prod.badge ? (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                        {prod.badge}
+                                      </span>
+                                    ) : (
+                                      <span className="text-stone-300">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                      In Stock
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-right">
+                                    <div className="inline-flex items-center gap-1.5 justify-end">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditProduct(prod)}
+                                        className="p-1.5 rounded-lg text-forest-900 hover:bg-forest-50 transition-colors cursor-pointer"
+                                        title="Edit Product"
+                                      >
+                                        <Edit className="w-4 h-4 text-forest-800" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteProduct(prod.id)}
+                                        className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                        title="Delete Product"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* MAIN CATEGORIES GRID VIEW */
+                <>
+                  {/* Category Search & Counter */}
+                  <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div className="relative w-full sm:w-80">
+                      <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search categories..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-stone-50/50"
+                      />
+                    </div>
+                    <div className="text-xs text-stone-500">
+                      Total <strong>{categoriesList.length}</strong> Categories Available • Click <strong>View Oils</strong> to see products in each category
+                    </div>
+                  </div>
+
+                  {/* Categories Grid: Shows Image, Info & Assigned Products */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {categoriesList
+                      .filter((c) =>
+                        searchTerm
+                          ? c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            c.subtitle.toLowerCase().includes(searchTerm.toLowerCase())
+                          : true
+                      )
+                      .map((cat) => {
+                        const assignedProducts = productsList.filter(
+                          (p) => p.category === cat.slug
+                        );
+
+                        return (
+                          <div
+                            key={cat.id}
+                            className="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                          >
+                            {/* Top Category Image Banner */}
+                            <div className="relative h-44 w-full bg-stone-100 overflow-hidden group">
+                              <img
+                                src={cat.image}
+                                alt={cat.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+                              {/* Badge Tag */}
+                              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-forest-950 shadow-sm border border-gold-300">
+                                {cat.badge}
+                              </span>
+
+                              {/* Quick Edit Image Button */}
+                              <button
+                                type="button"
+                                onClick={() => openEditCategory(cat)}
+                                className="absolute top-3 right-3 p-2 rounded-full bg-white/90 text-stone-800 hover:bg-forest-950 hover:text-gold-300 transition-colors shadow-xs cursor-pointer"
+                                title="Edit Category & Change Image"
+                              >
+                                <Camera className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Title over gradient at bottom */}
+                              <div className="absolute bottom-3 left-4 right-4 text-white">
+                                <h3 className="font-serif font-black text-lg leading-snug drop-shadow-sm">
+                                  {cat.title}
+                                </h3>
+                                <span className="text-[11px] font-mono text-gold-300 block">
+                                  slug: /{cat.slug}
                                 </span>
+                              </div>
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
+                              <div className="space-y-3">
+                                <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                                  {cat.subtitle}
+                                </p>
+
+                                {/* Assigned Products Box: Clickable to View in dedicated page */}
+                                <div
+                                  onClick={() => setViewingCategory(cat)}
+                                  className="p-3 rounded-2xl bg-stone-50 hover:bg-amber-50/50 border border-stone-200/80 space-y-2 cursor-pointer transition-colors group"
+                                  title="Click to view all products in this category"
+                                >
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-stone-700 flex items-center gap-1.5 group-hover:text-forest-950">
+                                      <Package className="w-3.5 h-3.5 text-forest-800" />
+                                      <span>Assigned Oils ({assignedProducts.length})</span>
+                                    </span>
+                                    <span className="text-[11px] font-bold text-forest-950 group-hover:text-gold-700 group-hover:underline">
+                                      View All →
+                                    </span>
+                                  </div>
+
+                                  {assignedProducts.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {assignedProducts.map((p) => (
+                                        <span
+                                          key={p.id}
+                                          className="px-2 py-0.5 rounded-lg bg-white border border-stone-200 text-[10px] font-medium text-stone-800 shadow-2xs truncate max-w-[200px]"
+                                        >
+                                          {p.name.replace('SS Premium Wood-Pressed ', '').replace('SS Pure Traditional ', '')}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-[11px] text-stone-400 italic">
+                                      No products linked yet. Click to view & add.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Card Footer Actions */}
+                              <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setViewingCategory(cat)}
+                                  className="flex-1 py-1.5 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-gold-400" />
+                                  <span>View Products ({assignedProducts.length})</span>
+                                </button>
+
                                 <button
                                   type="button"
                                   onClick={() => openEditCategory(cat)}
-                                  className="text-[11px] font-bold text-forest-950 hover:text-gold-600 hover:underline cursor-pointer"
+                                  className="p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+                                  title="Edit category details"
                                 >
-                                  Edit Products →
+                                  <Edit className="w-4 h-4" />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCategory(cat.id)}
+                                  className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                  title="Delete category"
+                                >
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
-
-                              {assignedProducts.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {assignedProducts.map((p) => (
-                                    <span
-                                      key={p.id}
-                                      className="px-2 py-0.5 rounded-lg bg-white border border-stone-200 text-[10px] font-medium text-stone-800 shadow-2xs truncate max-w-[200px]"
-                                    >
-                                      {p.name.replace('SS Premium Wood-Pressed ', '').replace('SS Pure Traditional ', '')}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-[11px] text-stone-400 italic">
-                                  No products linked yet. Click Edit to assign.
-                                </p>
-                              )}
                             </div>
                           </div>
-
-                          {/* Card Footer Actions */}
-                          <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-                            <button
-                              type="button"
-                              onClick={() => openEditCategory(cat)}
-                              className="px-3.5 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                            >
-                              <Edit className="w-3.5 h-3.5 text-gold-400" />
-                              <span>Edit Category</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCategory(cat.id)}
-                              className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete category"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
 
               {/* ============================================================ */}
               {/* EDIT CATEGORY MODAL (Image upload + Product Assignment)       */}
@@ -2163,173 +2467,196 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between border-b border-stone-100 pb-4">
                 <div>
                   <h3 className="font-serif font-black text-lg text-forest-950">
-                    User Login & Account Directory
+                    Customer Directory & Logins
                   </h3>
                   <p className="text-xs text-stone-500">
-                    Registered users, login timestamps, and customer activity logs
+                    Registered customer accounts only (Admins excluded) • Live login activity
                   </p>
                 </div>
 
-                {/* Role Filter Pills */}
-                <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl">
-                  {(['ALL', 'customer', 'admin'] as const).map((r) => (
+                {/* Right Actions: Customers count badge & Clear List button */}
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-xl bg-forest-950 text-gold-300 font-bold text-xs shadow-2xs">
+                    {usersList.length} {usersList.length === 1 ? 'Customer' : 'Customers'}
+                  </span>
+                  {usersList.length > 0 && (
                     <button
-                      key={r}
-                      onClick={() => setUserRoleFilter(r)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        userRoleFilter === r
-                          ? 'bg-forest-950 text-white shadow-xs'
-                          : 'text-stone-600 hover:text-stone-900'
-                      }`}
+                      type="button"
+                      onClick={handleClearAllCustomers}
+                      className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                      title="Clear all customer login records"
                     >
-                      {r === 'ALL' ? 'All Users' : r === 'customer' ? 'Customers' : 'Admins'}
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear Logins</span>
                     </button>
-                  ))}
+                  )}
                 </div>
               </div>
 
-              {/* User Search Input */}
+              {/* Customer Search Input */}
               <div className="relative max-w-sm">
                 <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search by name, email, or phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search customers by name, email, or phone..."
+                  value={customerSearchTerm}
+                  onChange={(e) => setCustomerSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-stone-50/50"
                 />
               </div>
 
-              {/* User Logins Table */}
+              {/* Customer Logins Table */}
               <div className="rounded-2xl border border-stone-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-stone-50 border-b border-stone-200 text-stone-700 font-serif">
-                      <tr>
-                        <th className="py-3 px-4 font-bold">User Name & Email</th>
-                        <th className="py-3 px-4 font-bold">Role</th>
-                        <th className="py-3 px-4 font-bold">Contact Phone</th>
-                        <th className="py-3 px-4 font-bold">Orders / Spent</th>
-                        <th className="py-3 px-4 font-bold">Last Login Activity</th>
-                        <th className="py-3 px-4 font-bold">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {usersList
-                        .filter((u) => {
-                          const matchesRole =
-                            userRoleFilter === 'ALL' || u.role === userRoleFilter;
-                          const matchesSearch =
-                            !searchTerm ||
-                            u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            u.phone.includes(searchTerm);
-                          return matchesRole && matchesSearch;
-                        })
-                        .map((user) => (
-                          <tr key={user.id} className="hover:bg-amber-50/20">
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-forest-950 text-gold-400 flex items-center justify-center font-bold text-xs shrink-0">
-                                  {user.name.charAt(0)}
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-stone-900 block">
-                                      {user.name}
-                                    </span>
-                                    {user.isVerified !== false && (
-                                      <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                        ✓ Verified
-                                      </span>
-                                    )}
+                {(() => {
+                  const filteredCustomers = usersList.filter((u) => {
+                    if (u.role === 'admin') return false;
+                    const term = customerSearchTerm.toLowerCase().trim();
+                    if (!term) return true;
+                    return (
+                      (u.name && u.name.toLowerCase().includes(term)) ||
+                      (u.email && u.email.toLowerCase().includes(term)) ||
+                      (u.phone && u.phone.includes(term))
+                    );
+                  });
+
+                  if (filteredCustomers.length === 0) {
+                    return (
+                      <div className="p-12 text-center text-stone-400 space-y-3 bg-stone-50/40">
+                        <div className="w-12 h-12 rounded-full bg-cream-100 text-stone-400 flex items-center justify-center mx-auto shadow-inner">
+                          <Users className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-stone-700">No Customers Logged In Yet</p>
+                          <p className="text-xs text-stone-400 max-w-sm mx-auto mt-1">
+                            When customer accounts sign in, their login details and orders will appear here automatically.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-stone-50 border-b border-stone-200 text-stone-700 font-serif">
+                          <tr>
+                            <th className="py-3 px-4 font-bold">Customer Name & Email</th>
+                            <th className="py-3 px-4 font-bold">Contact Phone</th>
+                            <th className="py-3 px-4 font-bold">Orders / Spent</th>
+                            <th className="py-3 px-4 font-bold">Last Login Activity</th>
+                            <th className="py-3 px-4 font-bold">Status</th>
+                            <th className="py-3 px-4 font-bold text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100">
+                          {filteredCustomers.map((user) => (
+                            <tr key={user.id} className="hover:bg-amber-50/20">
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-full bg-forest-950 text-gold-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                    {user.name.charAt(0)}
                                   </div>
-                                  <span className="text-[11px] text-stone-500 font-mono">
-                                    {user.email}
-                                  </span>
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-stone-900 block">
+                                        {user.name}
+                                      </span>
+                                      {user.isVerified !== false && (
+                                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                          ✓ Verified
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[11px] text-stone-500 font-mono">
+                                      {user.email}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
+                              </td>
 
-                            <td className="py-3 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  user.role === 'admin'
-                                    ? 'bg-gold-100 text-gold-900 border border-gold-300'
-                                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                }`}
-                              >
-                                {user.role === 'admin' ? '🛡️ Administrator' : 'Customer'}
-                              </span>
-                            </td>
+                              <td className="py-3 px-4 font-mono text-stone-600">
+                                <div className="font-semibold">{user.phone}</div>
+                                {user.city && (
+                                  <span className="text-[10px] text-stone-500 block font-sans">
+                                    📍 {user.city}
+                                  </span>
+                                )}
+                              </td>
 
-                            <td className="py-3 px-4 font-mono text-stone-600">
-                              <div className="font-semibold">{user.phone}</div>
-                              {user.city && (
-                                <span className="text-[10px] text-stone-500 block font-sans">
-                                  📍 {user.city}
-                                </span>
-                              )}
-                            </td>
+                              <td className="py-3 px-4">
+                                {(() => {
+                                  const cleanPhone = (user.phone || '').replace(/\D/g, '');
+                                  const cleanEmail = (user.email || '').toLowerCase().trim();
+                                  const userOrders = orders.filter((o) => {
+                                    const oPhone = (o.customerPhone || '').replace(/\D/g, '');
+                                    const oEmail = (o.customerEmail || '').toLowerCase().trim();
+                                    return (cleanEmail && oEmail === cleanEmail) || (cleanPhone && oPhone === cleanPhone);
+                                  });
+                                  const orderCount = userOrders.length;
+                                  const spentAmount = userOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-                            <td className="py-3 px-4">
-                              {(() => {
-                                const cleanPhone = (user.phone || '').replace(/\D/g, '');
-                                const cleanEmail = (user.email || '').toLowerCase().trim();
-                                const userOrders = orders.filter((o) => {
-                                  const oPhone = (o.customerPhone || '').replace(/\D/g, '');
-                                  const oEmail = (o.customerEmail || '').toLowerCase().trim();
-                                  return (cleanEmail && oEmail === cleanEmail) || (cleanPhone && oPhone === cleanPhone);
-                                });
-                                const orderCount = userOrders.length;
-                                const spentAmount = userOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+                                  if (orderCount === 0) {
+                                    return (
+                                      <div>
+                                        <span className="font-semibold text-stone-400 block text-xs">
+                                          0 Orders
+                                        </span>
+                                        <span className="text-[10px] text-stone-400">
+                                          No purchases yet
+                                        </span>
+                                      </div>
+                                    );
+                                  }
 
-                                if (orderCount === 0) {
                                   return (
                                     <div>
-                                      <span className="font-semibold text-stone-400 block text-xs">
-                                        0 Orders
+                                      <span className="font-bold text-forest-950 block">
+                                        {orderCount} {orderCount === 1 ? 'Order' : 'Orders'}
                                       </span>
-                                      <span className="text-[10px] text-stone-400">
-                                        No purchases yet
+                                      <span className="text-[11px] text-emerald-700 font-semibold">
+                                        ₹{spentAmount} spent
                                       </span>
                                     </div>
                                   );
-                                }
+                                })()}
+                              </td>
 
-                                return (
-                                  <div>
-                                    <span className="font-bold text-forest-950 block">
-                                      {orderCount} {orderCount === 1 ? 'Order' : 'Orders'}
-                                    </span>
-                                    <span className="text-[11px] text-emerald-700 font-semibold">
-                                      ₹{spentAmount} spent
-                                    </span>
-                                  </div>
-                                );
-                              })()}
-                            </td>
+                              <td className="py-3 px-4 font-mono text-stone-600">
+                                {user.lastLogin}
+                              </td>
 
-                            <td className="py-3 px-4 font-mono text-stone-600">
-                              {user.lastLogin}
-                            </td>
+                              <td className="py-3 px-4">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCustomerStatus(user.id)}
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                                    user.status === 'Active'
+                                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                      : 'bg-stone-200 text-stone-600 hover:bg-stone-300'
+                                  }`}
+                                  title="Click to toggle status"
+                                >
+                                  {user.status}
+                                </button>
+                              </td>
 
-                            <td className="py-3 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  user.status === 'Active'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-stone-200 text-stone-600'
-                                }`}
-                              >
-                                {user.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCustomer(user.id)}
+                                  className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                  title="Delete customer record"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
 
             </div>
@@ -2606,21 +2933,34 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {/* ============================================================ */}
           {activeTab === 'offers' && (
             <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 space-y-6">
-              <div className="border-b border-stone-100 pb-4">
-                <h3 className="font-serif font-black text-xl text-stone-900">
-                  Offers & Discount Coupons
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Manage active discount vouchers, promotional banners, and festival codes
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+                <div>
+                  <h3 className="font-serif font-black text-xl text-stone-900">
+                    Offers & Discount Coupons
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Active discount vouchers, festive promotional codes, and cart savings
+                  </p>
+                </div>
+                <a
+                  href="/offers"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all shadow-xs self-start sm:self-auto cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>View Customer Offers Page ↗</span>
+                </a>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {[
-                  { code: 'FESTIVE16', discount: '16% OFF', title: 'Festive Oil Combo Deal', status: 'Active', exp: 'Valid till 31 Oct 2026' },
-                  { code: 'MARACHEKKU10', discount: '10% OFF', title: 'Wood-Pressed Welcome Offer', status: 'Active', exp: 'Valid for new customers' },
-                  { code: 'FREESHIP499', discount: 'FREE SHIPPING', title: 'Free Home Delivery on ₹499+', status: 'Active', exp: 'Permanent coupon' },
-                  { code: 'NITHYAMFREE', discount: '250ml FREE', title: 'Buy 2x1L Nithyam Get 250ml Free', status: 'Active', exp: 'Limited festive stock' },
+                  { code: 'FIRST10', discount: '10% OFF', title: '10% OFF on First Order', min: 'Min Order: ₹499', exp: 'Valid till 31 Dec 2026', status: 'Active' },
+                  { code: 'SAVE15', discount: '15% OFF', title: '15% OFF on Orders Above ₹1000', min: 'Min Order: ₹1000', exp: 'Valid till 31 Dec 2026', status: 'Active' },
+                  { code: 'BULK20', discount: '20% OFF', title: '20% OFF on Bulk Orders', min: 'Min Order: ₹2500', exp: 'Valid till 31 Dec 2026', status: 'Active' },
+                  { code: 'FREEDEL', discount: 'FREE DELIVERY', title: '100% Free Express Delivery', min: 'No Minimum Order', exp: 'Permanent Mill Offer', status: 'Active' },
+                  { code: 'VAAGAI100', discount: '₹100 OFF', title: 'Flat ₹100 OFF Heritage Special', min: 'Min Order: ₹1299', exp: 'Valid till 31 Dec 2026', status: 'Active' },
+                  { code: 'FESTIVECOMBO', discount: '18% OFF', title: '18% OFF on Festival Combos', min: 'Min Order: ₹1800', exp: 'Valid till 31 Dec 2026', status: 'Active' },
                 ].map((c) => (
                   <div key={c.code} className="p-5 rounded-2xl border border-dashed border-[#1e7e34] bg-emerald-50/40 flex flex-col justify-between">
                     <div>
@@ -2634,225 +2974,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       </div>
                       <h4 className="font-serif font-bold text-sm text-stone-900 mt-2">{c.title}</h4>
                       <p className="text-xs font-bold text-amber-700 mt-1">{c.discount}</p>
-                      <p className="text-[11px] text-stone-400 mt-1">{c.exp}</p>
+                      <p className="text-[11px] text-stone-500 mt-1">{c.min}</p>
+                      <p className="text-[10px] text-stone-400 mt-0.5">{c.exp}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================ */}
-          {/* CONTENT MANAGEMENT VIEW                                      */}
-          {/* ============================================================ */}
-          {activeTab === 'content' && (
-            <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 space-y-6">
-              <div className="border-b border-stone-100 pb-4">
-                <h3 className="font-serif font-black text-xl text-stone-900">
-                  Storefront Content & Storylines
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Manage heritage storytelling, Vaagai wood chekku visualizer, and FAQ content
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div className="p-5 rounded-2xl border border-stone-200 bg-stone-50/50 space-y-2">
-                  <h4 className="font-serif font-bold text-base text-stone-900">The Mara Chekku Experience</h4>
-                  <p className="text-xs text-stone-600">5 Generational Milestones Interactive Visualizer is live on homepage.</p>
-                  <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                    Active & Synchronized
-                  </span>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-stone-200 bg-stone-50/50 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-serif font-bold text-base text-stone-900">Mara Chekku Heritage Video</h4>
-                    <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      Active on Homepage
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-600">
-                    Featured live wood pressing heritage showcase video configured on homepage.
-                  </p>
-                  <button
-                    onClick={() => handleTabChange('videos')}
-                    className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Video className="w-3.5 h-3.5 text-gold-400" />
-                    <span>Manage Homepage Video →</span>
-                  </button>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-serif font-bold text-base text-stone-900">Products</h4>
-                    <span className="inline-block text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
-                      {currentHomepageProductIds.length} Oils Active on Home
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-600">
-                    Manage catalog oils and toggle which ones appear prominently on the storefront homepage.
-                  </p>
-                  <button
-                    onClick={() => handleTabChange('products')}
-                    className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <Package className="w-3.5 h-3.5 text-gold-400" />
-                    <span>Manage Oils & Homepage Selection →</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* SECTION: Homepage Quality Pillars Center Banner Photo */}
-              <div className="p-6 rounded-2xl border border-amber-200/90 bg-[#FFFDF5] space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-3">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-md">
-                      Quality Pillars Center Image
-                    </span>
-                    <h4 className="font-serif font-black text-lg text-stone-900 mt-1">
-                      Homepage 4 Quality Pillars Center Banner Photo
-                    </h4>
-                    <p className="text-xs text-stone-600">
-                      Change or upload the center bottle photo displayed in the 4 quality pillars section on the homepage.
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Live on Homepage
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                  {/* Left: Preview */}
-                  <div className="lg:col-span-4 flex flex-col items-center">
-                    <div className="relative rounded-3xl overflow-hidden shadow-sm max-w-[280px] w-full border border-amber-300/70 bg-[#FFF9D5] p-5 flex flex-col items-center justify-center">
-                      <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2">Live Preview</span>
-                      <div className="h-56 w-full flex items-center justify-center rounded-2xl overflow-hidden bg-white/60">
-                        <img
-                          src={settings.qualityBannerImage || '/quality_banner_bottles.jpg'}
-                          alt="Quality Pillars Center Preview"
-                          className="w-full h-full object-contain drop-shadow-md"
-                        />
-                      </div>
-                      <div className="mt-3 px-3 py-1 rounded-full bg-forest-950 text-gold-300 text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                        <span className="truncate max-w-[200px]">{settings.qualityBannerBadge || '100% Mara Chekku • SS OIL Heritage'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Upload & Controls */}
-                  <div className="lg:col-span-8 space-y-4">
-                    {/* Upload File from PC */}
-                    <div>
-                      <label className="block text-xs font-bold text-stone-800 mb-1.5">
-                        Upload New Photo from Computer:
-                      </label>
-                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-xs font-bold cursor-pointer shadow-xs transition-all hover:border-amber-500">
-                        <Upload className="w-4 h-4 text-amber-700" />
-                        <span>Choose Photo (JPG, PNG, WebP)</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleImageFileUpload(e, (url) => {
-                              setSettings((prev) => ({ ...prev, qualityBannerImage: url }));
-                              updateStoreSettings({ qualityBannerImage: url });
-                              showToast('Quality Pillars image updated and saved!');
-                            })
-                          }
-                        />
-                      </label>
-                    </div>
-
-                    {/* Image URL Input */}
-                    <div>
-                      <label className="block text-xs font-bold text-stone-800 mb-1">
-                        Or Enter Direct Image URL:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={settings.qualityBannerImage || ''}
-                          onChange={(e) => setSettings((prev) => ({ ...prev, qualityBannerImage: e.target.value }))}
-                          placeholder="/quality_banner_bottles.jpg or https://..."
-                          className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-white"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updateStoreSettings({ qualityBannerImage: settings.qualityBannerImage });
-                            showToast('Quality Pillars image URL saved!');
-                          }}
-                          className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                        >
-                          Save URL
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Badge Text Input */}
-                    <div>
-                      <label className="block text-xs font-bold text-stone-800 mb-1">
-                        Bottom Badge Seal Text:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={settings.qualityBannerBadge || ''}
-                          onChange={(e) => setSettings((prev) => ({ ...prev, qualityBannerBadge: e.target.value }))}
-                          placeholder="100% Mara Chekku • SS OIL Heritage"
-                          className="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-white"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updateStoreSettings({ qualityBannerBadge: settings.qualityBannerBadge });
-                            showToast('Badge seal text saved!');
-                          }}
-                          className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition-all border border-stone-300 cursor-pointer shadow-xs"
-                        >
-                          Update Badge
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Presets Quick Chooser */}
-                    <div>
-                      <span className="block text-[11px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
-                        Quick Select Presets:
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { label: 'SS OIL Trio Packshot (Default)', url: '/quality_banner_bottles.jpg' },
-                          { label: 'Salem Bottling Line', url: '/craft_stage_bottling.jpg' },
-                          { label: 'Vaagai Mara Chekku Churn', url: '/craft_stage_churn.jpg' },
-                          { label: 'Sun-Cured Seeds', url: '/craft_stage_seeds.jpg' },
-                        ].map((preset) => (
-                          <button
-                            key={preset.url}
-                            type="button"
-                            onClick={() => {
-                              setSettings((prev) => ({ ...prev, qualityBannerImage: preset.url }));
-                              updateStoreSettings({ qualityBannerImage: preset.url });
-                              showToast(`Applied preset: ${preset.label}`);
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
-                              (settings.qualityBannerImage || '/quality_banner_bottles.jpg') === preset.url
-                                ? 'bg-amber-100 border-amber-600 text-amber-950 font-bold shadow-2xs'
-                                : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-                            }`}
-                          >
-                            {preset.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -3106,23 +3232,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 })}
               </div>
 
-              {/* TAB 1: Store Settings (The Exact 2x2 Grid View from Screenshot) */}
+              {/* TAB 1: Store Settings (Read-Only Identity & Mill Desk - Announcement Bar Removed) */}
               {settingsSubTab === 'store' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   
-                  {/* CARD 1: Store Information */}
+                  {/* CARD 1: Store Information (Read-Only) */}
                   <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1e7e34] flex items-center justify-center">
-                          <Store className="w-4 h-4" />
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1e7e34] flex items-center justify-center">
+                            <Store className="w-4 h-4" />
+                          </div>
+                          <h3 className="font-serif font-bold text-base text-stone-900">
+                            Store Information
+                          </h3>
                         </div>
-                        <h3 className="font-serif font-bold text-base text-stone-900">
-                          Store Information
-                        </h3>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-stone-100 text-stone-600 border border-stone-200">
+                          Protected Configuration
+                        </span>
                       </div>
                       <p className="text-xs text-stone-400 mb-5 ml-9">
-                        Update your store basic details
+                        Store branding and basic identity details
                       </p>
 
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-5">
@@ -3141,285 +3272,110 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               {settings.tagline || 'Pure & Healthy'}
                             </span>
                           </div>
-
-                          <div className="flex flex-col items-center gap-1.5 w-full">
-                            <label className="w-full text-center px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold cursor-pointer shadow-2xs transition-all">
-                              <span>Upload New Logo</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    try {
-                                      const optimized = await resizeImageFile(file, 256);
-                                      setSettings((prev) => ({ ...prev, logoUrl: optimized }));
-                                      showToast('Store logo updated! Click "Save Changes" to apply.');
-                                    } catch (err) {
-                                      const reader = new FileReader();
-                                      reader.onload = () => {
-                                        setSettings((prev) => ({ ...prev, logoUrl: reader.result as string }));
-                                        showToast('Store logo updated! Click "Save Changes" to apply.');
-                                      };
-                                      reader.readAsDataURL(file);
-                                    }
-                                  }
-                                }}
-                              />
-                            </label>
-
-                            {/* Preset Quick Selectors */}
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSettings((prev) => ({ ...prev, logoUrl: '/admin_assets/ss_gold_drop_logo.png' }));
-                                  showToast("SS Oil Gold Drop logo selected! Click 'Save Changes' to apply.");
-                                }}
-                                className="text-[10px] px-2 py-0.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium cursor-pointer"
-                                title="Default Drop Logo"
-                              >
-                                SS Oil (Gold Drop)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSettings((prev) => ({ ...prev, logoUrl: '/admin_assets/ssoil_logo.png' }));
-                                  showToast("SS Oil Emblem logo selected! Click 'Save Changes' to apply.");
-                                }}
-                                className="text-[10px] px-2 py-0.5 rounded-lg border border-stone-200 bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium cursor-pointer"
-                                title="Traditional Emblem"
-                              >
-                                SS Oil (Emblem)
-                              </button>
-                            </div>
-                          </div>
+                          <span className="text-[10px] text-stone-400 font-medium text-center">
+                            Standard Mill Emblem
+                          </span>
                         </div>
 
-                        {/* Form Inputs */}
+                        {/* Read-Only Details */}
                         <div className="sm:col-span-8 space-y-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
                               Store Name
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.storeName}
-                              onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
+                            </span>
+                            <span className="text-sm font-bold text-stone-900">
+                              {settings.storeName || "ss oil"}
+                            </span>
                           </div>
 
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
                               Tagline
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.tagline}
-                              onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
+                            </span>
+                            <span className="text-xs font-semibold text-stone-800">
+                              {settings.tagline || 'Pure & Healthy Mara Chekku Heritage'}
+                            </span>
                           </div>
 
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Description
-                            </label>
-                            <textarea
-                              rows={3}
-                              value={settings.description}
-                              onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium resize-none"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Homepage Products Display
-                            </label>
-                            <select
-                              value={settings.homepageProductsLimit || 4}
-                              onChange={(e) => setSettings({ ...settings, homepageProductsLimit: Number(e.target.value) })}
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium cursor-pointer"
-                            >
-                              <option value={4}>4 Products (Recommended)</option>
-                              <option value={6}>6 Products</option>
-                              <option value={8}>8 Products</option>
-                              <option value={999}>All Products</option>
-                            </select>
-                            <p className="text-[10px] text-stone-400 mt-1">
-                              Choose how many featured products are shown on the homepage.
+                          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
+                              Store Description
+                            </span>
+                            <p className="text-xs text-stone-600 leading-relaxed">
+                              {settings.description || 'Traditional wood-pressed natural oils mill. 100% cold-pressed and sulphur-free.'}
                             </p>
                           </div>
+
+                          <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/70 flex items-center justify-between text-xs">
+                            <span className="text-emerald-900 font-semibold">Homepage Products:</span>
+                            <span className="font-bold text-emerald-800 bg-white px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                              {settings.homepageProductsLimit || 4} Featured Oils
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    <div className="pt-4 mt-4 border-t border-stone-100 flex justify-end">
-                      <button
-                        onClick={() => handleSaveSettings()}
-                        className="px-5 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
                   </div>
 
-                  {/* CARD 2: Top Announcement Bar (Directly controls the top header grey banner) */}
+                  {/* CARD 2: Contact & Mill Details (Read-Only) */}
                   <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1e7e34] flex items-center justify-center">
-                          <Globe className="w-4 h-4" />
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1e7e34] flex items-center justify-center">
+                            <Store className="w-4 h-4" />
+                          </div>
+                          <h3 className="font-serif font-bold text-base text-stone-900">
+                            Contact & Mill Details
+                          </h3>
                         </div>
-                        <h3 className="font-serif font-bold text-base text-stone-900">
-                          Top Announcement Bar
-                        </h3>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Active Mill Desk
+                        </span>
                       </div>
                       <p className="text-xs text-stone-400 mb-5 ml-9">
-                        Configure the announcement banner displayed at top of customer pages
+                        Factory desk, customer care, and registered mill address
                       </p>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Primary Announcement Text (Left)
-                          </label>
-                          <input
-                            type="text"
-                            value={settings.announcementText || ''}
-                            onChange={(e) => setSettings({ ...settings, announcementText: e.target.value })}
-                            placeholder="e.g. Pure Oils, Trusted Since 1957"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Secondary Badge Text (Right)
-                          </label>
-                          <input
-                            type="text"
-                            value={settings.announcementSubText || ''}
-                            onChange={(e) => setSettings({ ...settings, announcementSubText: e.target.value })}
-                            placeholder="e.g. 10,000+ Kitchens Served"
-                            className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2">
-                          <div>
-                            <span className="text-xs font-bold text-stone-800 block">Show Announcement Bar</span>
-                            <span className="text-[11px] text-stone-400">Display this header banner to store visitors</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setSettings({ ...settings, announcementEnabled: !settings.announcementEnabled })}
-                            className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
-                              settings.announcementEnabled !== false ? 'bg-[#1e7e34]' : 'bg-stone-300'
-                            }`}
-                          >
-                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
-                              settings.announcementEnabled !== false ? 'translate-x-5' : 'translate-x-0'
-                            }`} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 mt-4 border-t border-stone-100 flex justify-end">
-                      <button
-                        onClick={() => handleSaveSettings()}
-                        className="px-5 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* CARD 3: Store Contact & Mill Details (Directly updates Footer & Contact Page) */}
-                  <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between lg:col-span-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1e7e34] flex items-center justify-center">
-                          <Store className="w-4 h-4" />
-                        </div>
-                        <h3 className="font-serif font-bold text-base text-stone-900">
-                          Contact & Mill Details
-                        </h3>
-                      </div>
-                      <p className="text-xs text-stone-400 mb-5 ml-9">
-                        Updates customer Footer desk, Contact page, and statutory information
-                      </p>
-
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Phone / Customer Care
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.phone || ''}
-                              onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                              placeholder="+91 98765 43210"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
+                              Customer Care Phone
+                            </span>
+                            <span className="text-xs font-bold text-forest-950">
+                              {settings.phone || '+91 94432 10855'}
+                            </span>
                           </div>
 
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
                               Support Email
-                            </label>
-                            <input
-                              type="email"
-                              value={settings.email || ''}
-                              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                              placeholder="care@ssoil.in"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
+                            </span>
+                            <span className="text-xs font-bold text-forest-950">
+                              {settings.email || 'care@ssoil.com'}
+                            </span>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Mill & Factory Physical Address
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.millAddress || ''}
-                              onChange={(e) => setSettings({ ...settings, millAddress: e.target.value })}
-                              placeholder="e.g. 42 Chekku Street, Salem, Tamil Nadu"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
-                          </div>
+                        <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
+                            Mill Physical Address
+                          </span>
+                          <span className="text-xs font-medium text-stone-800 leading-relaxed block">
+                            {settings.millAddress || 'SS Traditional Mara Chekku Mill, Heritage Post, Salem, Tamil Nadu - 636 001'}
+                          </span>
+                        </div>
 
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Working / Mill Desk Hours
-                            </label>
-                            <input
-                              type="text"
-                              value={settings.millHours || ''}
-                              onChange={(e) => setSettings({ ...settings, millHours: e.target.value })}
-                              placeholder="Mon – Sat: 9:00 AM – 7:30 PM IST"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] bg-white text-stone-900 font-medium"
-                            />
-                          </div>
+                        <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">
+                            Working / Mill Desk Hours
+                          </span>
+                          <span className="text-xs font-semibold text-stone-800">
+                            {settings.millHours || 'Mon – Sat: 8:00 AM – 8:30 PM IST'}
+                          </span>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="pt-4 mt-4 border-t border-stone-100 flex justify-end">
-                      <button
-                        onClick={() => handleSaveSettings()}
-                        className="px-5 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
-                      >
-                        Save Changes
-                      </button>
                     </div>
                   </div>
 
@@ -3516,33 +3472,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               )}
 
               {/* SUBTAB 4: System Subtab */}
-              {settingsSubTab === 'system' && (
-                <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 space-y-6">
-                  <div className="border-b border-stone-100 pb-4">
-                    <h3 className="font-serif font-black text-xl text-stone-900">
-                      System Status & Database
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      TiDB Cloud MySQL live connection and server diagnostics
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
-                      <div>
-                        <h4 className="text-xs font-bold text-emerald-950">TiDB Cloud Serverless MySQL</h4>
-                        <p className="text-[11px] text-emerald-800">Connected & Synced (SSL Active)</p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-emerald-800 shadow-2xs">
-                      Live 🟢
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* SUBTAB 7: System Subtab */}
               {settingsSubTab === 'system' && (
                 <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 space-y-6">
                   <div className="border-b border-stone-100 pb-4">
@@ -3872,29 +3801,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             />
                           </div>
                         </div>
-
-                        {/* Quick Presets Strip */}
-                        <div className="pt-2 border-t border-stone-200">
-                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
-                            ⚡ Quick 1-Click Oil Presets:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_IMAGES.map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => setEditProdImage(preset.url)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                                  editProdImage === preset.url
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                }`}
-                              >
-                                {preset.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
                       </div>
 
                       {/* 2. Basic Details: Name, Tagline, Category, Badge */}
@@ -3926,7 +3832,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               type="text"
                               value={editProdTamilName}
                               onChange={(e) => setEditProdTamilName(e.target.value)}
-                              placeholder="e.g. Cold-Pressed Sesame Oil"
+                              placeholder="எ.கா. மரச்செக்கு நல்லெண்ணெய் (விரும்பினால்)"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
@@ -3945,27 +3851,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
 
                           <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-semibold text-stone-700">
-                                Category
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCatTitle('');
-                                  setNewCatSubtitle('');
-                                  setNewCatBadge('New Arrival');
-                                  setNewCatSlug('');
-                                  setNewCatImage('/products/sesame_oil.jpg');
-                                  setNewCatAssignedProductIds([]);
-                                  setIsAddCategoryOpen(true);
-                                }}
-                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
-                              >
-                                <Plus className="w-3 h-3 text-emerald-600" />
-                                <span>+ New Category</span>
-                              </button>
-                            </div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Category
+                            </label>
                             <select
                               value={editProdCategory}
                               onChange={(e) => setEditProdCategory(e.target.value)}
@@ -3981,23 +3869,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Highlight Badge
+                              Highlight Badge (பேட்ஜ்)
                             </label>
                             <select
-                              value={editProdBadge}
-                              onChange={(e) => setEditProdBadge(e.target.value)}
+                              value={editBadgeMode === 'custom' ? '__custom__' : editProdBadge}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '__custom__') {
+                                  setEditBadgeMode('custom');
+                                } else {
+                                  setEditBadgeMode('standard');
+                                  setEditProdBadge(val);
+                                }
+                              }}
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
                             >
-                              <option value="">No Badge</option>
-                              <option value="Bestseller">Bestseller</option>
-                              <option value="Cold-Pressed">Cold-Pressed</option>
-                              <option value="Wood-Pressed">Wood-Pressed</option>
-                              <option value="100% Pure">100% Pure</option>
-                              <option value="Popular">Popular</option>
-                              <option value="Light & Pure">Light & Pure</option>
-                              <option value="Heart Care">Heart Care</option>
-                              <option value="Temple Pooja">Temple Pooja</option>
+                              {STANDARD_BADGES.map((b) => (
+                                <option key={b} value={b}>{b}</option>
+                              ))}
+                              <option value="__custom__">+ Type Custom Badge (சுயமாக டைப் செய்ய)...</option>
                             </select>
+
+                            {editBadgeMode === 'custom' && (
+                              <input
+                                type="text"
+                                value={editProdBadge === '__custom__' ? '' : editProdBadge}
+                                onChange={(e) => setEditProdBadge(e.target.value)}
+                                placeholder="Type custom badge (e.g. Farm Fresh, Export Grade...)"
+                                className="w-full mt-2 px-3.5 py-2 rounded-xl border border-emerald-400 text-xs focus:outline-none focus:border-forest-900 font-bold bg-emerald-50/30"
+                                autoFocus
+                              />
+                            )}
                           </div>
                         </div>
                       </div>
@@ -4184,7 +4086,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
                         </div>
 
-                        {/* Stock & Featured Checkboxes */}
+                        {/* Stock Checkbox */}
                         <div className="flex flex-wrap items-center gap-4 pt-1">
                           <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
                             <input
@@ -4194,19 +4096,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
                             />
                             <span className="text-xs font-bold text-stone-800">
-                              In Stock
-                            </span>
-                          </label>
-
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={editProdFeatured}
-                              onChange={(e) => setEditProdFeatured(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              Show on Home
+                              In Stock (கையிருப்பு உள்ளது)
                             </span>
                           </label>
                         </div>
@@ -4225,6 +4115,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
                         />
                       </div>
+
+                      
 
                       {/* Modal Action Buttons */}
                       <div className="pt-2 flex gap-3">
@@ -4284,11 +4176,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
                       )}
                       
-                      {/* 1. Product Image */}
+                      {/* 1. Product Image (Optional) */}
                       <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          1. Product Image <span className="text-red-500">*</span>
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                            1. Product Image (Optional - படம் இல்லாமலும் சேர்க்கலாம்)
+                          </label>
+                          <span className="text-[10px] text-stone-400 font-semibold">Optional</span>
+                        </div>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                           <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-stone-300 shadow-xs shrink-0 bg-stone-100 relative">
@@ -4325,32 +4220,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               type="text"
                               value={newProdImage}
                               onChange={(e) => setNewProdImage(e.target.value)}
-                              placeholder="Upload oil can image or enter image URL (Required)"
+                              placeholder="Upload image or enter image URL (Optional - leave empty for auto oil bottle)"
                               className="w-full px-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-forest-900 bg-white"
                             />
-                          </div>
-                        </div>
-
-                        {/* Presets */}
-                        <div className="pt-2 border-t border-stone-200">
-                          <span className="text-[11px] font-semibold text-stone-500 block mb-1.5">
-                            ⚡ Quick 1-Click Oil Presets:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_IMAGES.map((preset) => (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => setNewProdImage(preset.url)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
-                                  newProdImage === preset.url
-                                    ? 'bg-forest-950 text-gold-300 border-forest-950'
-                                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                                }`}
-                              >
-                                {preset.name}
-                              </button>
-                            ))}
                           </div>
                         </div>
                       </div>
@@ -4364,19 +4236,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Product Name <span className="text-red-500">*</span>
+                              Product Name (English) <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
                               required
                               value={newProdName}
-                              onChange={(e) => setNewProdName(e.target.value)}
+                              onChange={(e) => {
+                                setNewProdName(e.target.value);
+                                if (!newProdTamilName && CATEGORY_DEFAULT_TAMIL_NAMES[newProdCategory]) {
+                                  setNewProdTamilName(CATEGORY_DEFAULT_TAMIL_NAMES[newProdCategory]);
+                                }
+                              }}
                               placeholder="e.g. SS Pure Castor Oil"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
 
                           <div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Tamil Name (தமிழ் பெயர்)
+                            </label>
+                            <input
+                              type="text"
+                              value={newProdTamilName}
+                              onChange={(e) => setNewProdTamilName(e.target.value)}
+                              placeholder="எ.கா. மரச்செக்கு நல்லெண்ணெய்"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
                               Tagline / Subtitle <span className="text-red-500">*</span>
                             </label>
@@ -4390,27 +4280,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
 
                           <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-semibold text-stone-700">
-                                Category <span className="text-red-500">*</span>
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCatTitle('');
-                                  setNewCatSubtitle('');
-                                  setNewCatBadge('New Arrival');
-                                  setNewCatSlug('');
-                                  setNewCatImage('/products/sesame_oil.jpg');
-                                  setNewCatAssignedProductIds([]);
-                                  setIsAddCategoryOpen(true);
-                                }}
-                                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-850 flex items-center gap-0.5 cursor-pointer hover:underline"
-                              >
-                                <Plus className="w-3 h-3 text-emerald-600" />
-                                <span>+ New Category</span>
-                              </button>
-                            </div>
+                            <label className="block text-xs font-semibold text-stone-700 mb-1">
+                              Category <span className="text-red-500">*</span>
+                            </label>
                             <select
                               value={newProdCategory}
                               onChange={(e) => setNewProdCategory(e.target.value)}
@@ -4426,21 +4298,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                           <div>
                             <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Highlight Badge
+                              Highlight Badge (பேட்ஜ்)
                             </label>
                             <select
-                              value={newProdBadge}
-                              onChange={(e) => setNewProdBadge(e.target.value)}
+                              value={newBadgeMode === 'custom' ? '__custom__' : newProdBadge}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '__custom__') {
+                                  setNewBadgeMode('custom');
+                                } else {
+                                  setNewBadgeMode('standard');
+                                  setNewProdBadge(val);
+                                }
+                              }}
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
                             >
-                              <option value="Cold-Pressed">Cold-Pressed</option>
-                              <option value="Wood-Pressed">Wood-Pressed</option>
-                              <option value="Bestseller">Bestseller</option>
-                              <option value="100% Pure">100% Pure</option>
-                              <option value="Popular">Popular</option>
-                              <option value="Light & Pure">Light & Pure</option>
-                              <option value="Temple Pooja">Temple Pooja</option>
+                              {STANDARD_BADGES.map((b) => (
+                                <option key={b} value={b}>{b}</option>
+                              ))}
+                              <option value="__custom__">+ Type Custom Badge (சுயமாக டைப் செய்ய)...</option>
                             </select>
+
+                            {newBadgeMode === 'custom' && (
+                              <input
+                                type="text"
+                                value={newProdBadge === '__custom__' ? '' : newProdBadge}
+                                onChange={(e) => setNewProdBadge(e.target.value)}
+                                placeholder="Type custom badge (e.g. Cold-Pressed, Organic, Bestseller...)"
+                                className="w-full mt-2 px-3.5 py-2 rounded-xl border border-emerald-400 text-xs focus:outline-none focus:border-forest-900 font-bold bg-emerald-50/30"
+                                autoFocus
+                              />
+                            )}
                           </div>
                         </div>
                       </div>
@@ -4459,9 +4347,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             <input
                               type="number"
                               required
-                              min="1"
+                              min="0"
                               value={newProdPrice}
-                              onChange={(e) => setNewProdPrice(Number(e.target.value))}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setNewProdPrice(val === '' ? '' : Number(val));
+                              }}
+                              placeholder="0"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
                             />
                           </div>
@@ -4473,14 +4365,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             <input
                               type="number"
                               required
-                              min="1"
+                              min="0"
                               value={newProdOriginalPrice}
-                              onChange={(e) => setNewProdOriginalPrice(Number(e.target.value))}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setNewProdOriginalPrice(val === '' ? '' : Number(val));
+                              }}
+                              placeholder="0"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-serif font-black text-sm"
                             />
-                            {newProdOriginalPrice > newProdPrice && (
+                            {Number(newProdOriginalPrice) > Number(newProdPrice) && Number(newProdPrice) > 0 && (
                               <span className="text-[10px] text-emerald-600 font-bold block mt-1">
-                                {Math.round(((newProdOriginalPrice - newProdPrice) / newProdOriginalPrice) * 100)}% Discount Calculated
+                                {Math.round(((Number(newProdOriginalPrice) - Number(newProdPrice)) / Number(newProdOriginalPrice)) * 100)}% Discount Calculated
                               </span>
                             )}
                           </div>
@@ -4493,8 +4389,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               type="text"
                               value={newProdDefaultPack}
                               onChange={(e) => setNewProdDefaultPack(e.target.value)}
-                              placeholder="e.g. 1 Litre Bottle"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
+                              placeholder="e.g. 1 Litre Bottle (சுயமாக டைப் செய்யவும்)"
+                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 bg-white"
                             />
                           </div>
                         </div>
@@ -4593,79 +4489,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
                       </div>
 
-                      {/* 5. Production Specs & Inventory */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
-                          5. Production Specs & Inventory Status
-                        </label>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Extraction Method <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdExtraction}
-                              onChange={(e) => setNewProdExtraction(e.target.value)}
-                              placeholder="e.g. Traditional Vaagai Mara Chekku"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Smoke Point & Dish Recommendation <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newProdSmokePoint}
-                              onChange={(e) => setNewProdSmokePoint(e.target.value)}
-                              placeholder="e.g. 220°C (High Smoke Point)"
-                              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stock & Featured */}
-                        <div className="flex flex-wrap items-center gap-4 pt-1">
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={newProdInStock}
-                              onChange={(e) => setNewProdInStock(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              In Stock
-                            </span>
-                          </label>
-
-                          <label className="inline-flex items-center gap-2 cursor-pointer bg-stone-50 px-3.5 py-2 rounded-xl border border-stone-200">
-                            <input
-                              type="checkbox"
-                              checked={newProdFeatured}
-                              onChange={(e) => setNewProdFeatured(e.target.checked)}
-                              className="rounded text-forest-950 focus:ring-forest-950 w-4 h-4 cursor-pointer"
-                            />
-                            <span className="text-xs font-bold text-stone-800">
-                              Show on Home
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* 6. Description */}
+                      {/* 5. Description (Optional) */}
                       <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Product Description & Health Benefits <span className="text-red-500">*</span>
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-semibold text-stone-700">
+                            5. Product Description & Health Benefits
+                          </label>
+                          <span className="text-[10px] text-stone-400 font-medium">Optional</span>
+                        </div>
                         <textarea
                           rows={3}
                           value={newProdDescription}
                           onChange={(e) => setNewProdDescription(e.target.value)}
-                          placeholder="Describe the purity, pressing process, and culinary benefits..."
-                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed"
+                          placeholder="Describe the purity, pressing process, and culinary benefits (Optional - default Mara Chekku description used if empty)..."
+                          className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 leading-relaxed bg-white"
                         />
                       </div>
 

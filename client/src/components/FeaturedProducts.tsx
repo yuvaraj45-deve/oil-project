@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA } from '../data/oilData';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore, normalizeHomepage4, getProductKey } from '../context/StoreContext';
+import { useCMS } from '../context/CMSContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface FeaturedProductsProps {
@@ -142,6 +143,14 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     setTimeout(() => setAddedItemEffect(null), 1500);
   };
 
+  const { siteContent } = useCMS();
+  const homeCms = siteContent?.home?.status === 'PUBLISHED' ? siteContent.home : null;
+  const sectionTitle =
+    language === 'ta'
+      ? homeCms?.featuredTamilTitle || t('prod.title')
+      : homeCms?.featuredTitle || t('prod.title');
+  const sectionSubtitle = homeCms?.featuredSubtitle || t('prod.subtitle');
+
   return (
     <section id="products" className="py-14 sm:py-20 bg-[#f7f6f2] border-b border-cream-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -150,10 +159,10 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
-              {t('prod.title')}
+              {sectionTitle}
             </h2>
             <p className="mt-2 text-stone-600 text-sm sm:text-base">
-              {t('prod.subtitle')}
+              {sectionSubtitle}
             </p>
           </div>
           <div className="flex items-center gap-2 self-end shrink-0">
@@ -210,15 +219,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             const isBuying = buyingProductId === product.id;
             const isJustAdded = addedItemEffect === product.id;
 
-            const productName =
-              language === 'ta' && product.tamilName
-                ? product.tamilName
-                : product.name;
-
-            const productTagline =
-              language === 'ta' && product.tamilTagline
-                ? product.tamilTagline
-                : product.tagline;
+            const productName = getLocalizedProductName(product, language);
+            const productTagline = getLocalizedProductTagline(product, language);
 
             return (
               <div

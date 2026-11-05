@@ -13,11 +13,13 @@ import {
   Check,
   Zap,
   Filter,
+  Heart,
 } from 'lucide-react';
 import { Product } from '../types';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { PRODUCTS_DATA } from '../data/oilData';
+import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface CategoryDetailPageProps {
   categorySlug: string;
@@ -55,7 +57,7 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
     icon: '🥜',
     themeColor: '#B08518',
     bgHero: 'from-amber-100 via-amber-50 to-stone-50',
-    seedOrigin: 'Tiruvannamalai & Pollachi Organic Clusters',
+    seedOrigin: '100% Native Organic Peanuts',
     woodType: 'Vaagai (Albizia Lebbeck) Medicinal Mortar',
     smokePoint: '232°C (High Smoke Point - Ideal for Frying)',
     keyNutrients: ['Vitamin E Tocopherols', 'Resveratrol Antioxidant', 'Heart-Healthy MUFA 52%'],
@@ -70,7 +72,7 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
     icon: '🌿',
     themeColor: '#8C6212',
     bgHero: 'from-amber-100/90 via-stone-100 to-stone-50',
-    seedOrigin: 'Madurai & Thanjavur Native Black Sesame',
+    seedOrigin: '100% Native Black Sesame',
     woodType: 'Ancient Vaagai Wood Mortar with Palm Jaggery',
     smokePoint: '210°C (Tempering & South Indian Tadka)',
     keyNutrients: ['Sesamol & Sesamolin Lignans', 'Natural Calcium & Zinc', 'Zero Hexane Solvents'],
@@ -85,7 +87,7 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
     icon: '🥥',
     themeColor: '#207255',
     bgHero: 'from-emerald-100/80 via-teal-50 to-stone-50',
-    seedOrigin: 'Pollachi & Kangeyam Coastal Groves',
+    seedOrigin: 'Sun-Dried Natural Farm Copra',
     woodType: 'Low-Shear Centrifugal Wood Press',
     smokePoint: '177°C (Gentle Cooking, Raw & Wellness)',
     keyNutrients: ['64% Lauric Acid (MCTs)', 'Natural Monolaurin', 'Zero Added Fragrance'],
@@ -130,25 +132,70 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
     icon: '🧈',
     themeColor: '#CA8A04',
     bgHero: 'from-amber-100 via-yellow-50 to-stone-50',
-    seedOrigin: 'Native Bos Indicus Cows (Kangayam)',
+    seedOrigin: '100% Grass-Fed Native Desi Cow Milk',
     woodType: 'Wooden Bilona Hand Churn',
     smokePoint: '252°C (Highest Thermal Stability)',
     keyNutrients: ['100% Pure A2 Beta-Casein', 'Rich Butyric Acid', 'Fat-Soluble Vitamins A, D, E, K2'],
   },
   'palm-jaggery-special': {
     slug: 'palm-jaggery-special',
-    name: 'Pure Udangudi Palm Jaggery (Karupatti)',
-    tamilName: 'அசல் உடன்குடி பனை கருப்பட்டி',
+    name: 'Pure Palm Jaggery (Karupatti)',
+    tamilName: 'அசல் பனை கருப்பட்டி',
     tagline: 'Traditional unrefined palm sap boiled without lime or artificial chemicals',
-    description: 'Sourced from the heartlands of Udangudi. 100% natural, unbleached, iron-rich sweetener that elevates morning herbal tea, coffee, and authentic traditional cooking.',
-    tamilDescription: 'சுண்ணாம்பு மற்றும் ரசாயன கலப்பற்ற அசல் உடன்குடி பனை கருப்பட்டி. இயற்கையான இரும்புச்சத்து மற்றும் கனிமங்கள் நிறைந்தது.',
+    description: '100% natural, unbleached, iron-rich sweetener that elevates morning herbal tea, coffee, and authentic traditional cooking.',
+    tamilDescription: 'சுண்ணாம்பு மற்றும் ரசாயன கலப்பற்ற அசல் பனை கருப்பட்டி. இயற்கையான இரும்புச்சத்து மற்றும் கனிமங்கள் நிறைந்தது.',
     icon: '🌴',
     themeColor: '#78350F',
     bgHero: 'from-stone-200/90 via-amber-50 to-stone-50',
-    seedOrigin: 'Udangudi Native Palm Cooperatives',
+    seedOrigin: 'Traditional Native Palm Cooperatives',
     woodType: 'Traditional Iron Vat Fire Boiling',
     smokePoint: 'Natural Unrefined Sweetener',
     keyNutrients: ['High Natural Iron & Calcium', 'Low Glycemic Index (GI)', 'Zero Chemical Clarifiers'],
+  },
+  'ricebran-oil': {
+    slug: 'ricebran-oil',
+    name: 'Pure Golden Rice Bran Oil',
+    tamilName: 'தூய ரைஸ் பிரான் எண்ணெய்',
+    tagline: 'Heart-healthy cooking oil packed with natural Gamma Oryzanol',
+    description: 'Extracted from the golden outer bran layer of brown rice. Naturally light, non-greasy, and boasts a very high smoke point of 250°C, making it the healthiest choice for daily Indian family cooking.',
+    tamilDescription: 'கைக்குத்தல் பழுப்பு அரிசியின் தவிட்டு அடுக்கிலிருந்து எடுக்கப்படும் தூய எண்ணெய். இயற்கையான காமா ஒரிசானால் சத்து நிறைந்தது; கொலஸ்ட்ராலை சமநிலைப்படுத்தவும், பூரி, தோசை மற்றும் அன்றாட சமையலுக்கும் சிறந்தது.',
+    icon: '🌾',
+    themeColor: '#D97706',
+    bgHero: 'from-amber-100/90 via-orange-50 to-stone-50',
+    seedOrigin: '100% Golden Brown Rice Bran',
+    woodType: 'Natural Cold Micro-Filtration',
+    smokePoint: '250°C (High Smoke Point - Ideal for Frying)',
+    keyNutrients: ['10,000+ ppm Gamma Oryzanol', 'Heart-Healthy Balance', '15% Less Oil Absorption'],
+  },
+  'mustard-oil': {
+    slug: 'mustard-oil',
+    name: 'Cold-Pressed Mustard Oil',
+    tamilName: 'தூய கடுகு எண்ணெய்',
+    tagline: 'Traditional pungent cold-pressed mustard oil with natural warmth',
+    description: 'Pressed from select black and yellow mustard seeds without high heat. Celebrated for its bold, pungent aroma and high smoke point for authentic regional curries and pickling.',
+    tamilDescription: 'முதல் தர கடுகு விதைகளிலிருந்து இயற்கை முறையில் பிழியப்பட்ட அசல் கடுகு எண்ணெய். தனித்துவமான கார மணம், ஊறுகாய் மற்றும் வறுவல் சமையலுக்கு இணையற்றது.',
+    icon: '🌱',
+    themeColor: '#CA8A04',
+    bgHero: 'from-yellow-100 via-amber-50 to-stone-50',
+    seedOrigin: '100% Native Mustard Seeds',
+    woodType: 'Traditional Cold Mechanical Press',
+    smokePoint: '250°C (High Heat Frying & Pickling)',
+    keyNutrients: ['Natural Allyl Isothiocyanate', 'Rich in Omega-3 (ALA)', 'Zero Synthetic Preservatives'],
+  },
+  'sunflower-oil': {
+    slug: 'sunflower-oil',
+    name: 'Pure Cold-Pressed Sunflower Oil',
+    tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
+    tagline: 'Light, golden, and rich in natural Vitamin E for active family health',
+    description: 'Pressed gently from sun-ripened native sunflower seeds without chemical solvents. Naturally high smoke point (232°C), non-greasy, and ideal for everyday frying and gravies.',
+    tamilDescription: 'இயற்கை சூரியகாந்தி விதைகளிலிருந்து மெதுவாக பிழியப்பட்ட லேசான ஆரோக்கிய சமையல் எண்ணெய். இயற்கை வைட்டமின் E நிறைந்தது; எண்ணெய் பிசுபிசுப்பு இல்லாதது.',
+    icon: '🌻',
+    themeColor: '#D97706',
+    bgHero: 'from-amber-100 via-yellow-50 to-stone-50',
+    seedOrigin: '100% Native Sun-Ripened Seeds',
+    woodType: 'Natural Gentle Press',
+    smokePoint: '232°C (Ideal for Daily Frying)',
+    keyNutrients: ['Natural Vitamin E', 'Zero Hexane Chemical', 'Light & Digestible'],
   },
 };
 
@@ -156,7 +203,10 @@ const ALL_CATEGORY_PILLS = [
   { slug: 'groundnut-oil', label: 'Groundnut Oil', labelTa: 'கடலை எண்ணெய்', icon: '🥜' },
   { slug: 'sesame-oil', label: 'Sesame Oil', labelTa: 'நல்லெண்ணெய்', icon: '🌿' },
   { slug: 'coconut-oil', label: 'Coconut Oil', labelTa: 'தேங்காய் எண்ணெய்', icon: '🥥' },
-  { slug: 'cooking-oil', label: 'Cooking Oil', labelTa: 'சமையல் எண்ணெய்', icon: '🌻' },
+  { slug: 'sunflower-oil', label: 'Sunflower Oil', labelTa: 'சூரியகாந்தி', icon: '🌻' },
+  { slug: 'ricebran-oil', label: 'Rice Bran Oil', labelTa: 'ரைஸ் பிரான்', icon: '🌾' },
+  { slug: 'cooking-oil', label: 'Cooking Oil', labelTa: 'சமையல் எண்ணெய்', icon: '🍳' },
+  { slug: 'mustard-oil', label: 'Mustard Oil', labelTa: 'கடுகு எண்ணெய்', icon: '🌱' },
   { slug: 'pooja-special', label: 'Pooja Oil', labelTa: 'தீப எண்ணெய்', icon: '🪔' },
   { slug: 'a2-desi-ghee', label: 'A2 Desi Ghee', labelTa: 'நாட்டு மாட்டு நெய்', icon: '🧈' },
   { slug: 'palm-jaggery-special', label: 'Palm Jaggery', labelTa: 'பனை கருப்பட்டி', icon: '🌴' },
@@ -174,6 +224,13 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const [selectedPackMap, setSelectedPackMap] = useState<Record<string, string>>({});
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>({});
   const [addedMap, setAddedMap] = useState<Record<string, boolean>>({});
+  const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
+
+  React.useEffect(() => {
+    const handleFavUpdate = () => setFavoritesList(getFavorites());
+    window.addEventListener('ssoil_favorites_updated', handleFavUpdate);
+    return () => window.removeEventListener('ssoil_favorites_updated', handleFavUpdate);
+  }, []);
 
   // Resolve category metadata or fallback
   const meta: CategoryMeta =
@@ -199,13 +256,17 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const { products } = useStore();
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
+  // Strict 1:1 category matcher (Guarantees zero cross-category product leakage)
+  const isProductInCategory = (p: Product, slug: string): boolean => {
+    const target = slug.toLowerCase().trim();
+    const pCat = (p.category || '').toLowerCase().trim();
+    if (pCat === target) return true;
+    if (pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
+    return false;
+  };
+
   // Find all products matching this category slug
-  const matchingProducts = sourceProducts.filter(
-    (p) =>
-      p.category === categorySlug ||
-      (categorySlug === 'cooking-oil' && (p.category === 'cooking-oil' || p.name.includes('Sunflower') || p.name.includes('Rice Bran'))) ||
-      (categorySlug === 'pooja-special' && (p.category === 'pooja-special' || p.name.includes('Deepam') || p.name.includes('Lamp')))
-  );
+  const matchingProducts = sourceProducts.filter((p) => isProductInCategory(p, categorySlug));
 
   // If there are other popular products, show them as related
   const otherProducts = sourceProducts.filter((p) => p.category !== categorySlug).slice(0, 4);
@@ -264,34 +325,36 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
       
       {/* 1. Breadcrumbs Top Bar */}
       <div className="bg-white border-b border-stone-200/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between text-xs">
-          <nav className="flex items-center gap-2 text-stone-500 overflow-x-auto whitespace-nowrap">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3 overflow-x-auto">
             <button
-              onClick={() => onNavigate('/')}
-              className="hover:text-[#b32d2e] font-medium transition-colors cursor-pointer"
+              onClick={() => onNavigate('/shop')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-stone-200 hover:border-[#b32d2e] text-stone-700 hover:text-stone-950 font-bold transition-all text-xs cursor-pointer bg-stone-50 hover:bg-white shadow-2xs shrink-0"
             >
-              {language === 'ta' ? 'முகப்பு' : 'Home'}
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{language === 'ta' ? 'முந்தைய பக்கம்' : 'Back to Store'}</span>
             </button>
-            <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
-            <button
-              onClick={() => onNavigate('/categories')}
-              className="hover:text-[#b32d2e] font-medium transition-colors cursor-pointer"
-            >
-              {language === 'ta' ? 'வகைகள்' : 'Categories'}
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
-            <span className="font-bold text-stone-900 truncate max-w-[200px] sm:max-w-xs">
-              {language === 'ta' ? meta.tamilName : meta.name}
-            </span>
-          </nav>
 
-          <button
-            onClick={() => onNavigate('/shop')}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-800 text-stone-700 hover:text-stone-950 font-bold transition-all text-xs cursor-pointer bg-stone-50 hover:bg-white shadow-2xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>{language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'View All Oils'}</span>
-          </button>
+            <nav className="flex items-center gap-2 text-stone-500 whitespace-nowrap">
+              <button
+                onClick={() => onNavigate('/')}
+                className="hover:text-[#b32d2e] font-medium transition-colors cursor-pointer"
+              >
+                {language === 'ta' ? 'முகப்பு' : 'Home'}
+              </button>
+              <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
+              <button
+                onClick={() => onNavigate('/categories')}
+                className="hover:text-[#b32d2e] font-medium transition-colors cursor-pointer"
+              >
+                {language === 'ta' ? 'வகைகள்' : 'Categories'}
+              </button>
+              <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
+              <span className="font-bold text-stone-900 truncate max-w-[200px] sm:max-w-xs">
+                {language === 'ta' ? meta.tamilName : meta.name}
+              </span>
+            </nav>
+          </div>
         </div>
       </div>
 
@@ -392,8 +455,31 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {matchingProducts.map((product) => {
+        {matchingProducts.length === 0 ? (
+          <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-stone-200/80 shadow-xs space-y-4 max-w-xl mx-auto my-6">
+            <Droplets className="w-10 h-10 text-amber-500 mx-auto" />
+            <h3 className="text-base sm:text-lg font-bold text-stone-900">
+              {language === 'ta'
+                ? 'இந்த வகையில் புதிய ஆலை பேட்ச் தயாரிப்பில் உள்ளது'
+                : 'Fresh Mill Batch is in Extraction for this Category'}
+            </h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              {language === 'ta'
+                ? 'எங்கள் சேலம் ஆலை தயாரிப்பில் உள்ள பிற தூய மரச்செக்கு எண்ணெய்களை கீழே பார்வையிடலாம்.'
+                : 'Explore our other pure cold-pressed varieties directly from our Salem Mara Chekku mill.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => onNavigate('/shop')}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest-950 text-gold-300 font-bold text-xs hover:bg-forest-900 transition-colors cursor-pointer shadow-sm mx-auto"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>{language === 'ta' ? 'அனைத்து எண்ணெய்களையும் பார்க்க' : 'View All Mara Chekku Oils'}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {matchingProducts.map((product) => {
             const selectedPack =
               selectedPackMap[product.id] || product.defaultPack || product.packSizes[0] || '1 Litre Bottle';
             const quantity = quantityMap[product.id] || 1;
@@ -416,6 +502,24 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                     alt={product.name}
                     className="w-full h-full object-contain group-hover/img:scale-108 transition-transform duration-500 drop-shadow-md"
                   />
+
+                  {/* Favorite Heart Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(product.id);
+                      setFavoritesList(getFavorites());
+                    }}
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-all cursor-pointer shadow-md z-10 ${
+                      favoritesList.includes(product.id)
+                        ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
+                        : 'bg-white/95 text-stone-500 hover:text-red-500 hover:bg-white'
+                    }`}
+                    title={favoritesList.includes(product.id) ? 'In Favorites' : 'Add to Favorites'}
+                  >
+                    <Heart className={`w-4 h-4 ${favoritesList.includes(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                  </button>
+
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
                     <span className="bg-white/95 text-stone-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
                       {language === 'ta' ? 'முழு விவரங்கள்' : 'View Details'}
@@ -429,10 +533,10 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                     onClick={() => onSelectProduct(product)}
                     className="font-serif font-bold text-lg sm:text-xl text-stone-950 group-hover:text-[#b32d2e] transition-colors cursor-pointer line-clamp-1"
                   >
-                    {product.name}
+                    {getLocalizedProductName(product, language)}
                   </h3>
                   <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
-                    {product.tagline}
+                    {getLocalizedProductTagline(product, language)}
                   </p>
                 </div>
 
@@ -529,93 +633,66 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
             );
           })}
         </div>
+        )}
 
-        {/* 5. Rich Traditional Craftsmanship Feature Card for this Category */}
+        {/* 5. Authentic Kitchen & Culinary Guide for this Category */}
         <div className="mt-14 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200/80 shadow-soft">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-center">
             
             <div className="space-y-2">
               <span className="text-[10px] font-bold uppercase text-[#b32d2e] tracking-widest block">
-                {language === 'ta' ? 'பாரம்பரிய உத்தரவாதம்' : 'Vaagai Craftsmanship'}
+                {language === 'ta' ? 'அன்றாட சமையல் வழிகாட்டி' : 'Authentic Kitchen Guide'}
               </span>
               <h3 className="font-serif font-black text-xl sm:text-2xl text-stone-950">
-                {language === 'ta' ? 'மரச்செக்கு தனிச்சிறப்பு' : 'Why Vaagai Mara Chekku?'}
+                {language === 'ta' ? 'சமையல் முறை & ஆரோக்கிய பயன்கள்' : 'Cooking Style & Health Benefits'}
               </h3>
               <p className="text-xs text-stone-600 leading-relaxed">
                 {language === 'ta'
-                  ? 'மரச்செக்கில் அதிக வெப்பம் உண்டாகாது என்பதால் எண்ணெயின் இயற்கை சத்துக்கள், ஆன்டி-ஆக்சிடன்ட்கள் மற்றும் தனித்துவ மணம் அப்படியே பாதுகாக்கப்படுகிறது.'
-                  : 'Vaagai wood absorbs heat naturally during crushing. At under 14 RPM, the cold nectar retains natural tocopherols, pleasant aroma, and rich nutrients.'}
+                  ? 'எங்கள் எண்ணெய்கள் இயற்கை முறையில் பாரம்பரியமாக தயாரிக்கப்படுவதால், சமையலில் குறைந்த அளவே போதுமானது. உங்கள் உணவுகளுக்கு தனித்துவமான சுவையையும் ஊட்டச்சத்தையும் தரும்.'
+                  : 'Because our products are crafted without harsh chemicals, a little goes a long way. Ideal for enhancing natural flavors while keeping daily family meals wholesome and light.'}
               </p>
             </div>
 
             <div className="space-y-2.5 md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {meta.keyNutrients.map((nut, i) => (
-                <div key={i} className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 space-y-1">
-                  <div className="w-6 h-6 rounded-lg bg-[#b32d2e]/10 text-[#b32d2e] flex items-center justify-center">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  </div>
-                  <h4 className="font-serif font-bold text-xs text-stone-900">{nut}</h4>
-                  <p className="text-[11px] text-stone-500">
-                    {language === 'ta' ? '100% இயற்கை பரிசோதனை' : 'Pure lab-certified'}
-                  </p>
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                  🍳
                 </div>
-              ))}
+                <h4 className="font-serif font-bold text-xs text-stone-900">
+                  {language === 'ta' ? 'பொருத்தமான சமையல்' : 'Ideal Cooking'}
+                </h4>
+                <p className="text-[11px] text-stone-500 leading-relaxed">
+                  {language === 'ta' ? 'தாளிப்பு, பொரியல், குழம்பு மற்றும் சிற்றுண்டிகளுக்கு சிறந்தது' : 'Tadka, stir-fry, curries & traditional breakfast dishes'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                  💚
+                </div>
+                <h4 className="font-serif font-bold text-xs text-stone-900">
+                  {language === 'ta' ? 'இயற்கை நன்மைகள்' : 'Natural Wellness'}
+                </h4>
+                <p className="text-[11px] text-stone-500 leading-relaxed">
+                  {language === 'ta' ? 'இயற்கை ஆன்டி-ஆக்சிடன்ட்கள் மற்றும் ஊட்டச்சத்துக்கள் நிறைந்தது' : 'Retains unrefined vitamins, polyphenols & vital fatty acids'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-stone-200/80 space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
+                  🏡
+                </div>
+                <h4 className="font-serif font-bold text-xs text-stone-900">
+                  {language === 'ta' ? 'வீட்டுப் பராமரிப்பு' : 'Kitchen Storage'}
+                </h4>
+                <p className="text-[11px] text-stone-500 leading-relaxed">
+                  {language === 'ta' ? 'குளிர்ந்த, உலர்ந்த இடத்தில் மூடி வைக்கவும்; 12 மாதம் புத்துணர்ச்சி' : 'Store away from direct stove heat; stays mill-fresh for 12 months'}
+                </p>
+              </div>
             </div>
 
           </div>
         </div>
-
-        {/* 6. Explore Other Categories Section */}
-        {otherProducts.length > 0 && (
-          <div className="mt-16 pt-10 border-t border-stone-200/80">
-            <div className="flex items-end justify-between mb-6">
-              <div>
-                <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest block mb-1">
-                  {language === 'ta' ? 'பிற மரச்செக்கு ரகங்கள்' : 'Explore More Oils'}
-                </span>
-                <h3 className="font-serif font-black text-2xl text-stone-950">
-                  {language === 'ta' ? 'பிற பிரபல வகைகள்' : 'Other Popular Mara Chekku Varieties'}
-                </h3>
-              </div>
-              <button
-                onClick={() => onNavigate('/shop')}
-                className="text-xs font-bold text-[#b32d2e] hover:underline cursor-pointer"
-              >
-                {language === 'ta' ? 'அனைத்தும் காண்க →' : 'View All Oils →'}
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {otherProducts.map((rel) => (
-                <div
-                  key={rel.id}
-                  onClick={() => onSelectProduct(rel)}
-                  className="bg-white rounded-3xl p-4 border border-stone-200/80 hover:border-gold-400 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col justify-between cursor-pointer group"
-                >
-                  <div className="aspect-square bg-stone-50 rounded-2xl overflow-hidden p-3 flex items-center justify-center mb-3">
-                    <img
-                      src={rel.image}
-                      alt={rel.name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-stone-400 block mb-1">
-                      {rel.categoryName || rel.category}
-                    </span>
-                    <h4 className="font-serif font-bold text-sm text-stone-900 line-clamp-1 group-hover:text-[#b32d2e] transition-colors">
-                      {rel.name}
-                    </h4>
-                    <div className="flex items-baseline gap-2 mt-2">
-                      <span className="font-serif font-black text-sm text-stone-900">₹{rel.price}</span>
-                      <span className="text-[11px] text-stone-400 line-through">₹{rel.originalPrice}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
 
