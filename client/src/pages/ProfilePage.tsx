@@ -499,7 +499,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                           <span className="font-serif text-xl font-black text-forest-950">
                             ₹{order.totalAmount}
                           </span>
-                          <span className="text-xs text-stone-500 block">
+                          {order.discountAmount && order.discountAmount > 0 ? (
+                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 block mt-0.5">
+                              Saved ₹{order.discountAmount} ({order.couponCode || 'Offer'})
+                            </span>
+                          ) : null}
+                          <span className="text-xs text-stone-500 block mt-0.5">
                             Payment: {order.paymentMethod} ({order.paymentStatus})
                           </span>
                         </div>
@@ -507,16 +512,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
                       {/* Order Items */}
                       <div className="py-4 space-y-3">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gold-500" />
-                              <span className="font-medium text-stone-800">{item.productName}</span>
-                              <span className="text-stone-400 font-mono text-xs">({item.packSize})</span>
+                        {order.items.map((item, idx) => {
+                          const itemRowSubtotal = (item.unitPrice || (item as any).price || 0) * item.quantity;
+                          return (
+                            <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-gold-500" />
+                                <span className="font-medium text-stone-800">{item.productName}</span>
+                                <span className="text-stone-400 font-mono text-xs">({item.packSize})</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono font-bold text-stone-700">× {item.quantity}</span>
+                                {itemRowSubtotal > 0 && (
+                                  <span className="font-serif font-bold text-forest-950">₹{itemRowSubtotal}</span>
+                                )}
+                              </div>
                             </div>
-                            <span className="font-mono font-bold text-stone-700">× {item.quantity}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       {/* Tracking Timeline */}

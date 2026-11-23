@@ -10,6 +10,11 @@ const createOrderSchema = z.object({
   customerPhone: z.string().min(10, 'Valid phone is required'),
   shippingAddress: z.string().min(10, 'Complete shipping address is required'),
   paymentMethod: z.enum(['UPI', 'CARD', 'COD']).default('UPI'),
+  couponCode: z.string().optional(),
+  discountAmount: z.number().optional().default(0),
+  subtotal: z.number().optional(),
+  shippingFee: z.number().optional(),
+  totalAmount: z.number().optional(),
   items: z.array(
     z.object({
       productId: z.string(),
@@ -26,12 +31,14 @@ orderRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = createOrderSchema.parse(req.body);
 
-    const subtotal = validatedData.items.reduce(
+    const subtotal = validatedData.subtotal ?? validatedData.items.reduce(
       (sum, item) => sum + item.unitPrice * item.quantity,
       0
     );
-    const shippingFee = subtotal >= 499 ? 0 : 50;
-    const totalAmount = subtotal + shippingFee;
+    const isFreeDel = validatedData.couponCode === 'FREEDEL' || subtotal >= 499;
+    const shippingFee = validatedData.shippingFee ?? (isFreeDel ? 0 : 50);
+    const discountAmount = validatedData.discountAmount ?? 0;
+    const totalAmount = validatedData.totalAmount ?? Math.max(0, subtotal - discountAmount + shippingFee);
 
     // Generate unique order number (e.g. SSOIL-2026-8924)
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);

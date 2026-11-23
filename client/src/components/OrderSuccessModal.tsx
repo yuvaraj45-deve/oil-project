@@ -9,23 +9,27 @@ import {
   ExternalLink,
   ShieldCheck,
   Printer,
+  Tag,
+  X,
 } from 'lucide-react';
 import { PlacedOrder } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
 interface OrderSuccessModalProps {
+  isOpen?: boolean;
   order: PlacedOrder | null;
   onClose: () => void;
   onViewOrders?: () => void;
 }
 
 export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
+  isOpen = true,
   order,
   onClose,
   onViewOrders,
 }) => {
   const { language } = useLanguage();
-  if (!order) return null;
+  if (!isOpen || !order) return null;
 
   const handlePrint = () => {
     window.print();
@@ -42,6 +46,14 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
         
         {/* Top Success Banner */}
         <div className="bg-gradient-to-br from-emerald-900 via-forest-900 to-forest-950 p-6 text-cream-100 text-center relative overflow-hidden shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full text-cream-200/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer z-10"
+            title={language === 'ta' ? 'மூடு' : 'Close'}
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="absolute top-0 right-0 w-48 h-48 bg-gold-400/10 rounded-full blur-2xl pointer-events-none" />
           
           <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 border border-emerald-400/30 shadow-inner">
@@ -124,29 +136,79 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             </h4>
 
             <div className="space-y-2 max-h-44 overflow-y-auto pr-1 text-xs">
-              {order.items.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-1 border-b border-stone-100 last:border-0"
-                >
-                  <div>
-                    <h5 className="font-bold text-stone-800 text-xs">{item.productName}</h5>
-                    <span className="text-[11px] text-stone-500">
-                      {item.packSize} × {item.quantity}
-                    </span>
+              {order.items.map((item, index) => {
+                let itemRowDiscount = 0;
+                if (order.discountAmount && order.discountAmount > 0 && order.subtotal > 0) {
+                  itemRowDiscount = Math.round((item.subtotal / order.subtotal) * order.discountAmount);
+                }
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-1 border-b border-stone-100 last:border-0"
+                  >
+                    <div>
+                      <h5 className="font-bold text-stone-800 text-xs">{item.productName}</h5>
+                      <span className="text-[11px] text-stone-500">
+                        {item.packSize} × {item.quantity}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      {itemRowDiscount > 0 ? (
+                        <div>
+                          <div className="flex items-baseline justify-end gap-1">
+                            <span className="text-[10px] line-through text-stone-400">₹{item.subtotal}</span>
+                            <span className="font-serif font-bold text-emerald-800">₹{item.subtotal - itemRowDiscount}</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-emerald-700 block">
+                            -₹{itemRowDiscount} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-serif font-bold text-forest-900">
+                          ₹{item.subtotal}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="font-serif font-bold text-forest-900">
-                    ₹{item.subtotal}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            <div className="pt-2 border-t border-cream-200 flex justify-between items-center text-xs">
-              <span className="text-stone-500">{language === 'ta' ? 'மொத்த தொகை:' : 'Total Paid / Payable:'}</span>
-              <span className="font-serif text-base font-bold text-forest-950">
-                ₹{order.totalAmount}
-              </span>
+            <div className="pt-2 border-t border-cream-200 space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-stone-500">
+                <span>{language === 'ta' ? 'பொருட்களின் மதிப்பு:' : 'Items Subtotal:'}</span>
+                <span className="font-semibold text-stone-800">₹{order.subtotal}</span>
+              </div>
+
+              {order.discountAmount && order.discountAmount > 0 ? (
+                <div className="flex justify-between items-center text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>{language === 'ta' ? 'ஆஃபர் தள்ளுபடி:' : 'Offer Discount:'}</span>
+                  </span>
+                  <span className="font-black text-emerald-700">-₹{order.discountAmount}</span>
+                </div>
+              ) : null}
+
+              <div className="flex justify-between items-center text-stone-500">
+                <span>{language === 'ta' ? 'டெலிவரி கட்டணம்:' : 'Delivery Fee:'}</span>
+                <span className="font-semibold text-stone-800">
+                  {order.shippingFee === 0 ? (language === 'ta' ? 'இலவசம்' : 'FREE') : `₹${order.shippingFee}`}
+                </span>
+              </div>
+
+              <div className="pt-1.5 border-t border-cream-200 flex justify-between items-center text-sm font-bold">
+                <span className="text-forest-950">{language === 'ta' ? 'செலுத்திய / செலுத்த வேண்டிய தொகை:' : 'Total Paid / Payable:'}</span>
+                <span className="font-serif text-lg text-forest-950 font-black">
+                  ₹{order.totalAmount}
+                </span>
+              </div>
+
+              {order.discountAmount && order.discountAmount > 0 ? (
+                <div className="text-[11px] font-bold text-emerald-800 text-center bg-emerald-100/70 py-1.5 px-2 rounded-lg mt-1">
+                  🎉 {language === 'ta' ? `இந்த ஆர்டரில் நீங்கள் ₹${order.discountAmount} சேமித்துள்ளீர்கள்!` : `You saved ₹${order.discountAmount} on this order!`}
+                </div>
+              ) : null}
             </div>
           </div>
 

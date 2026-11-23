@@ -8,7 +8,6 @@ export const WhyChooseUs: React.FC = () => {
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Sparkles':
       case 'Award':
         return <Award className="w-6 h-6 text-gold-500" />;
       case 'ShieldCheck':

@@ -13,7 +13,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Navbar
     'nav.home': 'Home',
     'nav.products': 'Products',
-    'nav.about': 'About Us',
+    'nav.about': 'Our Story',
     'nav.health': 'Health',
     'nav.contact': 'Contact',
     'nav.offers': 'Offers & Coupons',
@@ -366,7 +366,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Navbar
     'nav.home': 'முகப்பு',
     'nav.products': 'தயாரிப்புகள்',
-    'nav.about': 'எங்களைப் பற்றி',
+    'nav.about': 'எங்கள் கதை',
     'nav.health': 'ஆரோக்கியம்',
     'nav.contact': 'தொடர்புக்கு',
     'nav.offers': 'சலுகைகள் & கூப்பன்கள்',
@@ -792,6 +792,8 @@ export const CATEGORY_DEFAULT_TAMIL_NAMES: Record<string, string> = {
   'castor': 'தூய விளக்கெண்ணெய்',
   'neem-oil': 'மரச்செக்கு வேப்ப எண்ணெய்',
   'neem': 'மரச்செக்கு வேப்ப எண்ணெய்',
+  'combo-offers': 'காம்போ சலுகைகள்',
+  'combo': 'காம்போ சலுகைகள்',
 };
 
 const COMMON_TAMIL_NAME_MAP: Record<string, string> = {

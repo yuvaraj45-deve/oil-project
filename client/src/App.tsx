@@ -52,7 +52,6 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { CartPage } from './pages/CartPage';
 import { FaqPage } from './pages/FaqPage';
-import { OffersPage } from './pages/OffersPage';
 
 export function App() {
   const { products, categories, settings } = useStore();
@@ -112,6 +111,14 @@ export function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Redirect any legacy /offers visits to /shop
+  useEffect(() => {
+    if (currentPath === '/offers') {
+      window.history.replaceState({}, '', '/shop');
+      setCurrentPath('/shop');
+    }
+  }, [currentPath]);
 
   const navigateTo = (path: string) => {
     // When visiting /shop, always reset category to 'all' so every single admin product is visible
@@ -289,8 +296,8 @@ export function App() {
       }
     });
 
-    setToastMessage(`Added ${quantity}x ${product.name} (${packSize}) to your cart!`);
-    setTimeout(() => setToastMessage(null), 4000);
+    // Keep user on the page without auto-opening the cart drawer,
+    // so they can seamlessly select and add multiple products to cart.
   };
 
   const handleUpdateQuantity = (productId: string, packSize: string, delta: number) => {
@@ -317,6 +324,9 @@ export function App() {
 
   const handleClearCart = () => {
     setCartItems([]);
+    try {
+      localStorage.removeItem('ssoil_cart');
+    } catch (e) {}
   };
 
   const handleCategorySelect = (categorySlug: string) => {
@@ -485,6 +495,30 @@ export function App() {
 
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Normalize path & check if on a dedicated subpage
+  const cleanPath = (currentPath || '/').replace(/\/+$/, '') || '/';
+  const isDedicatedRoute =
+    isCategoryRoute ||
+    isProductRoute ||
+    isCancelOrderRoute ||
+    cleanPath === '/shop' ||
+    cleanPath === '/mill-journey' ||
+    cleanPath === '/sommelier' ||
+    cleanPath === '/categories' ||
+    cleanPath === '/why-us' ||
+    cleanPath === '/about' ||
+    cleanPath === '/contact' ||
+    cleanPath === '/profile' ||
+    cleanPath === '/shipping-returns' ||
+    cleanPath === '/privacy-policy' ||
+    cleanPath === '/privacy' ||
+    cleanPath === '/cart' ||
+    cleanPath === '/terms-of-service' ||
+    cleanPath === '/terms' ||
+    cleanPath === '/faq';
+
+  const isHomePage = !isDedicatedRoute;
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-stone-800 selection:bg-gold-500 selection:text-white pb-16 md:pb-0">
       {/* 1. Header & Announcement Bar */}
@@ -564,13 +598,13 @@ export function App() {
           />
         )}
 
-        {/* Route: /categories */}
+        {/* Route: /categories -> Direct to all products shop */}
         {currentPath === '/categories' && (
-          <CategoriesPage
-            onSelectCategory={(cat) => {
-              setSelectedCategory(cat);
-              navigateTo(`/category/${cat}`);
-            }}
+          <ShopPage
+            initialCategory="all"
+            onAddToCart={handleAddToCart}
+            onQuickView={handleOpenProduct}
+            onViewLabReport={(p) => setSelectedLabReportProduct(p)}
           />
         )}
 
@@ -582,8 +616,8 @@ export function App() {
           />
         )}
 
-        {/* Route: /about */}
-        {currentPath === '/about' && (
+        {/* Route: /about or /our-story */}
+        {(currentPath === '/about' || currentPath === '/our-story') && (
           <AboutPage
             onAddToCart={handleAddToCart}
             onQuickView={handleOpenProduct}
@@ -660,23 +694,12 @@ export function App() {
           />
         )}
 
-        {/* Route: /offers (Dedicated Offers & Discount Coupons Page) */}
-        {currentPath === '/offers' && (
-          <OffersPage
-            onNavigate={navigateTo}
-            onOpenCart={() => setIsCartOpen(true)}
-          />
-        )}
 
         {/* Route: / (Default Flagship Homepage) */}
-        {(currentPath === '/' || currentPath === '') && (
+        {isHomePage && (
           <>
             {/* 1. Horizontal Standing Bottles Row */}
             <CategoryCircles
-              onSelectCategory={(slug) => {
-                setSelectedCategory(slug);
-                navigateTo(`/category/${slug}`);
-              }}
               selectedCategory={selectedCategory}
             />
 
@@ -736,7 +759,7 @@ export function App() {
       </main>
 
       {/* 13. Footer (Rendered ONLY on Home Page) */}
-      {(currentPath === '/' || currentPath === '') && (
+      {isHomePage && (
         <Footer
           onSelectCategory={(cat) => {
             setSelectedCategory(cat);
@@ -782,16 +805,27 @@ export function App() {
 
       {/* Order Confirmation Success Modal */}
       <OrderSuccessModal
-        order={lastPlacedOrder}
-        onClose={() => setIsOrderSuccessOpen(false)}
-        onViewOrders={() => setIsCartOpen(true)}
+        isOpen={isOrderSuccessOpen}
+        order={isOrderSuccessOpen ? lastPlacedOrder : null}
+        onClose={() => {
+          setIsOrderSuccessOpen(false);
+          setLastPlacedOrder(null);
+        }}
+        onViewOrders={() => {
+          setIsOrderSuccessOpen(false);
+          setLastPlacedOrder(null);
+          setIsCartOpen(true);
+        }}
       />
 
       {/* Product Quick View Modal */}
       <ProductQuickViewModal
         product={quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(prod, pack, qty) => {
+          setQuickViewProduct(null);
+          handleAddToCart(prod, pack, qty);
+        }}
         onViewDetails={(p) => {
           setQuickViewProduct(null);
           handleOpenProduct(p);
@@ -807,7 +841,10 @@ export function App() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={(product) => handleOpenProduct(product)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(prod, pack, qty) => {
+          setIsSearchOpen(false);
+          handleAddToCart(prod, pack, qty);
+        }}
         onOpenAdmin={handleOpenAdmin}
       />
 

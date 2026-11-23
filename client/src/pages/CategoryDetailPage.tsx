@@ -14,10 +14,12 @@ import {
   Zap,
   Filter,
   Heart,
+  Tag,
 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useOffers } from '../context/OfferContext';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
@@ -199,19 +201,6 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
   },
 };
 
-const ALL_CATEGORY_PILLS = [
-  { slug: 'groundnut-oil', label: 'Groundnut Oil', labelTa: 'கடலை எண்ணெய்', icon: '🥜' },
-  { slug: 'sesame-oil', label: 'Sesame Oil', labelTa: 'நல்லெண்ணெய்', icon: '🌿' },
-  { slug: 'coconut-oil', label: 'Coconut Oil', labelTa: 'தேங்காய் எண்ணெய்', icon: '🥥' },
-  { slug: 'sunflower-oil', label: 'Sunflower Oil', labelTa: 'சூரியகாந்தி', icon: '🌻' },
-  { slug: 'ricebran-oil', label: 'Rice Bran Oil', labelTa: 'ரைஸ் பிரான்', icon: '🌾' },
-  { slug: 'cooking-oil', label: 'Cooking Oil', labelTa: 'சமையல் எண்ணெய்', icon: '🍳' },
-  { slug: 'mustard-oil', label: 'Mustard Oil', labelTa: 'கடுகு எண்ணெய்', icon: '🌱' },
-  { slug: 'pooja-special', label: 'Pooja Oil', labelTa: 'தீப எண்ணெய்', icon: '🪔' },
-  { slug: 'a2-desi-ghee', label: 'A2 Desi Ghee', labelTa: 'நாட்டு மாட்டு நெய்', icon: '🧈' },
-  { slug: 'palm-jaggery-special', label: 'Palm Jaggery', labelTa: 'பனை கருப்பட்டி', icon: '🌴' },
-];
-
 export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   categorySlug,
   onAddToCart,
@@ -221,6 +210,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   onSelectProduct,
 }) => {
   const { language } = useLanguage();
+  const { activeOffer, availableOffers, removeOffer } = useOffers();
   const [selectedPackMap, setSelectedPackMap] = useState<Record<string, string>>({});
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>({});
   const [addedMap, setAddedMap] = useState<Record<string, boolean>>({});
@@ -344,10 +334,10 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
               </button>
               <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
               <button
-                onClick={() => onNavigate('/categories')}
+                onClick={() => onNavigate('/shop')}
                 className="hover:text-[#b32d2e] font-medium transition-colors cursor-pointer"
               >
-                {language === 'ta' ? 'வகைகள்' : 'Categories'}
+                {language === 'ta' ? 'அங்காடி' : 'Shop'}
               </button>
               <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
               <span className="font-bold text-stone-900 truncate max-w-[200px] sm:max-w-xs">
@@ -407,33 +397,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
         </div>
       </div>
 
-      {/* 3. Horizontal Category Navigation Switcher Pills */}
-      <div className="bg-white border-b border-stone-200/80 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 overflow-x-auto scrollbar-none flex items-center gap-2 sm:gap-3">
-          <span className="text-xs font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
-            {language === 'ta' ? 'பிற வகைகள்:' : 'Categories:'}
-          </span>
-          {ALL_CATEGORY_PILLS.map((pill) => {
-            const isActive = pill.slug === categorySlug;
-            return (
-              <button
-                key={pill.slug}
-                onClick={() => onNavigate(`/category/${pill.slug}`)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${
-                  isActive
-                    ? 'bg-[#b32d2e] text-white border-[#b32d2e] shadow-xs'
-                    : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
-                }`}
-              >
-                <span>{pill.icon}</span>
-                <span>{language === 'ta' ? pill.labelTa : pill.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. Products Inside this Category */}
+      {/* 3. Products Inside this Category */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
         
         {/* Section Header */}
@@ -568,19 +532,39 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 {/* Live Calculated Price & Quantity Stepper */}
                 <div className="pt-3 border-t border-stone-100 flex items-center justify-between mb-4">
                   <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-serif font-black text-2xl text-stone-950">
-                        ₹{currentPrice * quantity}
-                      </span>
-                      {currentOriginalPrice > currentPrice && (
-                        <span className="text-xs text-stone-400 line-through">
-                          ₹{currentOriginalPrice * quantity}
+                    {activeOffer && activeOffer.discountType === 'percentage' ? (
+                      <>
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-serif font-black text-2xl text-stone-950">
+                            ₹{Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity}
+                          </span>
+                          <span className="text-xs text-stone-400 line-through">
+                            ₹{currentPrice * quantity}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-emerald-700 font-bold block">
+                          {language === 'ta'
+                            ? `₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity} குறைவு`
+                            : `Save ₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity}`}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-stone-400 block">
-                      {quantity > 1 ? `₹${currentPrice} / pack` : 'Inclusive of all taxes'}
-                    </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-serif font-black text-2xl text-stone-950">
+                            ₹{currentPrice * quantity}
+                          </span>
+                          {currentOriginalPrice > currentPrice && (
+                            <span className="text-xs text-stone-400 line-through">
+                              ₹{currentOriginalPrice * quantity}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-stone-400 block">
+                          {quantity > 1 ? `₹${currentPrice} / pack` : 'Inclusive of all taxes'}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {/* Quantity Stepper */}

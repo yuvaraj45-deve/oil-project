@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   RefreshCw,
-  Sparkles,
   LogIn,
   UserPlus,
 } from 'lucide-react';

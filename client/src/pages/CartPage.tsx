@@ -15,7 +15,6 @@ import {
   ExternalLink,
   ArrowLeft,
   ChevronRight,
-  Sparkles,
   Droplets,
   AlertCircle,
   Tag,
@@ -24,9 +23,10 @@ import {
 import { CartItem, PlacedOrder, Product } from '../types';
 import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
+import { resolveProductImage } from '../utils/productUtils';
 import { CancelOrderModal } from '../components/CancelOrderModal';
-import { AVAILABLE_COUPONS } from './OffersPage';
 
 interface CartPageProps {
   items: CartItem[];
@@ -43,7 +43,7 @@ interface CartPageProps {
 }
 
 export const CartPage: React.FC<CartPageProps> = ({
-  items,
+  items = [],
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
@@ -71,103 +71,39 @@ export const CartPage: React.FC<CartPageProps> = ({
     return () => window.removeEventListener('ssoil_favorites_updated', handleFavUpdate);
   }, []);
 
-  // Coupon handling state
+  // Offer & Cart calculations
+  const { activeOffer, availableOffers, applyOffer, removeOffer, calculateCartDiscount } = useOffers();
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
-  const [appliedCouponData, setAppliedCouponData] = useState<{
-    code: string;
-    discountType: string;
-    discountValue: number;
-    minOrder: number;
-    maxDiscount?: number;
-    title: string;
-  } | null>(() => {
-    try {
-      const saved = localStorage.getItem('ssoil_applied_coupon');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return null;
-  });
-
-  useEffect(() => {
-    const handleCouponUpdate = () => {
-      try {
-        const saved = localStorage.getItem('ssoil_applied_coupon');
-        if (saved) setAppliedCouponData(JSON.parse(saved));
-        else setAppliedCouponData(null);
-      } catch {}
-    };
-    window.addEventListener('ssoil_coupon_updated', handleCouponUpdate);
-    return () => window.removeEventListener('ssoil_coupon_updated', handleCouponUpdate);
-  }, []);
-
-  const handleApplyCouponCode = (codeToApply?: string) => {
-    const targetCode = (codeToApply || couponInput).trim().toUpperCase();
-    if (!targetCode) {
-      setCouponError(language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்' : 'Please enter a coupon code');
-      return;
-    }
-    const matched = AVAILABLE_COUPONS.find((c) => c.code.toUpperCase() === targetCode);
-    if (!matched) {
-      setCouponError(language === 'ta' ? 'தவறான கூப்பன் குறியீடு' : 'Invalid coupon code');
-      return;
-    }
-    const payload = {
-      code: matched.code,
-      discountType: matched.discountType,
-      discountValue: matched.discountValue,
-      minOrder: matched.minOrder,
-      maxDiscount: matched.maxDiscount,
-      title: matched.title,
-    };
-    try {
-      localStorage.setItem('ssoil_applied_coupon', JSON.stringify(payload));
-      setAppliedCouponData(payload);
-      setCouponInput('');
-      setCouponError(null);
-      window.dispatchEvent(new Event('ssoil_coupon_updated'));
-    } catch {}
-  };
-
-  const handleRemoveCoupon = () => {
-    try {
-      localStorage.removeItem('ssoil_applied_coupon');
-      setAppliedCouponData(null);
-      setCouponError(null);
-      window.dispatchEvent(new Event('ssoil_coupon_updated'));
-    } catch {}
-  };
 
   const totalCartCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const freeShippingThreshold = 499;
-  const isFreeDelCoupon = appliedCouponData?.code === 'FREEDEL';
-  const isFreeShipping = subtotal >= freeShippingThreshold || subtotal === 0 || isFreeDelCoupon;
-  const shippingFee = isFreeShipping ? 0 : 50;
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
 
-  // Coupon discount calculation
-  let couponDiscount = 0;
-  let isCouponEligible = true;
-  let minOrderShortage = 0;
+  const cartOfferResult = calculateCartDiscount(subtotal);
+  const discountAmount = cartOfferResult.discountAmount;
+  const shippingFee = cartOfferResult.shippingFee;
+  const grandTotal = cartOfferResult.finalTotal;
 
-  if (appliedCouponData && subtotal > 0) {
-    if (subtotal >= appliedCouponData.minOrder) {
-      if (appliedCouponData.discountType === 'percentage') {
-        const disc = Math.round((subtotal * appliedCouponData.discountValue) / 100);
-        couponDiscount = appliedCouponData.maxDiscount ? Math.min(disc, appliedCouponData.maxDiscount) : disc;
-      } else if (appliedCouponData.discountType === 'fixed') {
-        couponDiscount = Math.min(subtotal, appliedCouponData.discountValue);
-      }
-    } else {
-      isCouponEligible = false;
-      minOrderShortage = appliedCouponData.minOrder - subtotal;
+  const handleApplyCouponCode = (codeToApply?: string) => {
+    const targetCode = (codeToApply || couponInput).trim();
+    if (!targetCode) {
+      setCouponError(language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்' : 'Please enter a coupon code');
+      return;
     }
-  }
-
-  const grandTotal = Math.max(0, subtotal - couponDiscount + shippingFee);
+    const result = applyOffer(targetCode);
+    if (!result.success) {
+      setCouponError(language === 'ta' ? result.messageTa : result.message);
+    } else {
+      setCouponError(null);
+      setCouponInput('');
+    }
+  };
 
   // Favorite products list
-  const favoriteProducts = products.filter(
+  const favoriteProducts = (products || []).filter(
     (p) => favoritesList.includes(p.id) || (p.slug && favoritesList.includes(p.slug))
   );
 
@@ -382,19 +318,45 @@ export const CartPage: React.FC<CartPageProps> = ({
                   </div>
 
                   {items.map((item) => {
+                    if (!item || !item.product) return null;
                     const itemSubtotal = item.price * item.quantity;
                     const isItemFav = favoritesList.includes(item.product.id) || (item.product.slug && favoritesList.includes(item.product.slug));
+
+                    // Calculate offer reduction for this specific product
+                    let itemDiscountAmount = 0;
+                    let itemOfferPrice = itemSubtotal;
+                    let unitOfferPrice = item.price;
+                    let unitSavings = 0;
+
+                    if (activeOffer && cartOfferResult.isEligible) {
+                      if (activeOffer.discountType === 'percentage') {
+                        itemDiscountAmount = Math.round((itemSubtotal * activeOffer.discountValue) / 100);
+                        unitSavings = Math.round((item.price * activeOffer.discountValue) / 100);
+                        unitOfferPrice = item.price - unitSavings;
+                        itemOfferPrice = itemSubtotal - itemDiscountAmount;
+                      } else if (activeOffer.discountType === 'fixed' && subtotal > 0) {
+                        itemDiscountAmount = Math.round((itemSubtotal / subtotal) * discountAmount);
+                        unitSavings = Math.round(itemDiscountAmount / item.quantity);
+                        unitOfferPrice = Math.max(0, item.price - unitSavings);
+                        itemOfferPrice = itemSubtotal - itemDiscountAmount;
+                      }
+                    }
 
                     return (
                       <div
                         key={`${item.product.id}-${item.packSize}`}
-                        className="bg-white rounded-2xl border border-stone-200/90 p-4 sm:p-5 shadow-xs hover:border-gold-500/50 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6"
+                        className={`bg-white rounded-2xl border p-4 sm:p-5 shadow-xs transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 ${
+                          itemDiscountAmount > 0 ? 'border-emerald-300 ring-1 ring-emerald-400/30' : 'border-stone-200/90 hover:border-gold-500/50'
+                        }`}
                       >
                         {/* Product Image (Strict Fixed Dimensions so it never overflows) */}
                         <div className="w-20 h-20 sm:w-24 sm:h-24 min-w-[80px] max-w-[96px] h-[80px] sm:h-[96px] rounded-xl bg-amber-50/40 p-2 border border-stone-100 flex items-center justify-center shrink-0">
                           <img
-                            src={item.product.image}
+                            src={resolveProductImage(item.product)}
                             alt={item.product.name}
+                            onError={(e) => {
+                              e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                            }}
                             className="w-full h-full object-contain"
                           />
                         </div>
@@ -410,9 +372,19 @@ export const CartPage: React.FC<CartPageProps> = ({
                                 <span className="inline-block px-2.5 py-0.5 rounded-lg bg-stone-100 border border-stone-200 text-stone-700 text-[11px] font-bold">
                                   {item.packSize}
                                 </span>
-                                <span className="text-xs text-stone-500 font-medium">
-                                  ₹{item.price} / unit
-                                </span>
+                                {itemDiscountAmount > 0 ? (
+                                  <span className="text-xs font-bold text-forest-950 flex items-center gap-1.5">
+                                    <span className="text-stone-400 line-through">₹{item.price}</span>
+                                    <span className="text-emerald-700 font-serif font-black">₹{unitOfferPrice}</span>
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black border border-emerald-300">
+                                      -₹{unitSavings} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-stone-500 font-medium">
+                                    ₹{item.price} / unit
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -458,12 +430,28 @@ export const CartPage: React.FC<CartPageProps> = ({
                               </button>
                             </div>
 
-                            {/* Item Total */}
+                            {/* Item Total with direct reduction callout */}
                             <div className="text-right">
-                              <span className="text-[10px] text-stone-400 block uppercase font-bold">Subtotal</span>
-                              <span className="font-serif font-black text-base sm:text-lg text-forest-950">
-                                ₹{itemSubtotal}
+                              <span className="text-[10px] text-stone-400 block uppercase font-bold">
+                                {itemDiscountAmount > 0 ? (language === 'ta' ? 'சலுகை விலை' : 'Offer Total') : 'Subtotal'}
                               </span>
+                              <div className="flex items-baseline justify-end gap-1.5">
+                                {itemDiscountAmount > 0 && (
+                                  <span className="text-xs text-stone-400 line-through">
+                                    ₹{itemSubtotal}
+                                  </span>
+                                )}
+                                <span className="font-serif font-black text-base sm:text-lg text-forest-950">
+                                  ₹{itemDiscountAmount > 0 ? itemOfferPrice : itemSubtotal}
+                                </span>
+                              </div>
+                              {itemDiscountAmount > 0 && (
+                                <span className="text-[11px] font-black text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-md inline-block mt-1 shadow-2xs">
+                                  {language === 'ta'
+                                    ? `ஆஃபர் மூலம் ₹${itemDiscountAmount} குறைக்கப்பட்டுள்ளது!`
+                                    : `Reduced by ₹${itemDiscountAmount} with offer!`}
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -493,64 +481,60 @@ export const CartPage: React.FC<CartPageProps> = ({
                   </div>
                 </div>
 
-                {/* Right 4 Cols: Order Summary Sidebar */}
+                {/* Right 4 Cols: Order Summary Sidebar with Applied Offer & Savings */}
                 <div className="lg:col-span-4 sticky top-[130px] space-y-4">
                   <div className="bg-white rounded-3xl border border-stone-200/90 p-5 sm:p-6 shadow-sm space-y-5">
-                    <h3 className="font-serif font-black text-lg text-forest-950 border-b border-stone-100 pb-3">
-                      {language === 'ta' ? 'ஆர்டர் சுருக்கம்' : 'Order Summary'}
+                    <h3 className="font-serif font-black text-lg text-forest-950 border-b border-stone-100 pb-3 flex items-center justify-between">
+                      <span>{language === 'ta' ? 'ஆர்டர் சுருக்கம்' : 'Order Summary'}</span>
+                      <span className="text-xs font-sans font-bold text-stone-500">
+                        {totalCartCount} {language === 'ta' ? 'பொருட்கள்' : 'items'}
+                      </span>
                     </h3>
 
-                    {/* Coupon Code Section */}
-                    <div className="space-y-2 pt-2 border-b border-stone-100 pb-4">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-stone-700 flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-amber-700" />
-                          <span>{language === 'ta' ? 'தள்ளுபடி கூப்பன்' : 'Discount Coupon'}</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onNavigate('/offers')}
-                          className="text-[11px] font-bold text-amber-800 hover:text-forest-950 transition-colors cursor-pointer"
-                        >
-                          {language === 'ta' ? 'அனைத்து கூப்பன்கள் →' : 'View Offers →'}
-                        </button>
-                      </div>
-
-                      {appliedCouponData ? (
-                        <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1.5">
+                    {/* Applied Offer Box / Coupon Section */}
+                    <div className="space-y-3">
+                      {activeOffer ? (
+                        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 border border-emerald-300 shadow-2xs space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs font-black text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-300">
-                                {appliedCouponData.code}
+                              <Tag className="w-4 h-4 text-emerald-700" />
+                              <span className="text-xs font-black text-emerald-900 bg-white px-2 py-0.5 rounded border border-emerald-300">
+                                {language === 'ta' ? 'சிறப்பு சலுகை' : 'Special Offer'}
                               </span>
-                              <span className="text-xs font-bold text-emerald-900">
-                                {appliedCouponData.discountType === 'percentage'
-                                  ? `${appliedCouponData.discountValue}% OFF`
-                                  : appliedCouponData.discountType === 'fixed'
-                                  ? `₹${appliedCouponData.discountValue} OFF`
+                              <span className="text-xs font-bold text-emerald-950">
+                                {activeOffer.discountType === 'percentage'
+                                  ? `${activeOffer.discountValue}% OFF`
+                                  : activeOffer.discountType === 'fixed'
+                                  ? `₹${activeOffer.discountValue} FLAT OFF`
                                   : 'FREE DELIVERY'}
                               </span>
                             </div>
                             <button
                               type="button"
-                              onClick={handleRemoveCoupon}
+                              onClick={removeOffer}
                               className="text-stone-400 hover:text-red-500 p-1 rounded-lg transition-colors cursor-pointer"
                               title="Remove coupon"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
 
-                          {!isCouponEligible && (
-                            <p className="text-[10px] text-amber-800 font-semibold bg-amber-100/60 p-1.5 rounded-lg">
+                          {/* How much is reduced (Evolo Koraikuranga) */}
+                          {discountAmount > 0 ? (
+                            <div className="p-2 rounded-xl bg-emerald-100/70 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-bold">
+                              <span>{language === 'ta' ? 'ஆஃபர் தள்ளுபடி:' : 'Offer Discount:'}</span>
+                              <span className="text-sm font-black text-emerald-700">-₹{discountAmount}</span>
+                            </div>
+                          ) : !cartOfferResult.isEligible ? (
+                            <p className="text-[10px] text-amber-800 font-semibold bg-amber-100/60 p-2 rounded-xl">
                               {language === 'ta'
-                                ? `இன்னும் ₹${minOrderShortage} சேர்த்தால் இந்த கூப்பன் தள்ளுபடி கிடைக்கும்.`
-                                : `Add ₹${minOrderShortage} more to activate this coupon! (Min order: ₹${appliedCouponData.minOrder})`}
+                                ? `இன்னும் ₹${cartOfferResult.minOrderShortage} சேர்த்தால் இந்த கூப்பன் தள்ளுபடி கிடைக்கும் (குறைந்தபட்ச ஆர்டர்: ₹${activeOffer.minOrderValue})`
+                                : `Add ₹${cartOfferResult.minOrderShortage} more to activate this discount! (Min order: ₹${activeOffer.minOrderValue})`}
                             </p>
-                          )}
+                          ) : null}
                         </div>
                       ) : (
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
@@ -559,7 +543,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                                 setCouponInput(e.target.value.toUpperCase());
                                 setCouponError(null);
                               }}
-                              placeholder={language === 'ta' ? 'கூப்பன் குறியீடு (எ.கா. FIRST10)' : 'Coupon code (e.g. SAVE15)'}
+                              placeholder={language === 'ta' ? 'ரகசிய கூப்பன் குறியீடு (இருந்தால் உள்ளிடவும்)' : 'Secret coupon code (optional)'}
                               className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs font-mono font-bold focus:outline-none focus:border-forest-900 uppercase bg-stone-50"
                             />
                             <button
@@ -577,19 +561,22 @@ export const CartPage: React.FC<CartPageProps> = ({
                       )}
                     </div>
 
-                    <div className="space-y-3 text-xs sm:text-sm">
+                    {/* Price Breakdown */}
+                    <div className="space-y-3 text-xs sm:text-sm border-t border-stone-100 pt-3">
                       <div className="flex items-center justify-between text-stone-600">
                         <span>{language === 'ta' ? 'பொருட்களின் மதிப்பு' : 'Subtotal'}</span>
                         <span className="font-bold text-stone-900">₹{subtotal}</span>
                       </div>
 
-                      {couponDiscount > 0 && (
-                        <div className="flex items-center justify-between text-emerald-700 font-bold">
-                          <span className="flex items-center gap-1">
-                            <Tag className="w-3 h-3" />
-                            <span>{language === 'ta' ? 'கூப்பன் தள்ளுபடி' : 'Coupon Discount'}</span>
+                      {discountAmount > 0 && activeOffer && (
+                        <div className="flex items-center justify-between text-emerald-700 font-bold bg-emerald-50/70 p-2 rounded-xl border border-emerald-200">
+                          <span className="flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5" />
+                            <span>
+                              {language === 'ta' ? 'ஆஃபர் தள்ளுபடி' : 'Offer Discount'}:
+                            </span>
                           </span>
-                          <span>-₹{couponDiscount}</span>
+                          <span className="text-sm font-black">-₹{discountAmount}</span>
                         </div>
                       )}
 
@@ -608,6 +595,12 @@ export const CartPage: React.FC<CartPageProps> = ({
                         <span className="font-black text-forest-950">{language === 'ta' ? 'மொத்த தொகை' : 'Grand Total'}</span>
                         <span className="font-black text-xl text-forest-950 text-gold-600">₹{grandTotal}</span>
                       </div>
+
+                      {discountAmount > 0 && (
+                        <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-forest-900 text-white text-center text-xs font-bold shadow-xs">
+                          🎉 {language === 'ta' ? `இந்த ஆர்டரில் நீங்கள் ₹${discountAmount} சேமிக்கிறீர்கள்!` : `You are saving ₹${discountAmount} with this offer!`}
+                        </div>
+                      )}
                     </div>
 
                     {/* Checkout Button */}
@@ -674,6 +667,7 @@ export const CartPage: React.FC<CartPageProps> = ({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {favoriteProducts.map((product) => {
+                  if (!product) return null;
                   const chosenPack =
                     selectedPackForFav[product.id] ||
                     (product.packSizes && product.packSizes[0]) ||
@@ -690,8 +684,11 @@ export const CartPage: React.FC<CartPageProps> = ({
                         {/* Bounded Fixed Image */}
                         <div className="w-24 h-24 min-w-[96px] max-w-[96px] h-[96px] rounded-xl bg-amber-50/40 p-2 border border-stone-100 shrink-0 flex items-center justify-center">
                           <img
-                            src={product.image}
+                            src={resolveProductImage(product)}
                             alt={product.name}
+                            onError={(e) => {
+                              e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                            }}
                             className="w-full h-full object-contain"
                           />
                         </div>

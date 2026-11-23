@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
-import { PRODUCTS_DATA } from '../data/oilData';
-import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
+import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline, CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
 import { useStore, normalizeHomepage4, getProductKey } from '../context/StoreContext';
 import { useCMS } from '../context/CMSContext';
+import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
+import { resolveProductImage } from '../utils/productUtils';
 
 interface FeaturedProductsProps {
-  onAddToCart: (product: Product, packSize: string) => void;
+  onAddToCart: (product: Product, packSize: string, quantity?: number) => void;
   onQuickView: (product: Product) => void;
   onViewLabReport: (product: Product) => void;
   selectedCategory: string;
@@ -27,12 +29,21 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   maxProducts,
 }) => {
   const { language, t } = useLanguage();
-  const { products, settings } = useStore();
-  // State to track which product currently has the pack selector overlay open (when buying)
+  const { products, categories: storeCategories, settings } = useStore();
+  const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
+  const { activeOffer } = useOffers();
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
+  const [selectedPacks, setSelectedPacks] = useState<Record<string, string>>({});
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleSelectLiterAndBuy = (product: Product, pack: string) => {
+    onAddToCart(product, pack, 1);
+    setBuyingProductId(null);
+    setAddedItemEffect(product.id);
+    setTimeout(() => setAddedItemEffect(null), 1500);
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -80,7 +91,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     displayedProducts = maxProducts ? filtered.slice(0, maxProducts) : filtered;
   }
 
-  const formatPack = (pack: string, lang: string) => {
+  const formatPack = (pack?: string, lang?: string) => {
+    if (!pack) return lang === 'ta' ? '1 லிட்டர் பாட்டில்' : '1 Litre Bottle';
     if (lang !== 'ta') return pack;
     return pack
       .replace('500 ml Bottle', '500 மி.லி பாட்டில்')
@@ -114,7 +126,9 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     return badgeMap[badge] || badge;
   };
 
-  const getPackPrice = (product: Product, pack: string) => {
+  const getPackPrice = (product: Product, pack?: string) => {
+    if (!product) return 0;
+    if (!pack) return product.price || 0;
     if (pack.includes('500 ml') || pack.includes('500g') || pack.includes('500 ml Bottle') || pack.includes('500ml Glass Jar') || pack.includes('500 ml Jar')) {
       return Math.round(product.price * 0.55);
     }
@@ -136,13 +150,6 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     return product.price;
   };
 
-  const handleSelectLiterAndBuy = (product: Product, pack: string) => {
-    onAddToCart(product, pack);
-    setBuyingProductId(null);
-    setAddedItemEffect(product.id);
-    setTimeout(() => setAddedItemEffect(null), 1500);
-  };
-
   const { siteContent } = useCMS();
   const homeCms = siteContent?.home?.status === 'PUBLISHED' ? siteContent.home : null;
   const sectionTitle =
@@ -155,8 +162,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     <section id="products" className="py-14 sm:py-20 bg-[#f7f6f2] border-b border-cream-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Title & Header with Horizontal Navigation Arrows */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
+        {/* Horizontal Navigation Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
               {sectionTitle}
@@ -183,6 +190,42 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        {/* Category Pills at Top of Featured Products */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6">
+          <button
+            type="button"
+            onClick={() => onSelectCategory('all')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              selectedCategory === 'all'
+                ? 'bg-forest-950 text-white shadow-md'
+                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+            }`}
+          >
+            {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
+          </button>
+          {categoriesList.map((cat) => {
+            const isSelected = selectedCategory === cat.slug;
+            const displayName = language === 'ta'
+              ? (cat.tamilTitle || CATEGORY_DEFAULT_TAMIL_NAMES[cat.slug] || cat.title)
+              : cat.title;
+
+            return (
+              <button
+                key={cat.id || cat.slug}
+                type="button"
+                onClick={() => onSelectCategory(cat.slug)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  isSelected
+                    ? 'bg-forest-950 text-white shadow-md'
+                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+                }`}
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
 
         {/* Horizontal Products Slider: 5th product sits right next to 4th, never wraps below */}
@@ -213,11 +256,17 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 scroll-smooth no-scrollbar"
           >
           {displayedProducts.map((product) => {
-            const defaultPack = formatPack(product.defaultPack, language);
-            const basePrice = product.price;
-            const baseOriginalPrice = product.originalPrice;
-            const isBuying = buyingProductId === product.id;
+            const packOptions = product.packSizes && product.packSizes.length > 0
+              ? product.packSizes
+              : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Can', '5 Litre Can'];
+            const currentPack = selectedPacks[product.id] || product.defaultPack || packOptions[0] || '1 Litre Bottle';
+            const currentPackPrice = getPackPrice(product, currentPack);
+            const currentOfferPrice = activeOffer && activeOffer.discountType === 'percentage'
+              ? Math.round(currentPackPrice * (1 - activeOffer.discountValue / 100))
+              : currentPackPrice;
+            const currentSavings = currentPackPrice - currentOfferPrice;
             const isJustAdded = addedItemEffect === product.id;
+            const isBuying = buyingProductId === product.id;
 
             const productName = getLocalizedProductName(product, language);
             const productTagline = getLocalizedProductTagline(product, language);
@@ -227,9 +276,9 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                 key={product.id}
                 className="w-[280px] sm:w-[290px] shrink-0 relative group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
-                {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (வாங்கும் போது மட்டும் எத்தனை லிட்டர் வேணும்னு காட்டும்) */}
+                {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (எத்தனை லிட்டர் வேணும்?) */}
                 {isBuying && (
-                  <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-in fade-in duration-200">
+                  <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
                       <div>
                         <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
@@ -240,7 +289,11 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                         </h4>
                       </div>
                       <button
-                        onClick={() => setBuyingProductId(null)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBuyingProductId(null);
+                        }}
                         className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
                         title="Close"
                       >
@@ -249,21 +302,22 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     </div>
 
                     {/* Liter Options with Live Calculated Prices */}
-                    <div className="space-y-2 my-auto py-2">
-                      {product.packSizes.slice(0, 4).map((pack) => {
+                    <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
+                      {packOptions.map((pack) => {
                         const packPrice = getPackPrice(product, pack);
                         const packFormatted = formatPack(pack, language);
                         return (
                           <button
                             key={pack}
-                            onClick={() => handleSelectLiterAndBuy(product, pack)}
-                            className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-900 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectLiterAndBuy(product, pack);
+                            }}
+                            className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
                           >
-                            <span className="flex items-center gap-1.5 text-stone-800 group-hover/opt:text-white">
-                              <span className="w-2 h-2 rounded-full bg-amber-500" />
-                              {packFormatted}
-                            </span>
-                            <span className="font-bold text-forest-950 group-hover/opt:text-gold-300">
+                            <span className="font-bold">{packFormatted}</span>
+                            <span className="font-serif font-bold group-hover/opt:text-gold-300">
                               ₹{packPrice}
                             </span>
                           </button>
@@ -271,20 +325,20 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                       })}
                     </div>
 
-                    <div className="pt-2 text-center border-t border-cream-200">
-                      <p className="text-[10px] text-stone-500 font-medium">
-                        {t('prod.clickPreferred')}
-                      </p>
-                    </div>
+                    <p className="text-[10px] text-center text-stone-400">
+                      {language === 'ta' ? '₹499 மேல் இலவச டெலிவரி' : 'Free Express Delivery above ₹499'}
+                    </p>
                   </div>
                 )}
-
                 {/* Product Image & Badges */}
                 <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
                   <img
-                    src={product.image}
+                    src={resolveProductImage(product)}
                     alt={productName}
-                    className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                    }}
+                    className="w-full h-full object-contain p-2 rounded-2xl group-hover:scale-105 transition-transform duration-500"
                   />
 
                   {/* Quick View Button Hover Overlay */}
@@ -336,40 +390,59 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
                       {productTagline}
                     </p>
-
-                    {/* Available sizes note */}
-                    <p className="text-[11px] text-stone-400 mt-2 flex items-center gap-1">
-                      <span>{t('prod.available')}</span>
-                      <span className="font-medium text-stone-600">
-                        {language === 'ta' ? '500மி.லி, 1லி, 2லி, 5லி' : '500ml, 1L, 2L, 5L'}
-                      </span>
-                    </p>
                   </div>
 
                   {/* Pricing and Action Buttons */}
                   <div className="pt-2.5 border-t border-cream-200">
                     <div className="flex items-baseline justify-between mb-2.5">
                       <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-lg font-bold font-serif text-forest-950">
-                            ₹{basePrice}
-                          </span>
-                          <span className="text-[11px] text-stone-400 line-through">
-                            ₹{baseOriginalPrice}
-                          </span>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded">
-                            {product.discountPercent}% Off
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-stone-400 block -mt-0.5">
-                          {t('prod.base')} {defaultPack}
-                        </span>
+                        {activeOffer && activeOffer.discountType === 'percentage' ? (
+                          <>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-lg font-bold font-serif text-forest-950">
+                                ₹{currentOfferPrice}
+                              </span>
+                              <span className="text-[11px] text-stone-400 line-through">
+                                ₹{currentPackPrice}
+                              </span>
+                              <span className="text-[10px] font-bold text-white bg-emerald-700 px-1.5 py-0.5 rounded shadow-2xs">
+                                {activeOffer.discountValue}% OFF
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 font-bold block mt-0.5">
+                              {language === 'ta'
+                                ? `₹${currentSavings} குறைவு`
+                                : `Save ₹${currentSavings}`}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-lg font-bold font-serif text-forest-950">
+                                ₹{currentPackPrice}
+                              </span>
+                              <span className="text-[11px] text-stone-400 line-through">
+                                ₹{Math.round(currentPackPrice * 1.15)}
+                              </span>
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded">
+                                {product.discountPercent || 15}% Off
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-stone-400 block -mt-0.5">
+                              {formatPack(currentPack, language)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 
                     {/* Add to Cart CTA (Clicking opens: "How many liters do you need?" / "எத்தனை லிட்டர் வேணும்?") */}
                     <button
-                      onClick={() => setBuyingProductId(product.id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBuyingProductId(product.id);
+                      }}
                       className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
                         isJustAdded
                           ? 'bg-emerald-700 text-white'
@@ -403,8 +476,11 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               {/* Upper Visual Area (Matching exact image container of product cards with rich photo) */}
               <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
                 <img
-                  src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80"
+                  src="/banners/ssoil_bottling_hero_banner.jpg"
                   alt="Explore All Pure Oils"
+                  onError={(e) => {
+                    e.currentTarget.src = '/products/ss_oil_can.jpg';
+                  }}
                   className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-108 transition-transform duration-500"
                 />
 

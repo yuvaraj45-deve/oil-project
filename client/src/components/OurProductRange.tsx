@@ -24,7 +24,7 @@ interface OurProductRangeProps {
 export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct }) => {
   const { language, t } = useLanguage();
   const { products, categories: storeCategories } = useStore();
-  const [activeGroup, setActiveGroup] = useState<string>('all');
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>('all');
 
   const getStartingPrice = (slug: string, fallback: string) => {
     if (!products || products.length === 0) return fallback;
@@ -93,6 +93,22 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
       startingPrice: '₹160',
       group: 'ghee-jaggery',
     },
+    'sunflower-oil': {
+      tamilName: 'தூய சூரியகாந்தி எண்ணெய்',
+      badge: 'Light & Pure',
+      badgeTa: 'லேசானது & தூயது',
+      benefit: 'Light micro-filtered oil rich in natural Vitamin E with high smoke point',
+      startingPrice: '₹140',
+      group: 'cooking',
+    },
+    'ricebran-oil': {
+      tamilName: 'இதய நலம் தரும் தவிட்டு எண்ணெய்',
+      badge: 'Heart Care',
+      badgeTa: 'இதய நலம்',
+      benefit: '10,000+ ppm Oryzanol antioxidants promoting healthy cholesterol balance',
+      startingPrice: '₹135',
+      group: 'cooking',
+    },
   };
 
   // Dynamically map all categories so newly added categories in Admin appear live on the homepage
@@ -112,25 +128,12 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
     };
   });
 
-  const filterTabs = [
-    { id: 'all', label: t('range.tab.all'), count: categories.length },
-    { id: 'wood-pressed', label: t('range.tab.woodPressed'), count: categories.filter(c => c.group === 'wood-pressed').length },
-    { id: 'cooking', label: t('range.tab.cooking'), count: categories.filter(c => c.group === 'cooking').length },
-    { id: 'pooja', label: t('range.tab.pooja'), count: categories.filter(c => c.group === 'pooja').length },
-    { id: 'ghee-jaggery', label: t('range.tab.gheeJaggery'), count: categories.filter(c => c.group === 'ghee-jaggery').length },
-  ];
-
-  const filteredCategories = categories.filter((cat) => {
-    if (activeGroup === 'all') return true;
-    return cat.group === activeGroup;
-  });
-
   return (
     <section id="our-products" className="py-14 sm:py-20 bg-white border-b border-cream-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-forest-950 tracking-tight">
             {t('range.title')}
           </h2>
@@ -139,26 +142,46 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
           </p>
         </div>
 
-        {/* Filter Tabs for Product Categories (Single Clean Selector) */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-10">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveGroup(tab.id)}
-              className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeGroup === tab.id
-                  ? 'bg-forest-950 text-white shadow-md'
-                  : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
-              }`}
-            >
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        {/* Real Category Pills at Top of Our Product Range */}
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-8">
+          <button
+            type="button"
+            onClick={() => setSelectedCategorySlug('all')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              selectedCategorySlug === 'all'
+                ? 'bg-forest-950 text-white shadow-md'
+                : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+            }`}
+          >
+            {language === 'ta' ? 'அனைத்து வகைகள்' : 'All Categories'}
+          </button>
+          {categories.map((cat) => {
+            const isSelected = selectedCategorySlug === cat.slug;
+            const displayName = language === 'ta' && cat.tamilName ? cat.tamilName : cat.name;
+
+            return (
+              <button
+                key={cat.id || cat.slug}
+                type="button"
+                onClick={() => setSelectedCategorySlug(cat.slug)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  isSelected
+                    ? 'bg-forest-950 text-white shadow-md'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Product Categories Grid (Clean Single Presentation) */}
+        {/* Product Categories Grid (Clean Direct Presentation) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
-          {filteredCategories.map((item) => {
+          {(selectedCategorySlug === 'all'
+            ? categories
+            : categories.filter((c) => c.slug === selectedCategorySlug)
+          ).map((item) => {
             const displayName =
               language === 'ta' && item.tamilName
                 ? item.tamilName

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText, Edit } from 'lucide-react';
+import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText, Edit, Tag } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
+import { useOffers } from '../context/OfferContext';
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -21,9 +22,14 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   if (!product) return null;
 
   const { language, t } = useLanguage();
+  const { activeOffer, calculateCartDiscount } = useOffers();
   const [selectedPack, setSelectedPack] = useState(product.defaultPack);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const totalPrice = product.price * quantity;
+  const offerCalc = calculateCartDiscount(totalPrice);
+  const hasOfferDiscount = activeOffer && offerCalc.discountAmount > 0;
 
   const formatPack = (pack: string) => {
     if (language !== 'ta') return pack;
@@ -141,17 +147,45 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2.5 pt-2 border-t border-cream-200">
-                <span className="text-2xl font-serif font-bold text-forest-950">
-                  ₹{product.price}
-                </span>
-                <span className="text-sm text-stone-400 line-through">
-                  ₹{product.originalPrice}
-                </span>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  {product.discountPercent}% {language === 'ta' ? 'தள்ளுபடி' : 'Off'}
-                </span>
+              {/* Price with Offer Discount */}
+              <div className="pt-2 border-t border-cream-200 space-y-1.5">
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <span className="text-2xl font-serif font-bold text-forest-950">
+                    ₹{hasOfferDiscount ? totalPrice - offerCalc.discountAmount : totalPrice}
+                  </span>
+                  {hasOfferDiscount ? (
+                    <>
+                      <span className="text-sm text-stone-400 line-through">
+                        ₹{totalPrice}
+                      </span>
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {activeOffer.discountType === 'percentage'
+                          ? `${activeOffer.discountValue}% OFF`
+                          : `₹${offerCalc.discountAmount} OFF`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-stone-400 line-through">
+                        ₹{product.originalPrice * quantity}
+                      </span>
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                        {product.discountPercent}% {language === 'ta' ? 'தள்ளுபடி' : 'Off'}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {hasOfferDiscount && (
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-bold flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span>
+                      {language === 'ta'
+                        ? `${activeOffer.code} மூலம் ₹${offerCalc.discountAmount} குறைக்கப்படுகிறது!`
+                        : `${activeOffer.code} offer applied: ₹${offerCalc.discountAmount} discount!`}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}

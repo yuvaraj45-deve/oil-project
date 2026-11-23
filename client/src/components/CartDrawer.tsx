@@ -16,11 +16,14 @@ import {
   AlertTriangle,
   RotateCcw,
   ExternalLink,
+  Tag,
 } from 'lucide-react';
 import { CartItem, PlacedOrder, Product } from '../types';
 import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
+import { resolveProductImage } from '../utils/productUtils';
 import { CancelOrderModal } from './CancelOrderModal';
 
 interface CartDrawerProps {
@@ -61,6 +64,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
   const [selectedPackForFav, setSelectedPackForFav] = useState<Record<string, string>>({});
   const [cancellingOrder, setCancellingOrder] = useState<PlacedOrder | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
+  const [isOffersAccordionOpen, setIsOffersAccordionOpen] = useState(true);
 
   // Sync favorites when drawer opens or updates
   useEffect(() => {
@@ -99,11 +106,35 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   if (!isOpen) return null;
 
+  const { activeOffer, availableOffers, applyOffer, removeOffer, calculateCartDiscount } = useOffers();
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartOfferResult = calculateCartDiscount(subtotal);
+  const discountAmount = cartOfferResult.discountAmount;
+  const isFreeShipping = cartOfferResult.isFreeShipping;
+  const shippingFee = cartOfferResult.shippingFee;
+  const finalPayable = cartOfferResult.finalTotal;
   const freeShippingThreshold = 499;
-  const isFreeShipping = subtotal >= freeShippingThreshold;
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+
+  const handleApplyCouponCode = (codeToApply?: string) => {
+    const targetCode = (codeToApply || couponInput).trim();
+    if (!targetCode) {
+      setCouponError(language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்' : 'Please enter a coupon code');
+      setCouponSuccess(null);
+      return;
+    }
+    const result = applyOffer(targetCode);
+    if (!result.success) {
+      setCouponError(language === 'ta' ? result.messageTa : result.message);
+      setCouponSuccess(null);
+    } else {
+      setCouponError(null);
+      setCouponSuccess(language === 'ta' ? result.messageTa : result.message);
+      setCouponInput('');
+      setTimeout(() => setCouponSuccess(null), 3500);
+    }
+  };
 
   const formatPack = (pack: string) => {
     if (language !== 'ta') return pack;
@@ -172,28 +203,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   return (
     <>
       <div className="fixed inset-0 z-50 overflow-hidden">
-        {/* Backdrop */}
+        {/* Backdrop: Clear & subtle so background store & products remain fully visible */}
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-black/15 transition-opacity"
           onClick={onClose}
         />
 
-        <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10 h-full">
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 h-full w-full sm:w-auto">
           <div
-            className="w-full sm:w-[460px] max-w-full bg-white shadow-2xl flex flex-col justify-between h-full max-h-screen overflow-hidden"
+            className="w-full sm:w-[480px] max-w-full bg-white shadow-2xl flex flex-col h-full max-h-[100dvh] overflow-hidden"
             style={{ overscrollBehavior: 'contain' }}
           >
             
             {/* Top Header */}
-            <div className="p-4 sm:p-5 border-b border-cream-300/80 bg-cream-100 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-cream-300/80 bg-cream-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center shadow-xs shrink-0">
                   {activeTab === 'cart' && <ShoppingBag className="w-4 h-4" />}
                   {activeTab === 'favorites' && <Heart className="w-4 h-4 fill-gold-400 text-gold-400" />}
                   {activeTab === 'orders' && <Package className="w-4 h-4" />}
                 </div>
                 <div>
-                  <h3 className="font-serif text-lg font-bold text-forest-950">
+                  <h3 className="font-serif text-lg font-bold text-forest-950 leading-tight">
                     {activeTab === 'cart' && (language === 'ta' ? 'ஷாப்பிங் கார்ட்' : 'Shopping Cart')}
                     {activeTab === 'favorites' && (language === 'ta' ? 'விருப்பப் பட்டியல்' : 'My Favorites')}
                     {activeTab === 'orders' && (language === 'ta' ? 'என் ஆர்டர்கள்' : 'My Orders')}
@@ -206,17 +237,31 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-cream-200 transition-colors cursor-pointer"
-                title="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {activeTab === 'cart' && items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={onClearCart}
+                    className="text-[11px] font-bold text-red-600 hover:text-red-700 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                    title={language === 'ta' ? 'கார்ட்டை காலி செய்' : 'Clear All Items'}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>{language === 'ta' ? 'கார்ட் காலி செய்' : 'Clear Cart'}</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-cream-200 transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Segmented Top Navigation Tabs */}
-            <div className="bg-white border-b border-stone-200 px-3 py-2 flex items-center gap-1.5 shadow-2xs">
+            <div className="bg-white border-b border-stone-200 px-3 py-2 flex items-center gap-1.5 shadow-2xs shrink-0">
               <button
                 onClick={() => setActiveTab('cart')}
                 className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
@@ -291,7 +336,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {activeTab === 'cart' && (
               <>
                 {/* Free Shipping Meter */}
-                <div className="bg-forest-900 text-cream-100 px-5 py-3 text-xs">
+                <div className="bg-forest-900 text-cream-100 px-5 py-3 text-xs shrink-0">
                   <div className="flex items-center justify-between mb-1.5 font-medium">
                     <span>
                       {isFreeShipping ? (
@@ -316,7 +361,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                 {/* Cart Items List */}
                 <div
-                  className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain"
+                  className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-3.5 overscroll-contain"
                   style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
                 >
                   {items.length === 0 ? (
@@ -352,7 +397,73 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       </div>
                     </div>
                   ) : (
-                    items.map((item) => {
+                    <>
+                      {/* Private Coupon Code Input Box (Customer Types Code - No Codes Shown) */}
+                      <div className="p-3 bg-white rounded-2xl border border-stone-200 shadow-2xs space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-emerald-700" />
+                          <span className="text-xs font-serif font-bold text-forest-950">
+                            {language === 'ta' ? 'கூப்பன் குறியீடு உள்ளதா?' : 'Have a Promo / Coupon Code?'}
+                          </span>
+                        </div>
+
+                        {/* If Applied Banner (No code leaked) */}
+                        {activeOffer && discountAmount > 0 ? (
+                          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <CheckCircle className="w-4 h-4 text-emerald-700 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="text-xs font-bold text-emerald-950">
+                                  {language === 'ta' ? 'கூப்பன் தள்ளுபடி சேர்க்கப்பட்டது' : 'Coupon Applied'} ({activeOffer.discountValue}% OFF)
+                                </span>
+                                <span className="text-[10px] text-emerald-700 font-bold block">
+                                  {language === 'ta' ? `₹${discountAmount} தள்ளுபடி செய்யப்பட்டுள்ளது!` : `₹${discountAmount} discount applied!`}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={removeOffer}
+                              className="px-2.5 py-1 rounded-lg bg-white hover:bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold transition-colors cursor-pointer shadow-2xs shrink-0"
+                            >
+                              {language === 'ta' ? 'நீக்கு' : 'Remove'}
+                            </button>
+                          </div>
+                        ) : (
+                          /* Customer Types Their Secret Coupon Code */
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={couponInput}
+                                onChange={(e) => {
+                                  setCouponInput(e.target.value.toUpperCase());
+                                  setCouponError(null);
+                                  setCouponSuccess(null);
+                                }}
+                                placeholder={language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்...' : 'Enter your coupon code...'}
+                                className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs font-mono font-bold focus:outline-none focus:border-forest-900 uppercase bg-stone-50"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleApplyCouponCode()}
+                                className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-all shadow-2xs cursor-pointer shrink-0"
+                              >
+                                {language === 'ta' ? 'பயன்படுத்து' : 'Apply'}
+                              </button>
+                            </div>
+                            {couponError && (
+                              <p className="text-[10px] text-red-600 font-bold pl-1">{couponError}</p>
+                            )}
+                            {couponSuccess && (
+                              <p className="text-[10px] text-emerald-700 font-bold pl-1">{couponSuccess}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Cart Items List */}
+                      {items.map((item) => {
                       const isItemFav = favoritesList.includes(item.product.id) || (item.product.slug && favoritesList.includes(item.product.slug));
                       return (
                         <div
@@ -360,9 +471,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           className="flex gap-3.5 p-3.5 rounded-2xl border border-stone-200/90 bg-white hover:border-gold-500/50 transition-all shadow-2xs group"
                         >
                           <img
-                            src={item.product.image}
+                            src={resolveProductImage(item.product)}
                             alt={item.product.name}
-                            className="w-20 h-20 min-w-[80px] max-w-[80px] h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
+                            onError={(e) => {
+                              e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                            }}
+                            className="w-16 h-16 sm:w-20 sm:h-20 min-w-[64px] sm:min-w-[80px] max-w-[64px] sm:max-w-[80px] h-[64px] sm:h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
                           />
 
                           <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -414,72 +528,118 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                 </button>
                               </div>
 
-                              {/* Price */}
-                              <div className="text-right">
-                                <span className="text-sm font-serif font-bold text-forest-900">
-                                  ₹{item.price * item.quantity}
-                                </span>
-                                <span className="block text-[10px] text-stone-400">
-                                  (₹{item.price} {language === 'ta' ? 'ஒவ்வொன்றும்' : 'each'})
-                                </span>
-                              </div>
+                              {/* Price with Offer Discount Callout */}
+                              {(() => {
+                                const rowSubtotal = item.price * item.quantity;
+                                let rowDiscount = 0;
+                                if (activeOffer && cartOfferResult.isEligible) {
+                                  if (activeOffer.discountType === 'percentage') {
+                                    rowDiscount = Math.round((rowSubtotal * activeOffer.discountValue) / 100);
+                                  } else if (activeOffer.discountType === 'fixed' && subtotal > 0) {
+                                    rowDiscount = Math.round((rowSubtotal / subtotal) * discountAmount);
+                                  }
+                                }
+                                return (
+                                  <div className="text-right">
+                                    {rowDiscount > 0 ? (
+                                      <>
+                                        <div className="flex items-baseline justify-end gap-1">
+                                          <span className="text-[11px] line-through text-stone-400">₹{rowSubtotal}</span>
+                                          <span className="text-sm font-serif font-black text-emerald-800">₹{rowSubtotal - rowDiscount}</span>
+                                        </div>
+                                        <span className="block text-[10px] font-black text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300 mt-0.5">
+                                          -₹{rowDiscount} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="text-sm font-serif font-bold text-forest-900">
+                                          ₹{rowSubtotal}
+                                        </span>
+                                        <span className="block text-[10px] text-stone-400">
+                                          (₹{item.price} {language === 'ta' ? 'ஒவ்வொன்றும்' : 'each'})
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
                       );
-                    })
+                    })}
+                    </>
                   )}
                 </div>
 
-                {/* Footer Checkout Summary */}
+                {/* Footer Checkout Summary: Compact & leaves full space for items */}
                 {items.length > 0 && (
-                  <div className="p-4 sm:p-5 border-t border-cream-300 bg-cream-100/90 space-y-3.5">
-                    <div className="space-y-1.5 text-xs text-stone-600">
-                      <div className="flex justify-between">
-                        <span>{t('cart.subtotal')}:</span>
-                        <span className="font-semibold text-stone-800">₹{subtotal}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{t('cart.delivery')}:</span>
-                        <span className="font-semibold text-emerald-700">
-                          {isFreeShipping ? t('cart.free') : '₹50'}
+                  <div className="p-4 border-t border-cream-300 bg-white shrink-0 space-y-2.5 shadow-xl">
+                    {/* Compact 1-line offer badge if applied */}
+                    {activeOffer && discountAmount > 0 && (
+                      <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Tag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{language === 'ta' ? 'கூப்பன் தள்ளுபடி' : 'Coupon Applied'} ({activeOffer.discountValue}% OFF)</span>
                         </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-emerald-700 font-black">-₹{discountAmount}</span>
+                          <button
+                            type="button"
+                            onClick={removeOffer}
+                            className="text-stone-400 hover:text-red-500 text-[10px] underline ml-1 cursor-pointer"
+                          >
+                            {language === 'ta' ? 'நீக்கு' : 'Remove'}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm font-bold text-forest-950 pt-2 border-t border-cream-300">
-                        <span>{language === 'ta' ? 'செலுத்த வேண்டிய தொகை:' : 'Total Payable:'}</span>
-                        <span className="font-serif text-lg text-forest-900">
-                          ₹{subtotal + (isFreeShipping ? 0 : 50)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={onProceedToCheckout}
-                      className="w-full py-3.5 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-cream-100 font-semibold text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer group"
-                    >
-                      <span>{t('cart.proceedCheckout')}</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-
-                    {onNavigate && (
-                      <button
-                        onClick={() => {
-                          onClose();
-                          onNavigate('/cart');
-                        }}
-                        className="w-full py-2.5 px-4 rounded-xl border border-stone-200 hover:border-forest-900 text-forest-950 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer bg-stone-50 hover:bg-white"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-gold-600" />
-                        <span>{language === 'ta' ? 'முழு கார்ட் பக்கத்தைப் பார்க்க' : 'View Full Cart Page'}</span>
-                      </button>
                     )}
 
-                    <div className="flex items-center justify-center text-[11px] text-stone-500">
-                      <span>
-                        {language === 'ta'
-                          ? '100% தூய மரச்செக்கு இயற்கை எண்ணெய்'
-                          : '100% Mara Chekku Genuine Cold-Pressed Oil'}
+                    {/* Price & Checkout Row */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[10px] text-stone-500 block uppercase font-bold tracking-wider">
+                          {language === 'ta' ? 'மொத்த தொகை:' : 'Total Payable:'}
+                        </span>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="font-serif text-2xl font-black text-forest-950">
+                            ₹{finalPayable}
+                          </span>
+                          {subtotal !== finalPayable && (
+                            <span className="text-xs text-stone-400 line-through">
+                              ₹{subtotal}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={onProceedToCheckout}
+                        className="flex-1 max-w-[220px] py-3 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-cream-100 font-bold text-xs sm:text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer group"
+                      >
+                        <span>{t('cart.proceedCheckout')}</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+
+                    {/* Bottom Micro Row: Delivery status & Full Cart link */}
+                    <div className="flex items-center justify-between pt-1.5 text-[11px] text-stone-500 border-t border-stone-100">
+                      <span className="text-emerald-700 font-semibold">
+                        {isFreeShipping ? '✓ ' + (language === 'ta' ? 'இலவச டெலிவரி' : 'Free Delivery') : '+₹50 Delivery'}
                       </span>
+                      {onNavigate && (
+                        <button
+                          onClick={() => {
+                            onClose();
+                            onNavigate('/cart');
+                          }}
+                          className="text-forest-950 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          <span>{language === 'ta' ? 'முழு கார்ட் விவரம்' : 'View Full Cart'}</span>
+                          <ExternalLink className="w-3 h-3 text-gold-600" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -520,7 +680,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             className="flex items-center justify-between p-2 rounded-xl border border-stone-200 bg-stone-50"
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <img src={p.image} alt={p.name} className="w-10 h-10 object-contain rounded-lg" />
+                              <img
+                                src={resolveProductImage(p)}
+                                alt={p.name}
+                                onError={(e) => {
+                                  e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                                }}
+                                className="w-10 h-10 object-contain rounded-lg"
+                              />
                               <div className="truncate">
                                 <div className="text-xs font-bold text-stone-800 truncate">
                                   {language === 'ta' && p.tamilName ? p.tamilName : p.name}
@@ -556,9 +723,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       >
                         <div className="flex gap-3">
                           <img
-                            src={product.image}
+                            src={resolveProductImage(product)}
                             alt={product.name}
-                            className="w-20 h-20 min-w-[80px] max-w-[80px] h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
+                            onError={(e) => {
+                              e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                            }}
+                            className="w-16 h-16 sm:w-20 sm:h-20 min-w-[64px] sm:min-w-[80px] max-w-[64px] sm:max-w-[80px] h-[64px] sm:h-[80px] object-contain rounded-xl bg-cream-50 p-1.5 shrink-0 border border-stone-100"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-1">

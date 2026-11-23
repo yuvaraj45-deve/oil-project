@@ -16,10 +16,12 @@ import {
   Plus,
   Minus,
   Award,
+  Tag,
 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
+import { useOffers } from '../context/OfferContext';
 import { PRODUCTS_DATA } from '../data/oilData';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
@@ -57,6 +59,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 }) => {
   const { language, t } = useLanguage();
   const { products: storeProducts, settings, updateProduct, categories: storeCategories } = useStore();
+  const { activeOffer, availableOffers, applyOffer, removeOffer, calculateCartDiscount } = useOffers();
   const effectiveAllProducts = storeProducts && storeProducts.length > 0 ? storeProducts : allProducts;
   // Pick live product from store matching exact id (or matching non-empty slug)
   const product =
@@ -65,6 +68,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     initialProduct;
   const [selectedPack, setSelectedPack] = useState<string>(product.defaultPack || product.packSizes[0] || '1 Litre Bottle');
   const [quantity, setQuantity] = useState<number>(1);
+  const [showAllOffers, setShowAllOffers] = useState<boolean>(false);
 
   // Sync selected pack and quantity when product changes
   useEffect(() => {
@@ -307,27 +311,180 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </div>
             </div>
 
-            {/* Price Card */}
-            <div className="p-5 rounded-3xl bg-white border border-stone-200/80 shadow-xs space-y-3">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl sm:text-4xl font-serif font-black text-forest-950">
-                  ₹{totalPrice}
-                </span>
-                <span className="text-lg text-stone-400 line-through">
-                  MRP ₹{totalOriginalPrice}
-                </span>
-                {discountPercent > 0 && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#9E2B25] text-white">
-                    {discountPercent}% {language === 'ta' ? 'தள்ளுபடி' : 'OFF'}
-                  </span>
-                )}
-              </div>
+            {/* Price Card & Applied Offer Discount */}
+            {(() => {
+              const offerCalc = calculateCartDiscount(totalPrice);
+              const hasActiveDiscount = activeOffer && offerCalc.discountAmount > 0;
+              const hasFreeDelOffer = activeOffer && (activeOffer.code === 'FREEDEL' || activeOffer.discountType === 'free_shipping');
 
-              <p className="text-xs text-stone-500 flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span>{language === 'ta' ? 'வரிகள் உள்ளடக்கம் • ₹499 மேல் இலவச டெலிவரி' : 'Inclusive of all taxes • Free express shipping above ₹499'}</span>
-              </p>
-            </div>
+              return (
+                <div className="space-y-3">
+                  <div className={`p-5 rounded-3xl border transition-all duration-300 ${
+                    hasActiveDiscount
+                      ? 'bg-gradient-to-br from-emerald-50/70 via-white to-amber-50/30 border-2 border-emerald-500/80 shadow-md ring-2 ring-emerald-500/20'
+                      : 'bg-white border-stone-200/80 shadow-xs'
+                  }`}>
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <span className="text-3xl sm:text-4xl font-serif font-black text-forest-950">
+                        ₹{hasActiveDiscount ? (totalPrice - offerCalc.discountAmount) : totalPrice}
+                      </span>
+
+                      {hasActiveDiscount ? (
+                        <>
+                          <span className="text-lg text-stone-400 line-through">
+                            ₹{totalPrice}
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-2xs">
+                            {activeOffer.discountType === 'percentage'
+                              ? `${activeOffer.discountValue}% OFF`
+                              : `₹${offerCalc.discountAmount} OFF`}
+                          </span>
+                        </>
+                      ) : (
+                        totalOriginalPrice > totalPrice && (
+                          <span className="text-lg text-stone-400 line-through">
+                            MRP ₹{totalOriginalPrice}
+                          </span>
+                        )
+                      )}
+
+                      {!hasActiveDiscount && discountPercent > 0 && (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#9E2B25] text-white">
+                          {discountPercent}% {language === 'ta' ? 'தள்ளுபடி' : 'OFF'}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* How much is reduced (Evolo Koraikuranga) banner */}
+                    {hasActiveDiscount && (
+                      <div className="p-3 rounded-2xl bg-emerald-100/70 border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 mt-2">
+                        <div className="flex items-center gap-2">
+                          <Tag className="w-4 h-4 text-emerald-700 shrink-0" />
+                          <span>
+                            <strong className="font-bold">{activeOffer.code}</strong>{' '}
+                            {language === 'ta'
+                              ? `சலுகை மூலம் இந்த ஆர்டரில் ₹${offerCalc.discountAmount} குறைக்கப்படுகிறது!`
+                              : `offer applied: ₹${offerCalc.discountAmount} discount deducted!`}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeOffer}
+                          className="text-stone-500 hover:text-red-600 font-bold underline cursor-pointer text-[11px] ml-2"
+                        >
+                          {language === 'ta' ? 'நீக்கு' : 'Remove'}
+                        </button>
+                      </div>
+                    )}
+
+                    {activeOffer && !hasActiveDiscount && !hasFreeDelOffer && offerCalc.minOrderShortage > 0 && (
+                      <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between mt-2">
+                        <span>
+                          {language === 'ta'
+                            ? `இன்னும் ₹${offerCalc.minOrderShortage} சேர்த்தால் ${activeOffer.code} மூலம் ${activeOffer.discountValue}% தள்ளுபடி கிடைக்கும்.`
+                            : `Add ₹${offerCalc.minOrderShortage} more to activate ${activeOffer.code} offer! (Min order: ₹${activeOffer.minOrderValue})`}
+                        </span>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-stone-500 flex items-center gap-1.5 pt-1">
+                      <Check className="w-4 h-4 text-emerald-600" />
+                      <span>
+                        {language === 'ta'
+                          ? 'வரிகள் உள்ளடக்கம் • ₹499 மேல் இலவச டெலிவரி'
+                          : 'Inclusive of all taxes • Free express shipping above ₹499'}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Available Mill Offers for this Product */}
+                  {availableOffers.length > 0 && (
+                    <div className="p-4 rounded-3xl bg-amber-50/50 border border-amber-200/80 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-amber-600" />
+                          {language === 'ta' ? 'சிறப்பு ஆலை சலுகை:' : 'Special Mill Offer:'}
+                        </span>
+                        {availableOffers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllOffers(!showAllOffers)}
+                            className="text-[11px] font-bold text-amber-800 hover:text-amber-950 hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            {showAllOffers
+                              ? (language === 'ta' ? 'குறைவாகக் காட்டு' : 'Show Less')
+                              : (language === 'ta' ? `அனைத்தும் (${availableOffers.length})` : `View All (${availableOffers.length})`)}
+                          </button>
+                        )}
+                      </div>
+
+                      {(() => {
+                        const displayedOffers = showAllOffers
+                          ? availableOffers
+                          : (activeOffer && availableOffers.some((o) => o.code === activeOffer.code)
+                              ? [activeOffer, ...availableOffers.filter((o) => o.code !== activeOffer.code)].slice(0, 1)
+                              : availableOffers.slice(0, 1));
+
+                        return (
+                          <div className={`grid gap-2 ${showAllOffers && displayedOffers.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                            {displayedOffers.map((offer) => {
+                              const isThisApplied = activeOffer?.code === offer.code;
+                              return (
+                                <div
+                                  key={offer.code}
+                                  className={`p-2.5 rounded-2xl border flex items-center justify-between gap-2 transition-all ${
+                                    isThisApplied
+                                      ? 'bg-emerald-50 border-emerald-400 ring-1 ring-emerald-300'
+                                      : 'bg-white border-amber-200/70 hover:border-amber-300'
+                                  }`}
+                                >
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-mono text-xs font-black text-forest-950 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
+                                        {offer.code}
+                                      </span>
+                                      <span className="text-[11px] font-bold text-emerald-800">
+                                        {offer.discountType === 'percentage'
+                                          ? `${offer.discountValue}% OFF`
+                                          : offer.discountType === 'fixed'
+                                          ? `₹${offer.discountValue} OFF`
+                                          : 'FREE DEL'}
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                                      {language === 'ta' ? offer.tamilTitle : offer.title}
+                                    </p>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => (isThisApplied ? removeOffer() : applyOffer(offer))}
+                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
+                                      isThisApplied
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-forest-950 text-gold-300 hover:bg-forest-900'
+                                    }`}
+                                  >
+                                    {isThisApplied ? (
+                                      <span className="flex items-center gap-1">
+                                        <Check className="w-3 h-3" />
+                                        <span>{language === 'ta' ? 'சேர்க்கப்பட்டது' : 'Applied'}</span>
+                                      </span>
+                                    ) : (
+                                      <span>{language === 'ta' ? 'பயன்படுத்து' : 'Apply'}</span>
+                                    )}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Pack Size Selector */}
             <div className="space-y-3">
@@ -342,6 +499,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 {product.packSizes.map((pack) => {
                   const isSelected = selectedPack === pack;
                   const priceForPack = getPackPrice(product.price, pack);
+
                   return (
                     <button
                       key={pack}
@@ -354,7 +512,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       }`}
                     >
                       <span className="text-xs font-bold truncate block">{pack}</span>
-                      <span className={`text-xs mt-1 font-serif font-black ${isSelected ? 'text-gold-300' : 'text-stone-900'}`}>
+                      <span className={`text-xs mt-1.5 font-serif font-bold ${isSelected ? 'text-gold-300' : 'text-stone-900'}`}>
                         ₹{priceForPack}
                       </span>
                     </button>

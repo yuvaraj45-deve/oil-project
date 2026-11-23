@@ -5,13 +5,16 @@ import './index.css';
 import { LanguageProvider } from './context/LanguageContext';
 import { StoreProvider } from './context/StoreContext';
 import { CMSProvider } from './context/CMSContext';
+import { OfferProvider } from './context/OfferContext';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <LanguageProvider>
       <StoreProvider>
         <CMSProvider>
-          <App />
+          <OfferProvider>
+            <App />
+          </OfferProvider>
         </CMSProvider>
       </StoreProvider>
     </LanguageProvider>

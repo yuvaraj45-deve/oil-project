@@ -7,8 +7,6 @@ import {
   User,
   Globe,
   KeyRound,
-  ChevronDown,
-  ChevronRight,
   ArrowRight,
   LogOut,
 } from 'lucide-react';
@@ -46,12 +44,47 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { language, setLanguage } = useLanguage();
   const { settings, categories } = useStore();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
   const accountDropdownRef = useRef<HTMLDivElement | null>(null);
   const shopDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll detection & Heading Bar state:
+  // Starting-la mattum thaan heading bar irukanum; scroll pannathuku apram maraivil irukum.
+  // Scroll pannathuku apram 3line icon click panna heading bar vara vendum, thirumba click panna marayanum.
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolledHeadingOpen, setScrolledHeadingOpen] = useState(false);
+  const [topHeadingClosed, setTopHeadingClosed] = useState(false);
+
+  useEffect(() => {
+    let lastScroll = window.scrollY || 0;
+    const handleScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      const scrolled = scrollY > 25;
+      setIsScrolled(scrolled);
+      if (scrolled) {
+        if (Math.abs(scrollY - lastScroll) > 40) {
+          setScrolledHeadingOpen(false);
+          lastScroll = scrollY;
+        }
+      } else {
+        setScrolledHeadingOpen(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleHeadingBar = () => {
+    if (isScrolled) {
+      setScrolledHeadingOpen((prev) => !prev);
+    } else {
+      setTopHeadingClosed((prev) => !prev);
+    }
+  };
+
+  const showHeadingBar = isScrolled ? scrolledHeadingOpen : !topHeadingClosed;
 
   // Trigger pulse animation when cart count changes
   useEffect(() => {
@@ -76,17 +109,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Lock background scroll when hamburger navigation drawer is open
-  useEffect(() => {
-    if (drawerOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [drawerOpen]);
-
   return (
     <>
       {/* MAIN HEADER (Clean Solid White Layout - 100% Crisp & High Contrast) */}
@@ -96,18 +118,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             {/* LEFT ACTIONS: Hamburger Menu + Search */}
             <div className="flex items-center gap-3 sm:gap-4">
-              {/* Hamburger 3-Line Menu Toggle - Opens responsive side drawer */}
+              {/* Hamburger 3-Line Menu Toggle - Toggles SUB-NAV row right in place */}
               <button
-                onClick={() => setDrawerOpen((prev) => !prev)}
+                onClick={toggleHeadingBar}
                 aria-label="Toggle Navigation Menu"
                 className={`p-1.5 sm:p-2 -ml-1 rounded-xl transition-all cursor-pointer ${
-                  drawerOpen
+                  showHeadingBar
                     ? 'text-[#b32d2e] bg-amber-50 ring-1 ring-amber-200'
                     : 'text-stone-900 hover:text-amber-700 hover:bg-stone-100'
                 }`}
-                title={drawerOpen ? 'Close Menu' : 'Open Navigation Menu'}
+                title={showHeadingBar ? 'Hide Menu' : 'Show Menu'}
               >
-                {drawerOpen ? (
+                {showHeadingBar ? (
                   <X className="w-6 h-6 stroke-[2.2]" />
                 ) : (
                   <Menu className="w-6 h-6 stroke-[2.2]" />
@@ -239,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Shopping Cart Icon (with live badge counter) */}
+              {/* Shopping Cart Icon (with live badge counter & indicator dot) */}
               <button
                 onClick={onOpenCart}
                 aria-label="Shopping Cart"
@@ -250,8 +272,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <ShoppingBag className="w-6 h-6 stroke-[2.2]" />
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-[#b32d2e] text-white font-bold text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm animate-fadeIn">
-                    {cartCount}
+                  <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60"></span>
+                    <span className="relative inline-flex items-center justify-center rounded-full h-4.5 min-w-[18px] px-1 bg-[#b32d2e] text-white font-bold text-[10px] shadow-md">
+                      {cartCount}
+                    </span>
                   </span>
                 )}
               </button>
@@ -261,24 +286,37 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* SUB-NAV ROW: HOME • OUR STORY • SHOP ˅ • CONTACT • FAQs (Steady height, zero jitter) */}
-        <div className="bg-white border-t border-stone-100/90 border-b border-stone-200/80 shadow-2xs py-2 px-4">
-          <nav className="max-w-7xl mx-auto flex items-center justify-center gap-4 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900 overflow-x-auto no-scrollbar">
+        {/* SUB-NAV ROW: HOME • ABOUT US • SHOP ˅ • CONTACT • FAQs */}
+        <div
+          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-t border-stone-100/90 border-b border-stone-200/80 shadow-2xs ${
+            showHeadingBar
+              ? 'max-h-[600px] opacity-100 py-2 px-3 sm:px-4 block'
+              : 'max-h-0 opacity-0 py-0 px-3 sm:px-4 pointer-events-none'
+          }`}
+        >
+          {/* Horizontal Pills / Links (Always starts with HOME & ABOUT US on mobile without left-clipping) */}
+          <nav className="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-2.5 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900 overflow-x-auto no-scrollbar py-1">
             {/* 1. HOME */}
             <button
-              onClick={() => onNavigate('/')}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 shrink-0 border-b-2 ${
-                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-stone-900 border-transparent'
+              onClick={() => {
+                if (isScrolled) setScrolledHeadingOpen(false);
+                onNavigate('/');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
+                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
             </button>
 
-            {/* 2. OUR STORY */}
+            {/* 2. ABOUT US */}
             <button
-              onClick={() => onNavigate('/about')}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 flex items-center gap-1.5 shrink-0 border-b-2 ${
-                currentPath === '/about' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-stone-900 border-transparent'
+              onClick={() => {
+                if (isScrolled) setScrolledHeadingOpen(false);
+                onNavigate('/about');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
+                currentPath === '/about' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}</span>
@@ -293,29 +331,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <button
                 onClick={() => {
+                  if (isScrolled) setScrolledHeadingOpen(false);
                   if (onNavigateCategory) onNavigateCategory('all');
                   onNavigate('/shop');
                 }}
-                className={`flex items-center gap-1 hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 border-b-2 ${
-                  currentPath === '/shop' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-stone-900 border-transparent'
+                className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 rounded-lg sm:rounded-none border-b-2 ${
+                  currentPath === '/shop' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
                 }`}
               >
                 <span>{language === 'ta' ? 'அங்காடி' : 'SHOP'}</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    shopDropdownOpen ? 'rotate-180 text-[#1e7e34]' : ''
-                  }`}
-                />
               </button>
 
               {/* Shop Categories Dropdown */}
               {shopDropdownOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-64 bg-white rounded-2xl shadow-xl border border-stone-200 p-2 z-50 animate-fadeIn text-left normal-case tracking-normal max-h-80 overflow-y-auto">
+                <div className="absolute left-0 sm:left-1/2 sm:-translate-x-1/2 top-full mt-1 w-64 bg-white rounded-2xl shadow-xl border border-stone-200 p-2 z-50 animate-fadeIn text-left normal-case tracking-normal max-h-80 overflow-y-auto">
                   <button
                     onClick={() => {
                       setShopDropdownOpen(false);
-                      onNavigate('/shop');
+                      if (isScrolled) setScrolledHeadingOpen(false);
                       if (onNavigateCategory) onNavigateCategory('all');
+                      onNavigate('/shop');
                     }}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-stone-800 hover:bg-emerald-50 hover:text-[#1e7e34] transition-colors cursor-pointer border-b border-stone-100 mb-1"
                   >
@@ -326,6 +361,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       key={cat.id}
                       onClick={() => {
                         setShopDropdownOpen(false);
+                        if (isScrolled) setScrolledHeadingOpen(false);
                         if (onNavigateCategory) onNavigateCategory(cat.slug);
                         else onNavigate(`/category/${cat.slug}`);
                       }}
@@ -340,9 +376,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* 4. CONTACT */}
             <button
-              onClick={() => onNavigate('/contact')}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 shrink-0 border-b-2 ${
-                currentPath === '/contact' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-stone-900 border-transparent'
+              onClick={() => {
+                if (isScrolled) setScrolledHeadingOpen(false);
+                onNavigate('/contact');
+              }}
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
+                currentPath === '/contact' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}</span>
@@ -351,260 +390,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* 5. FAQs */}
             <button
               onClick={() => {
+                if (isScrolled) setScrolledHeadingOpen(false);
                 if (onOpenFaq) onOpenFaq();
                 else onNavigate('/faq');
               }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 shrink-0 border-b-2 ${
-                currentPath === '/faq' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-stone-900 border-transparent'
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
+                currentPath === '/faq' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
               }`}
             >
               FAQs
             </button>
 
-            {/* 6. OFFERS & COUPONS */}
-            <button
-              onClick={() => onNavigate('/offers')}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-1.5 shrink-0 border-b-2 flex items-center gap-1.5 ${
-                currentPath === '/offers' ? 'text-[#1e7e34] font-black border-[#1e7e34]' : 'text-amber-800 border-transparent'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span>{language === 'ta' ? 'சலுகைகள்' : 'OFFERS'}</span>
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-400 text-forest-950 leading-none">
-                %
-              </span>
-            </button>
           </nav>
         </div>
 
       </header>
-
-      {/* FULL RESPONSIVE NAVIGATION DRAWER (Opens when 3-line hamburger is clicked) */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-[100] flex animate-fadeIn select-none">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-stone-950/60 backdrop-blur-xs transition-opacity"
-            onClick={() => setDrawerOpen(false)}
-          />
-
-          {/* Drawer Sidebar */}
-          <div className="relative z-10 w-80 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-200">
-            {/* Drawer Top Header */}
-            <div className="p-5 border-b border-stone-200 bg-stone-50/70 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
-                  alt={settings.storeName || "ss oil"}
-                  className="w-8 h-8 object-contain"
-                />
-                <div>
-                  <h3 className="font-serif font-black text-lg text-forest-950 leading-none">
-                    {settings.storeName || "ss oil"}
-                  </h3>
-                  <span className="text-[10px] font-bold tracking-wider text-amber-700 uppercase">
-                    {language === 'ta' ? 'தூய மரச்செக்கு எண்ணெய்' : 'Heritage Cold-Pressed Oils'}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className="p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-200/60 transition-colors cursor-pointer"
-                aria-label="Close Menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Drawer Navigation Links */}
-            <div className="p-4 space-y-1.5 flex-1 overflow-y-auto">
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  onNavigate('/');
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                  currentPath === '/' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                }`}
-              >
-                <span className="text-base">🏠</span>
-                <span>{language === 'ta' ? 'முகப்பு' : 'Home'}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  onNavigate('/about');
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                  currentPath === '/about' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                }`}
-              >
-                <span className="text-base">📖</span>
-                <span>{language === 'ta' ? 'எங்கள் கதை' : 'Our Story'}</span>
-              </button>
-
-              {/* Shop & Categories */}
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    if (onNavigateCategory) onNavigateCategory('all');
-                    onNavigate('/shop');
-                  }}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                    currentPath === '/shop' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-base">🛍️</span>
-                    <span>{language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'Shop All Oils'}</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-60" />
-                </button>
-
-                {/* Subcategory List */}
-                <div className="pl-9 pr-2 pt-1.5 pb-2 space-y-1">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => {
-                        setDrawerOpen(false);
-                        if (onNavigateCategory) onNavigateCategory(cat.slug);
-                        else onNavigate(`/category/${cat.slug}`);
-                      }}
-                      className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold text-stone-600 hover:text-forest-900 hover:bg-stone-100 transition-colors flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="truncate">{cat.title}</span>
-                      <ArrowRight className="w-3 h-3 text-stone-300" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  onNavigate('/contact');
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                  currentPath === '/contact' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                }`}
-              >
-                <span className="text-base">📞</span>
-                <span>{language === 'ta' ? 'தொடர்புக்கு' : 'Contact Us'}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  if (onOpenFaq) onOpenFaq();
-                  else onNavigate('/faq');
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                  currentPath === '/faq' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                }`}
-              >
-                <span className="text-base">❓</span>
-                <span>{language === 'ta' ? 'அடிக்கடி கேட்கப்படும் கேள்விகள் (FAQs)' : 'FAQs'}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  onNavigate('/offers');
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
-                  currentPath === '/offers' ? 'bg-forest-900 text-white' : 'text-stone-800 hover:bg-stone-100'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-base">🏷️</span>
-                  <span>{language === 'ta' ? 'சலுகைகள் & கூப்பன்கள்' : 'Offers & Discount Coupons'}</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-forest-950">
-                  DEALS
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  onNavigate('/sommelier');
-                }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer text-stone-800 hover:bg-stone-100"
-              >
-                <span className="text-base">👨‍🍳</span>
-                <span>{language === 'ta' ? 'சமையல் எண்ணெய் வழிகாட்டி' : 'Oil Sommelier'}</span>
-              </button>
-
-              {currentUser ? (
-                <button
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    if (onOpenProfile) onOpenProfile();
-                    else onNavigate('/profile');
-                  }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer text-stone-800 hover:bg-stone-100"
-                >
-                  <User className="w-4 h-4 text-forest-700" />
-                  <span>{language === 'ta' ? 'என் கணக்கு' : 'My Account'} ({currentUser.name.split(' ')[0]})</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    if (onNavigateToLogin) onNavigateToLogin();
-                    else onNavigate('/login');
-                  }}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all text-left cursor-pointer text-stone-800 hover:bg-stone-100"
-                >
-                  <User className="w-4 h-4 text-forest-700" />
-                  <span>{language === 'ta' ? 'உள்நுழைக / பதிவு செய்ய' : 'Sign In / Register'}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Drawer Footer: Language & WhatsApp */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-600">
-                  {language === 'ta' ? 'மொழி:' : 'Language:'}
-                </span>
-                <div className="flex items-center p-0.5 rounded-full bg-white border border-stone-300">
-                  <button
-                    type="button"
-                    onClick={() => setLanguage('en')}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      language === 'en' ? 'bg-forest-950 text-gold-300' : 'text-stone-600'
-                    }`}
-                  >
-                    EN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLanguage('ta')}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      language === 'ta' ? 'bg-forest-950 text-gold-300' : 'text-stone-600'
-                    }`}
-                  >
-                    தமிழ்
-                  </button>
-                </div>
-              </div>
-
-              <a
-                href="https://wa.me/919876543210?text=Hi%20SS%20OIL,%20I%20would%20like%20to%20know%20more%20about%20cold-pressed%20oils"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
-              >
-                <span>💬 WhatsApp Helpdesk</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

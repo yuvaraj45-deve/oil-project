@@ -213,6 +213,8 @@ export interface PlacedOrder {
   paymentStatus: 'PAID' | 'PENDING' | 'FAILED';
   orderStatus: 'PROCESSING' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   subtotal: number;
+  discountAmount?: number;
+  couponCode?: string;
   shippingFee: number;
   totalAmount: number;
   createdAt: string;

@@ -114,7 +114,7 @@ export const CULINARY_PAIRINGS_DATA: CulinaryPairing[] = [
   {
     id: 'pair-tempering',
     dishCategory: 'Tempering, Tadka & Podi',
-    iconName: 'Sparkles',
+    iconName: 'Award',
     dishes: 'Idli Podi, Sambar Tadka, Rasam, Vatha Kuzhambu & Chutneys',
     recommendedOilName: 'SS Wood-Pressed Gingelly (Sesame) Oil',
     productId: 'ss-sesame-1000',
@@ -239,6 +239,16 @@ export const CATEGORIES_DATA: Category[] = [
     itemCount: '',
     badge: 'Native Pure',
     highlightText: 'Rich in Natural Iron'
+  },
+  {
+    id: 'cat-combo',
+    slug: 'combo-offers',
+    title: 'Combo Offers',
+    subtitle: 'Heritage Multi-Oil Trio & Festive Value Bundles',
+    image: '/products/sesame_oil.jpg?v=ssoil',
+    itemCount: '2 Combos',
+    badge: 'Combo Offer',
+    highlightText: 'Up to 33% Bundle Savings'
   }
 ];
 
@@ -602,6 +612,88 @@ export const PRODUCTS_DATA: Product[] = [
       tocopherolVitaminE: 'Rich in Minerals & Iron',
       certification: '100% Chemical-Free Organic Verified'
     }
+  },
+  {
+    id: 'ss-heritage-trio-combo',
+    name: 'SS Mara Chekku Heritage Trio Combo (Sesame + Groundnut + Coconut)',
+    tamilName: 'மரச்செக்கு ஹெரிட்டேஜ் காம்போ (நல்லெண்ணெய் + கடலை + தேங்காய்)',
+    tagline: '1L Sesame Oil + 1L Groundnut Oil + 1L Pure Coconut Oil in a celebratory box',
+    category: 'combo-offers',
+    categoryName: 'Combo Offers',
+    price: 869,
+    originalPrice: 1060,
+    discountPercent: 18,
+    rating: 5.0,
+    reviewsCount: 312,
+    packSizes: ['3 Litre Heritage Combo Box (1L x 3 Bottles)'],
+    defaultPack: '3 Litre Heritage Combo Box (1L x 3 Bottles)',
+    image: '/products/sesame_oil.jpg?v=ssoil',
+    badge: 'Combo Offer',
+    description: 'Authentic South Indian Mara Chekku Heritage Trio. Contains 1 Litre cold-pressed Sesame Oil with Palm Jaggery, 1 Litre traditional Groundnut Oil, and 1 Litre sulphur-free virgin Coconut Oil packed in a celebratory box with complimentary cotton wicks.',
+    benefits: [
+      '1L Sesame Oil + 1L Groundnut Oil + 1L Pure Coconut Oil',
+      'Flat 18% bundle discount (Save ₹191 instantly)',
+      'Includes complimentary authentic pure cotton wicks',
+      '100% Cold-Pressed in Vaagai Mara Chekku without heat or chemicals'
+    ],
+    smokePoint: 'Multi-Oil Heritage Trio for Daily & Festive Cooking',
+    extractionMethod: 'Traditional Vaagai Mara Chekku Wood-Pressed',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Fresh earthy nutty tones with sweet palm jaggery & velvety coconut fragrance',
+    bestForDish: 'Complete South Indian Kitchen: Sambar, Deep Frying, Chutneys, and Poriyal',
+    labReport: {
+      batchNumber: 'SS-CMB-2026-H01',
+      testedDate: '22-Oct-2026',
+      acidValue: '0.38 mg KOH/g',
+      peroxideValue: '1.20 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.19%',
+      iodineValue: 'Heritage Balanced',
+      tocopherolVitaminE: 'High Natural Antioxidants',
+      certification: 'Agmark & FSSAI Multi-Oil Certified'
+    }
+  },
+  {
+    id: 'ss-b2g1-combo',
+    name: 'SS Buy 2 Get 1 Free Deal (2L Sesame Oil + 1L Coconut Oil Free)',
+    tamilName: '2 வாங்கினால் 1 இலவசம் (2L நல்லெண்ணெய் + 1L தேங்காய் எண்ணெய் இலவசம்)',
+    tagline: 'Buy 2 Litres Mara Chekku Sesame Oil and get 1 Litre Pure Coconut Oil 100% FREE',
+    category: 'combo-offers',
+    categoryName: 'Combo Offers',
+    price: 760,
+    originalPrice: 1120,
+    discountPercent: 33,
+    rating: 4.9,
+    reviewsCount: 245,
+    packSizes: ['3 Litre Value Combo (2L Sesame + 1L Coconut Free)'],
+    defaultPack: '3 Litre Value Combo (2L Sesame + 1L Coconut Free)',
+    image: '/products/coconut_oil.jpg?v=ssoil',
+    badge: 'Buy 2 Get 1 Free',
+    description: 'Authentic double cold-pressed deal. Experience authentic sesame and coconut oils together with maximum bundle savings. Buy 2 Litres Mara Chekku Sesame Oil and receive 1 Litre sulphur-free Virgin Coconut Oil completely free.',
+    benefits: [
+      'Buy 2L Sesame Oil, Get 1L Pure Coconut Oil 100% Free',
+      'Total bundle savings of ₹360 (33% equivalent savings)',
+      'Sulphur-free coastal coconut and Karupatti sesame combo',
+      'Packed in food-grade tamper-evident packaging'
+    ],
+    smokePoint: '210°C Sesame / 177°C Coconut',
+    extractionMethod: 'Wooden Ghani Cold-Pressed',
+    inStock: true,
+    featured: true,
+    aromaProfile: 'Deep woody gingelly aroma paired with fresh tropical coconut',
+    bestForDish: 'Idli Podi, Fish Curries, Appam, Avial, and Daily Deepam & Hair Care',
+    labReport: {
+      batchNumber: 'SS-B2G1-2026-V02',
+      testedDate: '22-Oct-2026',
+      acidValue: '0.40 mg KOH/g',
+      peroxideValue: '1.18 meq O2/kg',
+      hexaneResidue: '0.00 ppm',
+      freeFattyAcids: '0.21%',
+      iodineValue: 'Natural Pure',
+      tocopherolVitaminE: 'Vitamin E & Lauric Acid Rich',
+      certification: 'FSSAI Certified Authentic'
+    }
   }
 ];
 
@@ -609,7 +701,7 @@ export const WHY_CHOOSE_US_DATA: FeatureBlock[] = [
   {
     title: 'Quality Ingredients',
     description: 'Single-origin, non-GMO seeds sourced directly from certified organic farmers across India.',
-    iconName: 'Sparkles',
+    iconName: 'Award',
     badge: 'Farm Fresh'
   },
   {

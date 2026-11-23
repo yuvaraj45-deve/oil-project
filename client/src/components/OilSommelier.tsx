@@ -28,7 +28,6 @@ export const OilSommelier: React.FC<OilSommelierProps> = ({
     switch (iconName) {
       case 'Flame':
         return <Flame className="w-5 h-5 text-amber-500" />;
-      case 'Sparkles':
       case 'Award':
         return <Award className="w-5 h-5 text-gold-500" />;
       case 'Heart':

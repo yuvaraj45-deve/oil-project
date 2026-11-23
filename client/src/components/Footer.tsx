@@ -139,12 +139,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigate }) 
                   {t('nav.products')}
                 </button>
               </li>
-              <li>
-                <button onClick={() => handleLinkClick('/offers')} className="hover:text-gold-400 transition-colors cursor-pointer text-left font-bold text-amber-300 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span>{language === 'ta' ? 'சலுகைகள் & கூப்பன்கள்' : 'Offers & Discount Coupons'}</span>
-                </button>
-              </li>
+
               <li>
                 <button onClick={() => handleLinkClick('/mill-journey')} className="hover:text-gold-400 transition-colors cursor-pointer text-left">
                   {language === 'ta' ? 'மரச்செக்கு பயணம்' : 'Mill Journey'}

@@ -53,6 +53,7 @@ import {
   Film,
   Star,
   Droplets,
+  Gift,
 } from 'lucide-react';
 import {
   PlacedOrder,
@@ -71,6 +72,9 @@ import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 import { useStore, normalizeHomepage4 } from '../context/StoreContext';
 import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
 import { CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
+import { OffersManager } from './admin/OffersManager';
+import { ComboOffersManager } from './admin/ComboOffersManager';
+import { autoTranslateProductNameToTamil } from '../utils/productUtils';
 
 interface AdminPageProps {
   orders: PlacedOrder[];
@@ -144,6 +148,8 @@ const STANDARD_BADGES = [
   'Temple Pooja',
   'A2 Pure',
   'Native Pure',
+  'Combo Offer',
+  'Buy 2 Get 1 Free',
 ];
 
 const API_BASE_URL =
@@ -163,6 +169,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   type AdminTab =
     | 'dashboard'
     | 'products'
+    | 'combos'
     | 'orders'
     | 'customers'
     | 'users'
@@ -184,6 +191,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     } catch {}
     return 'dashboard';
   });
+  const [autoOpenOfferCreate, setAutoOpenOfferCreate] = useState(false);
 
   const handleTabChange = (tab: AdminTab) => {
     setActiveTab(tab);
@@ -618,6 +626,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editProdName, setEditProdName] = useState('');
   const [editProdTamilName, setEditProdTamilName] = useState('');
+  const [isEditTamilNameManual, setIsEditTamilNameManual] = useState(false);
   const [editProdTagline, setEditProdTagline] = useState('');
   const [editProdCategory, setEditProdCategory] = useState('');
   const [editProdPrice, setEditProdPrice] = useState<number>(0);
@@ -742,6 +751,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProdName, setNewProdName] = useState('');
   const [newProdTamilName, setNewProdTamilName] = useState('');
+  const [isNewTamilNameManual, setIsNewTamilNameManual] = useState(false);
   const [newProdTagline, setNewProdTagline] = useState('');
   const [newProdCategory, setNewProdCategory] = useState('');
   const [newProdPrice, setNewProdPrice] = useState<number | string>(0);
@@ -877,6 +887,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     // Reset all input fields: Price & MRP start at 0
     setNewProdName('');
     setNewProdTamilName('');
+    setIsNewTamilNameManual(false);
     setNewProdTagline('');
     setNewProdPrice(0);
     setNewProdOriginalPrice(0);
@@ -1340,11 +1351,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'products', label: 'Products', icon: Package },
+            { id: 'combos', label: 'Combo Offers (காம்போ சலுகைகள்)', icon: Gift },
             { id: 'categories', label: 'Categories', icon: Layers },
             { id: 'videos', label: 'Homepage Video', icon: Video },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: unreadCustomersCount },
-            { id: 'offers', label: 'Offers & Coupons', icon: Tag },
             { id: 'settings', label: 'Settings', icon: Settings },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
           ].map((item) => {
@@ -1368,7 +1379,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <Icon className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
-                {item.count !== undefined && item.count > 0 && (
+                {item.id === 'combos' ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-400 text-stone-900 text-[10px] font-black tracking-wide shadow-2xs">
+                    NEW
+                  </span>
+                ) : item.count !== undefined && item.count > 0 ? (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       isActive ? 'bg-[#132c19] text-white' : 'bg-amber-400 text-stone-900 shadow-2xs font-extrabold'
@@ -1376,22 +1391,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   >
                     {item.count}
                   </span>
-                )}
+                ) : null}
               </button>
             );
           })}
-
-          {/* Logout Action in Nav */}
-          <button
-            onClick={() => {
-              if (onLogout) onLogout();
-              else onBackToStore();
-            }}
-            className="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-red-300 hover:bg-red-950/30 transition-all flex items-center gap-3 cursor-pointer pt-2"
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            <span>Logout</span>
-          </button>
         </nav>
 
       </aside>
@@ -1467,6 +1470,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
                 {activeTab === 'orders' && 'Orders Management'}
+                {activeTab === 'combos' && 'Combo Offers Management (காம்போ சலுகைகள்)'}
                 {activeTab === 'offers' && 'Offers & Coupons'}
                 {activeTab === 'analytics' && 'Analytics & Performance'}
               </h2>
@@ -1486,6 +1490,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     onClick={() => {
                       setNewProdName('');
                       setNewProdTamilName('');
+                      setIsNewTamilNameManual(false);
                       setNewProdTagline('');
                       setNewProdCategory(categoriesList[0]?.slug || 'sesame-oil');
                       setNewProdPrice(0);
@@ -1554,6 +1559,44 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>View on Store</span>
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'combos' && (
+                <div className="flex items-center gap-2">
+                  <a
+                    href="/shop"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Customer Store</span>
+                  </a>
+                </div>
+              )}
+
+              {activeTab === 'offers' && (
+                <div className="flex items-center gap-2">
+                  <a
+                    href="/shop"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Customer Store</span>
+                  </a>
+                  <button
+                    onClick={() => {
+                      setAutoOpenOfferCreate(true);
+                      window.dispatchEvent(new Event('ssoil_open_create_offer'));
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Create Coupon</span>
                   </button>
                 </div>
               )}
@@ -1649,6 +1692,47 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
               </div>
 
+              {/* Quick Action: Offers & Discounts Banner */}
+              <div className="bg-gradient-to-r from-emerald-900 to-forest-950 rounded-2xl p-4 sm:p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-emerald-800/40">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 shrink-0 border border-white/10">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-serif font-black text-sm sm:text-base text-white">Discounts & Coupon Offers</h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-stone-900">TiDB Sync</span>
+                    </div>
+                    <p className="text-xs text-stone-300 mt-0.5">
+                      Create percentage discounts, flat cash off, or festival promotional coupons for customer store.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('offers')}
+                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-stone-200 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    View All Offers
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleTabChange('offers');
+                      setAutoOpenOfferCreate(true);
+                      setTimeout(() => {
+                        window.dispatchEvent(new Event('ssoil_open_create_offer'));
+                      }, 80);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#1e7e34] hover:bg-[#165c26] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create New Coupon</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Recent Orders Queue Snapshot */}
               <div className="bg-white rounded-3xl border border-stone-200 shadow-xs p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-4">
@@ -1693,8 +1777,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               {ord.items.map((i) => `${i.productName} (${i.packSize})`).join(', ')}
                             </span>
                           </td>
-                          <td className="py-3 px-4 font-bold font-serif text-sm text-forest-950">
-                            ₹{ord.totalAmount}
+                          <td className="py-3 px-4">
+                            <span className="font-bold font-serif text-sm text-forest-950 block">₹{ord.totalAmount}</span>
+                            {ord.discountAmount && ord.discountAmount > 0 ? (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
+                                -₹{ord.discountAmount} ({ord.couponCode || 'Offer'})
+                              </span>
+                            ) : null}
                           </td>
                           <td className="py-3 px-4">
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 text-stone-700">
@@ -1853,6 +1942,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         onClick={() => {
                           setNewProdName('');
                           setNewProdTamilName('');
+                          setIsNewTamilNameManual(false);
                           setNewProdTagline('');
                           setNewProdCategory(viewingCategory.slug);
                           setNewProdPrice(0);
@@ -1929,6 +2019,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           onClick={() => {
                             setNewProdName('');
                             setNewProdTamilName('');
+                            setIsNewTamilNameManual(false);
                             setNewProdTagline('');
                             setNewProdCategory(viewingCategory.slug);
                             setNewProdPrice(0);
@@ -2894,7 +2985,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <td className="py-3 px-4 font-semibold text-stone-900">{ord.customerName}</td>
                         <td className="py-3 px-4 text-stone-500 font-mono">{ord.customerPhone}</td>
                         <td className="py-3 px-4 text-stone-600">{ord.items.map((i) => `${i.productName} (${i.packSize})`).join(', ')}</td>
-                        <td className="py-3 px-4 font-serif font-black text-stone-900">₹{ord.totalAmount}</td>
+                        <td className="py-3 px-4">
+                          <span className="font-serif font-black text-stone-900 block">₹{ord.totalAmount}</span>
+                          {ord.discountAmount && ord.discountAmount > 0 ? (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
+                              -₹{ord.discountAmount} ({ord.couponCode || 'Offer'})
+                            </span>
+                          ) : null}
+                        </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             ord.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -2929,58 +3027,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           )}
 
           {/* ============================================================ */}
+          {/* COMBO OFFERS VIEW (காம்போ சலுகைகள்)                           */}
+          {/* ============================================================ */}
+          {activeTab === 'combos' && (
+            <ComboOffersManager
+              onShowToast={showToast}
+              onBackToStore={onBackToStore}
+            />
+          )}
+
+          {/* ============================================================ */}
           {/* OFFERS & COUPONS VIEW                                        */}
           {/* ============================================================ */}
           {activeTab === 'offers' && (
-            <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
-                <div>
-                  <h3 className="font-serif font-black text-xl text-stone-900">
-                    Offers & Discount Coupons
-                  </h3>
-                  <p className="text-xs text-stone-500">
-                    Active discount vouchers, festive promotional codes, and cart savings
-                  </p>
-                </div>
-                <a
-                  href="/offers"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all shadow-xs self-start sm:self-auto cursor-pointer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>View Customer Offers Page ↗</span>
-                </a>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {[
-                  { code: 'FIRST10', discount: '10% OFF', title: '10% OFF on First Order', min: 'Min Order: ₹499', exp: 'Valid till 31 Dec 2026', status: 'Active' },
-                  { code: 'SAVE15', discount: '15% OFF', title: '15% OFF on Orders Above ₹1000', min: 'Min Order: ₹1000', exp: 'Valid till 31 Dec 2026', status: 'Active' },
-                  { code: 'BULK20', discount: '20% OFF', title: '20% OFF on Bulk Orders', min: 'Min Order: ₹2500', exp: 'Valid till 31 Dec 2026', status: 'Active' },
-                  { code: 'FREEDEL', discount: 'FREE DELIVERY', title: '100% Free Express Delivery', min: 'No Minimum Order', exp: 'Permanent Mill Offer', status: 'Active' },
-                  { code: 'VAAGAI100', discount: '₹100 OFF', title: 'Flat ₹100 OFF Heritage Special', min: 'Min Order: ₹1299', exp: 'Valid till 31 Dec 2026', status: 'Active' },
-                  { code: 'FESTIVECOMBO', discount: '18% OFF', title: '18% OFF on Festival Combos', min: 'Min Order: ₹1800', exp: 'Valid till 31 Dec 2026', status: 'Active' },
-                ].map((c) => (
-                  <div key={c.code} className="p-5 rounded-2xl border border-dashed border-[#1e7e34] bg-emerald-50/40 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-sm font-black text-[#1e7e34] bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-2xs">
-                          {c.code}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          {c.status}
-                        </span>
-                      </div>
-                      <h4 className="font-serif font-bold text-sm text-stone-900 mt-2">{c.title}</h4>
-                      <p className="text-xs font-bold text-amber-700 mt-1">{c.discount}</p>
-                      <p className="text-[11px] text-stone-500 mt-1">{c.min}</p>
-                      <p className="text-[10px] text-stone-400 mt-0.5">{c.exp}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <OffersManager
+              onShowToast={showToast}
+              autoOpenCreateModal={autoOpenOfferCreate}
+              onResetAutoOpen={() => setAutoOpenOfferCreate(false)}
+            />
           )}
 
           {/* ============================================================ */}
@@ -3344,7 +3408,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               Customer Care Phone
                             </span>
                             <span className="text-xs font-bold text-forest-950">
-                              {settings.phone || '+91 94432 10855'}
+                              {settings.phone || '- Not Set -'}
                             </span>
                           </div>
 
@@ -3353,7 +3417,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               Support Email
                             </span>
                             <span className="text-xs font-bold text-forest-950">
-                              {settings.email || 'care@ssoil.com'}
+                              {settings.email || '- Not Set -'}
                             </span>
                           </div>
                         </div>
@@ -3825,14 +3889,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tamil Name (Optional)
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-xs font-semibold text-stone-700">
+                                Tamil Name (தமிழ் பெயர்)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const translated = autoTranslateProductNameToTamil(editProdName, editProdCategory);
+                                  if (translated) setEditProdTamilName(translated);
+                                }}
+                                className="text-[10px] font-bold text-amber-700 hover:text-amber-800 underline cursor-pointer"
+                                title="Translate English name to Tamil"
+                              >
+                                தானாக மொழிபெயர் 🔄
+                              </button>
+                            </div>
                             <input
                               type="text"
                               value={editProdTamilName}
                               onChange={(e) => setEditProdTamilName(e.target.value)}
-                              placeholder="எ.கா. மரச்செக்கு நல்லெண்ணெய் (விரும்பினால்)"
+                              placeholder="எ.கா. மரச்செக்கு நல்லெண்ணெய்"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
@@ -4116,7 +4193,44 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         />
                       </div>
 
-                      
+                      Create a professional and attractive **Offers & Discounts Page** for my SS Oil e-commerce website.
+
+**Technology Stack:**
+- Frontend: React.js + TypeScript
+- Backend: Node.js
+- Database: TiDB
+- Follow the existing project architecture and coding style.
+
+### 1. Offers Page Design
+Create a modern, premium-looking Offers Page that matches the existing SS Oil website theme.
+
+Include:
+- Attractive Offers & Discounts heading.
+- Beautiful promotional banners.
+- Special discounts on oil products.
+- Limited-time offers.
+- Festival offers.
+- Combo offers.
+- Buy 2 Get 1 offers.
+- Percentage-based discounts.
+- Coupon code offers.
+
+### 2. Offer Cards
+Each offer card should display:
+- Offer banner/image.
+- Offer title.
+- Discount percentage.
+- Offer description.
+- Applicable products.
+- Coupon code (if applicable).
+- Start date and expiry date.
+- Minimum order value.
+- Terms & Conditions.
+- Apply Offer / Shop Now button.
+
+### 3. Offer Functionality
+- Customers can view all active offers.
+- Expired offers should not
 
                       {/* Modal Action Buttons */}
                       <div className="pt-2 flex gap-3">
@@ -4243,25 +4357,43 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               required
                               value={newProdName}
                               onChange={(e) => {
-                                setNewProdName(e.target.value);
-                                if (!newProdTamilName && CATEGORY_DEFAULT_TAMIL_NAMES[newProdCategory]) {
-                                  setNewProdTamilName(CATEGORY_DEFAULT_TAMIL_NAMES[newProdCategory]);
+                                const val = e.target.value;
+                                setNewProdName(val);
+                                if (!isNewTamilNameManual) {
+                                  setNewProdTamilName(autoTranslateProductNameToTamil(val, newProdCategory));
                                 }
                               }}
-                              placeholder="e.g. SS Pure Castor Oil"
+                              placeholder="e.g. SS Pure Castor Oil / Neem Oil / Honey"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-stone-700 mb-1">
-                              Tamil Name (தமிழ் பெயர்)
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-xs font-semibold text-stone-700">
+                                Tamil Name (தமிழ் பெயர்)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const translated = autoTranslateProductNameToTamil(newProdName, newProdCategory);
+                                  setNewProdTamilName(translated);
+                                  setIsNewTamilNameManual(false);
+                                }}
+                                className="text-[10px] font-bold text-amber-700 hover:text-amber-800 underline cursor-pointer"
+                                title="Translate English name to Tamil"
+                              >
+                                தானாக மொழிபெயர் 🔄
+                              </button>
+                            </div>
                             <input
                               type="text"
                               value={newProdTamilName}
-                              onChange={(e) => setNewProdTamilName(e.target.value)}
-                              placeholder="எ.கா. மரச்செக்கு நல்லெண்ணெய்"
+                              onChange={(e) => {
+                                setIsNewTamilNameManual(true);
+                                setNewProdTamilName(e.target.value);
+                              }}
+                              placeholder="எ.கா. தூய விளக்கெண்ணெய் / மரச்செக்கு கடலை எண்ணெய்"
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold"
                             />
                           </div>
@@ -4285,7 +4417,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             </label>
                             <select
                               value={newProdCategory}
-                              onChange={(e) => setNewProdCategory(e.target.value)}
+                              onChange={(e) => {
+                                const cat = e.target.value;
+                                setNewProdCategory(cat);
+                                if (!isNewTamilNameManual && newProdName) {
+                                  setNewProdTamilName(autoTranslateProductNameToTamil(newProdName, cat));
+                                }
+                              }}
                               className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:border-forest-900 font-bold bg-white"
                             >
                               {categoriesList.map((c) => (

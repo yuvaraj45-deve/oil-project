@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, X, Heart, Star, Check } from 'lucide-react';
+import { Search, ShoppingBag, X, Heart, Star, Check, Tag } from 'lucide-react';
 import { Product } from '../types';
-import { PRODUCTS_DATA } from '../data/oilData';
-import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
+import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline, CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { useCMS } from '../context/CMSContext';
+import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 
 interface ShopPageProps {
@@ -21,18 +22,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onViewLabReport,
 }) => {
   const { language, t } = useLanguage();
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const { activeOffer, availableOffers, removeOffer } = useOffers();
+  const [selectedCat, setSelectedCat] = useState<string>(initialCategory || 'all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'rating'>('featured');
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
+  const [selectedPacks, setSelectedPacks] = useState<Record<string, string>>({});
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
-
-  useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-    }
-  }, [initialCategory]);
 
   useEffect(() => {
     const handleFavChange = (e: any) => {
@@ -121,67 +118,26 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   };
 
   const { products, categories: storeCategories } = useStore();
+  const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Strict 1:1 category matcher (Guarantees zero cross-category product leakage)
-  const isMatchCategory = (prodCategory: string, catSlug: string): boolean => {
-    if (catSlug === 'all') return true;
-    const pCat = (prodCategory || '').toLowerCase().trim();
-    const target = catSlug.toLowerCase().trim();
-    if (pCat === target) return true;
-    if (pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
-    return false;
-  };
-
-  // Predefined primary category filters
-  const baseCategoryPills = [
-    { slug: 'all', label: language === 'ta' ? 'அனைத்து தயாரிப்புகள்' : 'All Oils & Products', icon: '🛢️' },
-    { slug: 'groundnut-oil', label: language === 'ta' ? 'கடலை எண்ணெய்' : 'Groundnut Oil', icon: '🥜' },
-    { slug: 'sesame-oil', label: language === 'ta' ? 'நல்லெண்ணெய்' : 'Sesame Oil', icon: '🌿' },
-    { slug: 'coconut-oil', label: language === 'ta' ? 'தேங்காய் எண்ணெய்' : 'Coconut Oil', icon: '🥥' },
-    { slug: 'sunflower-oil', label: language === 'ta' ? 'சூரியகாந்தி எண்ணெய்' : 'Sunflower Oil', icon: '🌻' },
-    { slug: 'ricebran-oil', label: language === 'ta' ? 'தவிட்டு எண்ணெய்' : 'Rice Bran Oil', icon: '🌾' },
-    { slug: 'cooking-oil', label: language === 'ta' ? 'சமையல் எண்ணெய்' : 'Everyday Cooking Oil', icon: '🍳' },
-    { slug: 'pooja-special', label: language === 'ta' ? 'பூஜை எண்ணெய்' : 'Pooja Deepam Oil', icon: '🪔' },
-    { slug: 'a2-desi-ghee', label: language === 'ta' ? 'நாட்டு மாட்டு நெய்' : 'A2 Desi Ghee', icon: '🧈' },
-    { slug: 'palm-jaggery-special', label: language === 'ta' ? 'பனை கருப்பட்டி' : 'Palm Jaggery', icon: '🌴' },
-    { slug: 'mustard-oil', label: language === 'ta' ? 'கடுகு எண்ணெய்' : 'Mustard Oil', icon: '🌱' },
-  ];
-
-  // Include any extra custom categories created in Admin
-  const allCategoryPills = [...baseCategoryPills];
-  if (storeCategories && storeCategories.length > 0) {
-    storeCategories.forEach((sc) => {
-      if (!allCategoryPills.some((p) => p.slug === sc.slug)) {
-        allCategoryPills.push({
-          slug: sc.slug,
-          label: language === 'ta' ? (sc.tamilTitle || sc.title) : sc.title,
-          icon: '🛢️',
-        });
-      }
-    });
-  }
-
-  const getCategoryProductCount = (slug: string): number => {
-    if (slug === 'all') return sourceProducts.length;
-    return sourceProducts.filter((p) => isMatchCategory(p.category, slug)).length;
-  };
-
-  // Filtering: When 'all' is selected, guarantees ALL admin products appear without missing any!
+  // Filtering: Filter by selected category pill and search query
   const filteredProducts = sourceProducts.filter((product) => {
-    const matchesCategory = isMatchCategory(product.category, selectedCategory);
+    const matchesCat = selectedCat === 'all' || product.category === selectedCat;
+    if (!matchesCat) return false;
+
     const prodName = (product.name || '').toLowerCase();
     const prodTamil = (product.tamilName || '').toLowerCase();
     const prodTagline = (product.tagline || '').toLowerCase();
     const prodDesc = (product.description || '').toLowerCase();
     const search = searchQuery.toLowerCase().trim();
-    const matchesSearch =
+    return (
       !search ||
       prodName.includes(search) ||
       prodTamil.includes(search) ||
       prodTagline.includes(search) ||
-      prodDesc.includes(search);
-    return matchesCategory && matchesSearch;
+      prodDesc.includes(search)
+    );
   });
 
   // Sorting
@@ -215,6 +171,42 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
             {pageSubtitle}
           </p>
+        </div>
+
+        {/* Category Filter Pills at Top of Shop Page */}
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button
+            type="button"
+            onClick={() => setSelectedCat('all')}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              selectedCat === 'all'
+                ? 'bg-forest-950 text-white shadow-md'
+                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+            }`}
+          >
+            {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
+          </button>
+          {categoriesList.map((cat) => {
+            const isSelected = selectedCat === cat.slug;
+            const displayName = language === 'ta'
+              ? (cat.tamilTitle || CATEGORY_DEFAULT_TAMIL_NAMES[cat.slug] || cat.title)
+              : cat.title;
+
+            return (
+              <button
+                key={cat.id || cat.slug}
+                type="button"
+                onClick={() => setSelectedCat(cat.slug)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  isSelected
+                    ? 'bg-forest-950 text-white shadow-md'
+                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+                }`}
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search Input & Sort Toolbar */}
@@ -268,60 +260,62 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
           </div>
 
-          {/* Interactive Category Filter Pills (Guarantees every admin category is easily accessible) */}
-          <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-none pb-1">
-            <div className="flex items-center gap-2">
-              {allCategoryPills.map((pill) => {
-                const count = getCategoryProductCount(pill.slug);
-                if (pill.slug !== 'all' && count === 0) return null;
-                const isActive = selectedCategory === pill.slug;
-                return (
-                  <button
-                    key={pill.slug}
-                    type="button"
-                    onClick={() => setSelectedCategory(pill.slug)}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${
-                      isActive
-                        ? 'bg-[#1e7e34] text-white border-[#1e7e34] shadow-sm'
-                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400 hover:bg-stone-50'
-                    }`}
-                  >
-                    <span>{pill.icon}</span>
-                    <span>{pill.label}</span>
-                    <span
-                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-600'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        </div>
 
-          {/* Active Filter Indicator if filtered */}
-          {selectedCategory !== 'all' && (
-            <div className="max-w-5xl mx-auto flex items-center justify-between text-xs px-2 text-stone-500">
-              <span>
-                {language === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட வகை:' : 'Filtered by:'}{' '}
-                <strong className="text-stone-900 font-bold capitalize">
-                  {allCategoryPills.find((p) => p.slug === selectedCategory)?.label || selectedCategory}
-                </strong>{' '}
-                ({sortedProducts.length}{' '}
-                {language === 'ta' ? 'தயாரிப்புகள்' : sortedProducts.length === 1 ? 'product' : 'products'})
-              </span>
+        {/* Active Offer Banner or Promo Teaser */}
+        <div className="max-w-7xl mx-auto mb-6">
+          {activeOffer ? (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-900 to-forest-950 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md border border-emerald-700/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gold-400 text-forest-950 flex items-center justify-center font-black shrink-0">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs font-black uppercase bg-white/20 px-2 py-0.5 rounded text-gold-300">
+                      {activeOffer.code}
+                    </span>
+                    <strong className="text-sm font-bold text-white">
+                      {language === 'ta' ? activeOffer.tamilTitle : activeOffer.title}
+                    </strong>
+                  </div>
+                  <p className="text-xs text-cream-200/80 mt-0.5">
+                    {language === 'ta'
+                      ? 'இந்த சலுகை மூலம் கார்ட் மற்றும் செக்அவுட்டில் நேரடி தள்ளுபடி கழிக்கப்படும்.'
+                      : 'Discount will be deducted directly in cart and checkout!'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={removeOffer}
+                  className="px-3 py-1.5 rounded-xl text-rose-300 hover:text-white hover:bg-rose-900/40 text-xs font-bold transition-all cursor-pointer"
+                >
+                  {language === 'ta' ? 'நீக்கு' : 'Remove'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-[#FAF8F5] border border-amber-200/80 flex items-center justify-between gap-3 text-xs text-stone-700">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>
+                  {language === 'ta'
+                    ? '🎉 மரச்செக்கு எண்ணெய்களுக்கு பிரத்யேக காம்போ சலுகைகள் உள்ளன!'
+                    : '🎉 Direct Mill Combo Deals: Save up to 33% on Mara Chekku oil bundle packs!'}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setSelectedCategory('all')}
-                className="font-bold text-[#1e7e34] hover:underline cursor-pointer"
+                onClick={() => setSelectedCategory('combo-offers')}
+                className="font-bold text-forest-950 underline hover:text-amber-800 cursor-pointer shrink-0"
               >
-                {language === 'ta' ? 'அனைத்து எண்ணெய்களையும் பார்க்க (View All)' : 'Show All Oils'}
+                {language === 'ta' ? 'காம்போ சலுகைகள்' : 'View Combo Packs'} →
               </button>
             </div>
           )}
-
         </div>
 
         {/* Product Grid: Clean, Modern & Consistent */}
@@ -335,22 +329,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             </h3>
             <button
               onClick={() => {
-                setSelectedCategory('all');
                 setSearchQuery('');
               }}
               className="px-5 py-2 rounded-xl bg-forest-900 text-cream-100 text-xs font-bold cursor-pointer hover:bg-forest-800 transition-colors"
             >
-              Reset Filters
+              {language === 'ta' ? 'தேடலை மீட்டமைக்க' : 'Clear Search'}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch">
             {sortedProducts.map((product) => {
-              const defaultPack = formatPack(product.defaultPack || '1 Litre Bottle', language);
-              const basePrice = product.price;
-              const baseOriginalPrice = product.originalPrice;
-              const isBuying = buyingProductId === product.id;
+              const packOptions = product.packSizes && product.packSizes.length > 0
+                ? product.packSizes
+                : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Bottle', '5 Litre Can'];
+              const currentPack = selectedPacks[product.id] || product.defaultPack || packOptions[0] || '1 Litre Bottle';
+              const currentPackPrice = getPackPrice(product, currentPack);
+              const currentOfferPrice = activeOffer && activeOffer.discountType === 'percentage'
+                ? Math.round(currentPackPrice * (1 - activeOffer.discountValue / 100))
+                : currentPackPrice;
+              const currentSavings = currentPackPrice - currentOfferPrice;
               const isJustAdded = addedItemEffect === product.id;
+              const isBuying = buyingProductId === product.id;
               const resolvedImage = resolveProductImage(product);
 
               const productName = getLocalizedProductName(product, language);
@@ -361,45 +360,48 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   key={product.id}
                   className="relative group rounded-3xl bg-white border border-stone-200/90 hover:border-gold-400 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
                 >
-                  {/* Buying Pack Selector Overlay */}
+                  {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (எத்தனை லிட்டர் வேணும்?) */}
                   {isBuying && (
-                    <div className="absolute inset-0 bg-white/98 z-30 p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
                       <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
                         <div>
                           <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
                             {t('prod.selectLiter')}
                           </span>
-                          <h4 className="font-serif font-bold text-forest-950 text-sm">
+                          <h4 className="font-serif font-bold text-forest-950 text-sm sm:text-base leading-tight">
                             {t('prod.howManyLiters')}
                           </h4>
                         </div>
                         <button
-                          onClick={() => setBuyingProductId(null)}
-                          className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBuyingProductId(null);
+                          }}
+                          className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
                           title="Close"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
 
-                      <div className="space-y-2 my-auto py-2">
-                        {(product.packSizes && product.packSizes.length > 0
-                          ? product.packSizes
-                          : ['500 ml Bottle', '1 Litre Bottle', '2 Litre Bottle', '5 Litre Can']
-                        ).map((pack) => {
+                      {/* Liter Options with Live Calculated Prices */}
+                      <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
+                        {packOptions.map((pack) => {
                           const packPrice = getPackPrice(product, pack);
                           const packFormatted = formatPack(pack, language);
                           return (
                             <button
                               key={pack}
-                              onClick={() => handleSelectLiterAndBuy(product, pack)}
-                              className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-900 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#FAF8F5]"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectLiterAndBuy(product, pack);
+                              }}
+                              className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
                             >
-                              <span className="flex items-center gap-1.5 text-stone-800 group-hover/opt:text-white">
-                                <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                {packFormatted}
-                              </span>
-                              <span className="font-bold text-forest-950 group-hover/opt:text-gold-300">
+                              <span className="font-bold">{packFormatted}</span>
+                              <span className="font-serif font-bold group-hover/opt:text-gold-300">
                                 ₹{packPrice}
                               </span>
                             </button>
@@ -407,11 +409,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                         })}
                       </div>
 
-                      <div className="pt-2 text-center border-t border-cream-200">
-                        <p className="text-[10px] text-stone-500 font-medium">
-                          {t('prod.clickPreferred')}
-                        </p>
-                      </div>
+                      <p className="text-[10px] text-center text-stone-400">
+                        {language === 'ta' ? '₹499 மேல் இலவச டெலிவரி' : 'Free Express Delivery above ₹499'}
+                      </p>
                     </div>
                   )}
 
@@ -445,13 +445,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
                   {/* Card Details: Clean, Spacious & Neat */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div onClick={() => onQuickView(product)} className="cursor-pointer space-y-1.5">
-                      {/* Rating & Origin Tag */}
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-[11px] font-semibold text-stone-500">
-                          {defaultPack}
+                    <div onClick={() => onQuickView(product)} className="cursor-pointer space-y-2">
+                      {/* Rating */}
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-[10px] text-stone-500 font-medium">
+                          {formatPack(currentPack, language)}
                         </span>
-                        <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                        <div className="flex items-center gap-1 text-amber-500 text-xs font-bold shrink-0">
                           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                           <span className="text-stone-800 text-xs">{product.rating || 4.9}</span>
                         </div>
@@ -471,18 +471,40 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     {/* Footer Pricing & Add to Cart Button */}
                     <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                       <div>
-                        {baseOriginalPrice && baseOriginalPrice > basePrice && (
-                          <span className="text-[11px] line-through text-stone-400 block -mb-0.5">
-                            ₹{baseOriginalPrice}
-                          </span>
+                        {activeOffer && activeOffer.discountType === 'percentage' ? (
+                          <>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-lg font-serif font-black text-forest-950">
+                                ₹{currentOfferPrice}
+                              </span>
+                              <span className="text-xs line-through text-stone-400">
+                                ₹{currentPackPrice}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 font-bold block">
+                              {language === 'ta'
+                                ? `₹${currentSavings} குறைவு`
+                                : `Save ₹${currentSavings}`}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-lg font-serif font-black text-forest-950">
+                              ₹{currentPackPrice}
+                            </span>
+                            <span className="text-[10px] text-stone-400 block -mt-0.5">
+                              {formatPack(currentPack, language)}
+                            </span>
+                          </>
                         )}
-                        <span className="text-lg font-serif font-black text-forest-950">
-                          ₹{basePrice}
-                        </span>
                       </div>
 
                       <button
-                        onClick={() => setBuyingProductId(product.id)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBuyingProductId(product.id);
+                        }}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
                           isJustAdded
                             ? 'bg-emerald-600 text-white'

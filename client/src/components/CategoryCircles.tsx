@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { DEFAULT_STANDING_BOTTLES } from '../types';
 
 interface CategoryCirclesProps {
-  onSelectCategory: (slug: string) => void;
+  onSelectCategory?: (slug: string) => void;
   selectedCategory?: string;
 }
 
@@ -46,39 +46,34 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
       <div className="flex overflow-hidden relative w-full">
         <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee py-2 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
           {marqueeBottles.map((bottle, idx) => {
-            const isSelected = selectedCategory === bottle.slug;
             const displayName =
               language === 'ta' && bottle.tamilName ? bottle.tamilName : bottle.name;
 
             return (
-              <button
+              <div
                 key={`${bottle.id}-${idx}`}
-                onClick={() => onSelectCategory(bottle.slug)}
                 title={displayName}
-                className="group flex flex-col items-center shrink-0 cursor-pointer focus:outline-none transition-transform duration-300 hover:-translate-y-2"
+                className="group flex flex-col items-center shrink-0 select-none cursor-default"
               >
                 {/* Standing Bottle Presentation with Floor Shadow - 100% Transparent PNG */}
-                <div className="relative h-28 sm:h-36 lg:h-44 w-20 sm:w-24 lg:w-28 flex items-end justify-center">
+                <div className="relative h-28 sm:h-36 lg:h-44 w-20 sm:w-24 lg:w-28 flex items-end justify-center pointer-events-none select-none">
                   <img
                     src={bottle.image}
                     alt={displayName}
-                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)] group-hover:scale-108 transition-transform duration-300 pointer-events-none select-none"
+                    onError={(e) => {
+                      e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
+                    }}
+                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)] pointer-events-none select-none"
                   />
                   {/* Subtle Floor Shadow */}
-                  <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none group-hover:scale-110 transition-transform" />
+                  <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none" />
                 </div>
 
-                {/* Bottle Title Label - exact reddish-brown serif font from screenshot */}
-                <span
-                  className={`mt-2.5 text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center transition-colors whitespace-nowrap ${
-                    isSelected
-                      ? 'text-[#8B2323] underline font-extrabold'
-                      : 'text-[#8B2323] group-hover:text-[#681818]'
-                  }`}
-                >
+                {/* Bottle Title Label - exact reddish-brown serif font */}
+                <span className="mt-2.5 text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center text-[#8B2323] whitespace-nowrap select-none">
                   {displayName}
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>

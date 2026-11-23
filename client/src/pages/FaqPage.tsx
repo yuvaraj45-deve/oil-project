@@ -9,7 +9,6 @@ import {
   Truck,
   RotateCcw,
   MessageCircleQuestion,
-  Sparkles,
   ArrowRight,
   Phone,
   MessageCircle,
