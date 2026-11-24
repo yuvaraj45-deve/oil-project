@@ -112,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       {/* MAIN HEADER (Clean Solid White Layout - 100% Crisp & High Contrast) */}
-      <header className="sticky top-0 z-50 bg-white border-b border-stone-200/90 shadow-xs select-none">
+      <header className="sticky top-0 z-50 bg-white select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
           <div className="flex items-center justify-between">
             
@@ -288,22 +288,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* SUB-NAV ROW: HOME • ABOUT US • SHOP ˅ • CONTACT • FAQs */}
         <div
-          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-t border-stone-100/90 border-b border-stone-200/80 shadow-2xs ${
+          className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-t border-stone-100/90 ${
             showHeadingBar
-              ? 'max-h-[600px] opacity-100 py-2 px-3 sm:px-4 block'
+              ? 'max-h-[600px] opacity-100 pt-1 pb-3 sm:pb-3.5 px-3 sm:px-4 block'
               : 'max-h-0 opacity-0 py-0 px-3 sm:px-4 pointer-events-none'
           }`}
         >
           {/* Horizontal Pills / Links (Always starts with HOME & ABOUT US on mobile without left-clipping) */}
-          <nav className="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-2.5 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900 overflow-x-auto no-scrollbar py-1">
+          <nav className="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-2.5 sm:gap-8 md:gap-12 text-xs sm:text-[13px] font-bold tracking-[0.08em] uppercase text-stone-900 overflow-x-auto no-scrollbar py-0.5">
             {/* 1. HOME */}
             <button
               onClick={() => {
                 if (isScrolled) setScrolledHeadingOpen(false);
                 onNavigate('/');
               }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
-                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2.5 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none focus:outline-none ${
+                currentPath === '/' || currentPath === '' ? 'text-[#1e7e34] font-black bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'முகப்பு' : 'HOME'}</span>
@@ -315,8 +315,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 if (isScrolled) setScrolledHeadingOpen(false);
                 onNavigate('/about');
               }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
-                currentPath === '/about' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2.5 flex items-center gap-1 shrink-0 rounded-lg sm:rounded-none focus:outline-none ${
+                currentPath === '/about' ? 'text-[#1e7e34] font-black bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'எங்கள் கதை' : 'OUR STORY'}</span>
@@ -335,8 +335,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   if (onNavigateCategory) onNavigateCategory('all');
                   onNavigate('/shop');
                 }}
-                className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 rounded-lg sm:rounded-none border-b-2 ${
-                  currentPath === '/shop' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
+                className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2.5 rounded-lg sm:rounded-none focus:outline-none ${
+                  currentPath === '/shop' ? 'text-[#1e7e34] font-black bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 bg-stone-50 sm:bg-transparent'
                 }`}
               >
                 <span>{language === 'ta' ? 'அங்காடி' : 'SHOP'}</span>
@@ -380,8 +380,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 if (isScrolled) setScrolledHeadingOpen(false);
                 onNavigate('/contact');
               }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
-                currentPath === '/contact' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2.5 shrink-0 rounded-lg sm:rounded-none focus:outline-none ${
+                currentPath === '/contact' ? 'text-[#1e7e34] font-black bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 bg-stone-50 sm:bg-transparent'
               }`}
             >
               <span>{language === 'ta' ? 'தொடர்புக்கு' : 'CONTACT'}</span>
@@ -394,8 +394,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 if (onOpenFaq) onOpenFaq();
                 else onNavigate('/faq');
               }}
-              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2 shrink-0 rounded-lg sm:rounded-none border-b-2 ${
-                currentPath === '/faq' ? 'text-[#1e7e34] font-black border-[#1e7e34] bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 border-transparent bg-stone-50 sm:bg-transparent'
+              className={`hover:text-[#1e7e34] transition-colors cursor-pointer py-1 px-2.5 shrink-0 rounded-lg sm:rounded-none focus:outline-none ${
+                currentPath === '/faq' ? 'text-[#1e7e34] font-black bg-emerald-50/70 sm:bg-transparent' : 'text-stone-900 bg-stone-50 sm:bg-transparent'
               }`}
             >
               FAQs

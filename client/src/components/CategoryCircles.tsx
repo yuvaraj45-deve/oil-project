@@ -41,10 +41,10 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   const marqueeBottles = [...bottles, ...bottles];
 
   return (
-    <div className="w-full bg-white border-b border-stone-200/90 py-4 sm:py-6 select-none relative overflow-hidden">
+    <div className="w-full bg-white border-b border-stone-200/90 pt-0 pb-1.5 sm:pt-0 sm:pb-2.5 select-none relative overflow-hidden">
       {/* Moving Oil Cans / Standing Bottles Marquee (Right to Left Continuous Motion) */}
       <div className="flex overflow-hidden relative w-full">
-        <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee py-2 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
+        <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee pt-0 pb-0.5 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
           {marqueeBottles.map((bottle, idx) => {
             const displayName =
               language === 'ta' && bottle.tamilName ? bottle.tamilName : bottle.name;

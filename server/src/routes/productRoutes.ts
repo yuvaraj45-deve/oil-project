@@ -219,6 +219,11 @@ productRouter.post('/', async (req: Request, res: Response) => {
 
     const existingSlug = await prisma.product.findUnique({ where: { slug: generatedSlug } });
     if (existingSlug) {
+      // Double-submit debounce: If identical product was created within last 15 seconds, return it without creating duplicate
+      const timeDiff = Date.now() - new Date(existingSlug.createdAt).getTime();
+      if (timeDiff < 15000 && existingSlug.name.toLowerCase().trim() === name.toLowerCase().trim()) {
+        return res.status(200).json({ success: true, data: existingSlug });
+      }
       generatedSlug = `${generatedSlug}-${Date.now().toString().slice(-4)}`;
     }
 

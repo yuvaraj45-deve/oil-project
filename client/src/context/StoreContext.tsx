@@ -93,11 +93,14 @@ export const normalizeHomepage4 = (configuredIds: string[] | undefined, allProds
 const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | null)[]): Product[] => {
   const deletedIds = getDeletedProductIds();
   const map = new Map<string, Product>();
+  const nameToIdMap = new Map<string, string>(); // Deduplication map by normalized name + category
 
   // Baseline products
   base.forEach((p) => {
     if (!deletedIds.includes(p.id)) {
       map.set(p.id, p);
+      const nameKey = `${(p.name || '').toLowerCase().trim()}::${(p.category || '').toLowerCase().trim()}`;
+      if (nameKey) nameToIdMap.set(nameKey, p.id);
     }
   });
 
@@ -119,11 +122,19 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
         sanitized.tagline = '100% Traditional Mara Chekku Pure Extraction';
       }
 
-      const existing = map.get(p.id);
-      if (existing) {
+      const nameKey = `${(sanitized.name || '').toLowerCase().trim()}::${(sanitized.category || '').toLowerCase().trim()}`;
+
+      if (map.has(p.id)) {
+        const existing = map.get(p.id)!;
         map.set(p.id, { ...existing, ...sanitized });
+      } else if (nameKey && nameToIdMap.has(nameKey)) {
+        // If a product with the exact same name & category exists under another ID (e.g. temp client ID vs server ID):
+        const existingId = nameToIdMap.get(nameKey)!;
+        const existing = map.get(existingId)!;
+        map.set(existingId, { ...existing, ...sanitized, id: existingId });
       } else {
         map.set(p.id, sanitized);
+        if (nameKey) nameToIdMap.set(nameKey, p.id);
       }
     });
   });
@@ -424,12 +435,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               discountPercent: p.discountPercent || (fallback?.discountPercent ?? 10),
               rating: fallback?.rating || 4.9,
               reviewsCount: fallback?.reviewsCount || (p.reviews?.length ? p.reviews.length * 10 + 24 : 128),
-              packSizes: p.packSizes?.length ? p.packSizes.map((ps: any) => ps.packSize) : (fallback?.packSizes || ['1 Litre Bottle']),
+              packSizes: p.packSizes?.length
+                ? p.packSizes.map((ps: any) => ps.packSize)
+                : (fallback?.packSizes || [p.defaultPack || '1 Litre Bottle']),
               defaultPack: p.defaultPack || fallback?.defaultPack || '1 Litre Bottle',
               image: p.image || fallback?.image || '/products/sesame_oil.jpg',
               badge: p.badge || fallback?.badge,
               description: p.description,
-              benefits: fallback?.benefits || ['Zero Preservatives', 'Cold Extracted', 'Rich Antioxidants'],
+              benefits:
+                fallback?.benefits ||
+                (p.description
+                  ? p.description.split(/[,•\n]+/).map((s: string) => s.trim()).filter(Boolean)
+                  : ['Zero Preservatives', 'Cold Extracted', 'Rich Antioxidants']),
               smokePoint: p.smokePoint || fallback?.smokePoint || '210°C',
               extractionMethod: p.extractionMethod || fallback?.extractionMethod || 'Traditional Vaagai Mara Chekku',
               inStock: p.inStock ?? true,
@@ -652,7 +669,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // 1. Immediately update state and localStorage
     setProducts((prev) => {
-      const next = [newProduct, ...prev.filter((p) => p.id !== newProduct.id)];
+      const cleanName = (newProduct.name || '').toLowerCase().trim();
+      const cleanCat = (newProduct.category || '').toLowerCase().trim();
+      const existingIdx = prev.findIndex(
+        (p) =>
+          p.id === newProduct.id ||
+          ((p.name || '').toLowerCase().trim() === cleanName &&
+            (p.category || '').toLowerCase().trim() === cleanCat)
+      );
+      let next: Product[];
+      if (existingIdx >= 0) {
+        next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], ...newProduct };
+      } else {
+        next = [newProduct, ...prev.filter((p) => p.id !== newProduct.id)];
+      }
       try {
         localStorage.setItem('ssoil_products', JSON.stringify(next));
         window.dispatchEvent(new Event('ssoil_products_updated'));

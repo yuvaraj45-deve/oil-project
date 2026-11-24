@@ -186,7 +186,7 @@ export interface Testimonial {
 export interface FeatureBlock {
   title: string;
   description: string;
-  iconName: 'ShieldCheck' | 'Sparkles' | 'Lock' | 'Headphones' | 'Heart' | 'Flame';
+  iconName: 'ShieldCheck' | 'Sparkles' | 'Lock' | 'Headphones' | 'Heart' | 'Flame' | 'Award';
   badge: string;
 }
 

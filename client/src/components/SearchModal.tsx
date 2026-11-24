@@ -9,7 +9,7 @@ interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectProduct: (product: Product) => void;
-  onAddToCart: (product: Product, packSize: string) => void;
+  onAddToCart: (product: Product, packSize: string, quantity?: number) => void;
   onOpenAdmin: () => void;
 }
 

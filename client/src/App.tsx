@@ -841,7 +841,7 @@ export function App() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={(product) => handleOpenProduct(product)}
-        onAddToCart={(prod, pack, qty) => {
+        onAddToCart={(prod: Product, pack: string, qty?: number) => {
           setIsSearchOpen(false);
           handleAddToCart(prod, pack, qty);
         }}

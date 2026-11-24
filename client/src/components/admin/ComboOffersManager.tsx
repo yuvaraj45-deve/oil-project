@@ -20,6 +20,7 @@ import {
   Layers,
   Boxes,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { Product } from '../../types';
 import { useStore } from '../../context/StoreContext';
@@ -79,6 +80,7 @@ export const ComboOffersManager: React.FC<ComboOffersManagerProps> = ({
   const [formImage, setFormImage] = useState('/products/sesame_oil.jpg?v=ssoil');
   const [formInStock, setFormInStock] = useState(true);
   const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Extract combo products from store catalog
   const comboProducts = useMemo(() => {
@@ -152,6 +154,8 @@ export const ComboOffersManager: React.FC<ComboOffersManagerProps> = ({
   // Handle Form Submit (Create or Update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!formName.trim()) {
       setFormError('Please enter a Combo Offer Name (காம்போ பெயர் தேவை)');
       return;
@@ -161,85 +165,112 @@ export const ComboOffersManager: React.FC<ComboOffersManagerProps> = ({
       return;
     }
 
-    const priceNum = Number(formPrice);
-    const mrpNum = formMrp ? Number(formMrp) : priceNum;
-    const discountPercent =
-      mrpNum > priceNum ? Math.round(((mrpNum - priceNum) / mrpNum) * 100) : 0;
-
-    const resolvedTamil =
-      formTamilName.trim() || autoTranslateProductNameToTamil(formName, 'combo-offers');
-
-    const benefitsArray = formIncludedOils
-      .split(/[,•\n]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    if (benefitsArray.length === 0) {
-      benefitsArray.push(formTagline || formName);
+    // Duplicate check when creating a new combo
+    if (!editingComboId) {
+      const cleanName = formName.trim().toLowerCase();
+      const isDuplicate = comboProducts.some(
+        (c) => c.name.trim().toLowerCase() === cleanName
+      );
+      if (isDuplicate) {
+        setFormError(
+          'A combo offer with this name already exists! (இந்த பெயரில் ஏற்கனவே காம்போ சலுகை உள்ளது)'
+        );
+        return;
+      }
     }
 
-    if (editingComboId) {
-      // Update existing combo
-      const existing = comboProducts.find((p) => p.id === editingComboId);
-      const updatedProduct: Product = {
-        ...(existing || {}),
-        id: editingComboId,
-        name: formName.trim(),
-        tamilName: resolvedTamil,
-        tagline: formTagline.trim() || 'Special Wood-Pressed Combo Offer Pack',
-        category: 'combo-offers',
-        categoryName: 'Combo Offers',
-        price: priceNum,
-        originalPrice: mrpNum,
-        discountPercent: discountPercent,
-        rating: existing?.rating || 5.0,
-        reviewsCount: existing?.reviewsCount || 150,
-        packSizes: [formPackSize.trim() || '3 Litre Combo Box'],
-        defaultPack: formPackSize.trim() || '3 Litre Combo Box',
-        image: formImage.trim() || '/products/sesame_oil.jpg?v=ssoil',
-        badge: formBadge,
-        description:
-          formIncludedOils.trim() ||
-          `Special Combo Offer featuring authentic wood-pressed oils. Save ${discountPercent}% instantly!`,
-        benefits: benefitsArray,
-        inStock: formInStock,
-        featured: true,
-      };
+    setIsSubmitting(true);
+    setFormError('');
 
-      await updateProduct(updatedProduct);
-      onShowToast(`Combo Offer "${formName}" updated successfully! (காம்போ மாற்றப்பட்டது)`);
-    } else {
-      // Create new combo
-      const newId = `combo-${Date.now()}`;
-      const newProduct: Product = {
-        id: newId,
-        name: formName.trim(),
-        tamilName: resolvedTamil,
-        tagline: formTagline.trim() || 'Special Wood-Pressed Combo Offer Pack',
-        category: 'combo-offers',
-        categoryName: 'Combo Offers',
-        price: priceNum,
-        originalPrice: mrpNum,
-        discountPercent: discountPercent,
-        rating: 5.0,
-        reviewsCount: 1,
-        packSizes: [formPackSize.trim() || '3 Litre Combo Box'],
-        defaultPack: formPackSize.trim() || '3 Litre Combo Box',
-        image: formImage.trim() || '/products/sesame_oil.jpg?v=ssoil',
-        badge: formBadge,
-        description:
-          formIncludedOils.trim() ||
-          `Special Combo Offer featuring authentic wood-pressed oils. Save ${discountPercent}% instantly!`,
-        benefits: benefitsArray,
-        inStock: formInStock,
-        featured: true,
-      };
+    try {
+      const priceNum = Number(formPrice);
+      const mrpNum = formMrp ? Number(formMrp) : priceNum;
+      const discountPercent =
+        mrpNum > priceNum ? Math.round(((mrpNum - priceNum) / mrpNum) * 100) : 0;
 
-      await addProduct(newProduct);
-      onShowToast(`New Combo Offer "${formName}" created & published to Store! (புதிய காம்போ சேர்க்கப்பட்டது)`);
+      const resolvedTamil =
+        formTamilName.trim() || autoTranslateProductNameToTamil(formName, 'combo-offers');
+
+      const benefitsArray = formIncludedOils
+        .split(/[,•\n]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      if (benefitsArray.length === 0) {
+        benefitsArray.push(formTagline || formName);
+      }
+
+      if (editingComboId) {
+        // Update existing combo
+        const existing = comboProducts.find((p) => p.id === editingComboId);
+        const updatedProduct: Product = {
+          ...(existing || {}),
+          id: editingComboId,
+          name: formName.trim(),
+          tamilName: resolvedTamil,
+          tagline: formTagline.trim() || 'Special Wood-Pressed Combo Offer Pack',
+          category: 'combo-offers',
+          categoryName: 'Combo Offers',
+          price: priceNum,
+          originalPrice: mrpNum,
+          discountPercent: discountPercent,
+          rating: existing?.rating || 5.0,
+          reviewsCount: existing?.reviewsCount || 150,
+          packSizes: [formPackSize.trim() || '3 Litre Combo Box'],
+          defaultPack: formPackSize.trim() || '3 Litre Combo Box',
+          image: formImage.trim() || '/products/sesame_oil.jpg?v=ssoil',
+          badge: formBadge,
+          description:
+            formIncludedOils.trim() ||
+            `Special Combo Offer featuring authentic wood-pressed oils. Save ${discountPercent}% instantly!`,
+          benefits: benefitsArray,
+          smokePoint: existing?.smokePoint || 'Traditional Wood-Pressed (Unheated)',
+          extractionMethod: existing?.extractionMethod || 'Traditional Wood Press (Mara Chekku)',
+          inStock: formInStock,
+          featured: true,
+        };
+
+        await updateProduct(updatedProduct);
+        onShowToast(`Combo Offer "${formName}" updated successfully! (காம்போ மாற்றப்பட்டது)`);
+      } else {
+        // Create new combo
+        const newId = `combo-${Date.now()}`;
+        const newProduct: Product = {
+          id: newId,
+          name: formName.trim(),
+          tamilName: resolvedTamil,
+          tagline: formTagline.trim() || 'Special Wood-Pressed Combo Offer Pack',
+          category: 'combo-offers',
+          categoryName: 'Combo Offers',
+          price: priceNum,
+          originalPrice: mrpNum,
+          discountPercent: discountPercent,
+          rating: 5.0,
+          reviewsCount: 1,
+          packSizes: [formPackSize.trim() || '3 Litre Combo Box'],
+          defaultPack: formPackSize.trim() || '3 Litre Combo Box',
+          image: formImage.trim() || '/products/sesame_oil.jpg?v=ssoil',
+          badge: formBadge,
+          description:
+            formIncludedOils.trim() ||
+            `Special Combo Offer featuring authentic wood-pressed oils. Save ${discountPercent}% instantly!`,
+          benefits: benefitsArray,
+          smokePoint: 'Traditional Wood-Pressed (Unheated)',
+          extractionMethod: 'Traditional Wood Press (Mara Chekku)',
+          inStock: formInStock,
+          featured: true,
+        };
+
+        await addProduct(newProduct);
+        onShowToast(`New Combo Offer "${formName}" created & published to Store! (புதிய காம்போ சேர்க்கப்பட்டது)`);
+      }
+
+      setIsModalOpen(false);
+    } catch (err: any) {
+      setFormError(err?.message || 'Failed to save combo offer. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsModalOpen(false);
   };
 
   // Toggle Stock Status
@@ -845,17 +876,30 @@ export const ComboOffersManager: React.FC<ComboOffersManagerProps> = ({
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#1e7e34] to-emerald-800 hover:from-[#1b6d2e] hover:to-emerald-900 text-white text-xs font-black transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                  disabled={isSubmitting}
+                  className={`px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#1e7e34] to-emerald-800 hover:from-[#1b6d2e] hover:to-emerald-900 text-white text-xs font-black transition-all shadow-md flex items-center gap-1.5 ${
+                    isSubmitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                 >
-                  <Check className="w-4 h-4" />
-                  <span>{editingComboId ? 'Update Combo Offer' : 'Publish Combo Offer'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Saving... (சேமிக்கப்படுகிறது...)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>{editingComboId ? 'Update Combo Offer' : 'Publish Combo Offer'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

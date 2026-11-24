@@ -179,7 +179,7 @@
   will-change: transform;
 }
 .animate-bottles-marquee:hover {
-  animation-play-state: paused;
+  animation-play-state: running !important;
 }
 
 @keyframes fadeIn {
