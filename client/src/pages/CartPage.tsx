@@ -19,8 +19,9 @@ import {
   AlertCircle,
   Tag,
   X,
+  Lock,
 } from 'lucide-react';
-import { CartItem, PlacedOrder, Product } from '../types';
+import { CartItem, PlacedOrder, Product, UserProfile } from '../types';
 import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { useOffers } from '../context/OfferContext';
@@ -30,6 +31,7 @@ import { CancelOrderModal } from '../components/CancelOrderModal';
 
 interface CartPageProps {
   items: CartItem[];
+  currentUser?: UserProfile | null;
   onUpdateQuantity: (productId: string, packSize: string, delta: number) => void;
   onRemoveItem: (productId: string, packSize: string) => void;
   onClearCart: () => void;
@@ -44,6 +46,7 @@ interface CartPageProps {
 
 export const CartPage: React.FC<CartPageProps> = ({
   items = [],
+  currentUser,
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
@@ -616,8 +619,17 @@ export const CartPage: React.FC<CartPageProps> = ({
                       onClick={onProceedToCheckout}
                       className="w-full py-4 px-6 rounded-2xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-black text-sm tracking-wide transition-all shadow-lg hover:shadow-xl cursor-pointer flex items-center justify-center gap-2 group"
                     >
-                      <span>{language === 'ta' ? 'ஆர்டரை உறுதிசெய்க' : 'Proceed to Checkout'}</span>
-                      <ArrowRight className="w-4 h-4 text-gold-300 group-hover:translate-x-1 transition-transform" />
+                      {!currentUser ? (
+                        <>
+                          <Lock className="w-4 h-4 text-gold-300" />
+                          <span>{language === 'ta' ? 'ஆர்டர் செய்ய உள்நுழைக / பதிவு செய்க' : 'Sign In / Register to Order'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{language === 'ta' ? 'ஆர்டரை உறுதிசெய்க' : 'Proceed to Checkout'}</span>
+                          <ArrowRight className="w-4 h-4 text-gold-300 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </button>
 
                     {/* Trust Guarantees */}

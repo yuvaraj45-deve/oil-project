@@ -12,8 +12,10 @@ import {
   MapPin,
   Clock,
   Tag,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
-import { CartItem, PlacedOrder } from '../types';
+import { CartItem, PlacedOrder, UserProfile } from '../types';
 import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useOffers } from '../context/OfferContext';
 import { resolveProductImage } from '../utils/productUtils';
@@ -23,6 +25,8 @@ interface CheckoutModalProps {
   onClose: () => void;
   items: CartItem[];
   onOrderSuccess: (order: PlacedOrder) => void;
+  currentUser?: UserProfile | null;
+  onRequireAuth?: (mode?: 'login' | 'register') => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -30,6 +34,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onClose,
   items,
   onOrderSuccess,
+  currentUser,
+  onRequireAuth,
 }) => {
   const { language, t } = useLanguage();
   const [formData, setFormData] = useState({
@@ -43,6 +49,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     paymentMethod: 'UPI' as 'UPI' | 'CARD' | 'COD',
     upiId: '',
   });
+
+  // Pre-populate customer details from logged-in account
+  useEffect(() => {
+    if (currentUser) {
+      setFormData((prev) => ({
+        ...prev,
+        name: currentUser.name || prev.name,
+        phone: currentUser.phone || prev.phone,
+        email: currentUser.email || prev.email,
+        address: currentUser.address || prev.address,
+        city: currentUser.city || prev.city || 'Coimbatore',
+        pincode: currentUser.pincode || prev.pincode,
+      }));
+    }
+  }, [currentUser, isOpen]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -135,6 +156,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('login');
+      return;
+    }
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -143,6 +168,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const generatedOrderNumber = `SSOIL-2026-${randomSuffix}`;
 
     const orderPayload = {
+      userId: currentUser.id,
       customerName: formData.name.trim(),
       customerEmail: formData.email.trim(),
       customerPhone: formData.phone.trim(),
@@ -164,6 +190,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     let placedOrder: PlacedOrder = {
       id: `ord_${Date.now()}`,
+      userId: currentUser.id,
       orderNumber: generatedOrderNumber,
       customerName: formData.name.trim(),
       customerEmail: formData.email.trim(),
@@ -424,8 +451,79 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
               </div>
 
+              {/* Verified Signed In Customer Badge */}
+              {currentUser && (
+                <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-bold text-emerald-950 truncate">
+                          {currentUser.name}
+                        </span>
+                        <span className="text-[10px] bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                          {language === 'ta' ? 'பதிவு செய்த வாடிக்கையாளர்' : 'Registered Customer'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-emerald-800 font-medium block truncate">
+                        {currentUser.phone} {currentUser.email ? `• ${currentUser.email}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* If NOT signed in: Display Required Customer Registration / Login Screen */}
+              {!currentUser && (
+                <div className="bg-white p-6 sm:p-7 rounded-3xl border-2 border-amber-300 shadow-md text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center mx-auto shadow-inner">
+                    <Lock className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] uppercase tracking-widest font-black text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full inline-block">
+                      {language === 'ta' ? 'உள்நுழைவு கட்டாயம்' : 'Account Required'}
+                    </span>
+                    <h3 className="font-serif font-black text-lg sm:text-xl text-forest-950">
+                      {language === 'ta' ? 'ஆர்டர் செய்ய பதிவு / உள்நுழைவு அவசியம்' : 'Please Sign In or Register to Order'}
+                    </h3>
+                    <p className="text-xs text-stone-600 max-w-sm mx-auto leading-relaxed">
+                      {language === 'ta'
+                        ? 'நேரடி மரச்செக்கு எண்ணெய் தர உத்திரவாதம் மற்றும் பார்சல் டிராக்கிங் விபரங்களைப் பெற, பதிவு செய்த வாடிக்கையாளர்கள் மட்டுமே ஆர்டர் செய்ய முடியும்.'
+                        : 'To ensure genuine Mara Chekku certificates, order tracking, and delivery updates, orders must be placed from a verified customer account.'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2.5 max-w-xs mx-auto pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onRequireAuth) onRequireAuth('login');
+                      }}
+                      className="flex-1 py-3 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-gold-300 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>{language === 'ta' ? 'உள்நுழைக' : 'Sign In'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onRequireAuth) onRequireAuth('register');
+                      }}
+                      className="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-forest-950 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>{language === 'ta' ? 'பதிவு செய்க' : 'Register Free'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Delivery Details (Step 1) */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-4">
+              <div className={`bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-4 ${!currentUser ? 'opacity-40 pointer-events-none' : ''}`}>
                 <div className="flex items-center gap-2 border-b border-cream-200 pb-2.5">
                   <MapPin className="w-4 h-4 text-forest-800" />
                   <h4 className="font-serif font-bold text-sm text-forest-950">
@@ -568,7 +666,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               {/* Payment Method Selector (Step 2) */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-3">
+              <div className={`bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-3 ${!currentUser ? 'opacity-40 pointer-events-none' : ''}`}>
                 <div className="flex items-center gap-2 border-b border-cream-200 pb-2.5">
                   <Banknote className="w-4 h-4 text-forest-800" />
                   <h4 className="font-serif font-bold text-sm text-forest-950">
@@ -706,23 +804,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 max-w-[280px] py-3.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-cream-100 font-bold text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-forest-950/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed group"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin" />
-                      <span>{language === 'ta' ? 'ஆர்டர் செய்யப்படுகிறது...' : 'Processing...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{t('checkout.placeOrder')} (₹{totalAmount})</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
+                {!currentUser ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onRequireAuth) onRequireAuth('login');
+                    }}
+                    className="flex-1 max-w-[280px] py-3.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs sm:text-sm transition-all duration-200 shadow-lg flex items-center justify-center gap-2 cursor-pointer group"
+                  >
+                    <Lock className="w-4 h-4 text-gold-400" />
+                    <span>{language === 'ta' ? 'ஆர்டர் செய்ய உள்நுழைக' : 'Sign In to Order'}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 max-w-[280px] py-3.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-900 text-cream-100 font-bold text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-forest-950/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed group"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin" />
+                        <span>{language === 'ta' ? 'ஆர்டர் செய்யப்படுகிறது...' : 'Processing...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{t('checkout.placeOrder')} (₹{totalAmount})</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </form>

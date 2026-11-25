@@ -17,8 +17,9 @@ import {
   RotateCcw,
   ExternalLink,
   Tag,
+  Lock,
 } from 'lucide-react';
-import { CartItem, PlacedOrder, Product } from '../types';
+import { CartItem, PlacedOrder, Product, UserProfile } from '../types';
 import { useLanguage, getLocalizedProductName } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { useOffers } from '../context/OfferContext';
@@ -30,6 +31,7 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
+  currentUser?: UserProfile | null;
   onUpdateQuantity: (productId: string, packSize: string, delta: number) => void;
   onRemoveItem: (productId: string, packSize: string) => void;
   onClearCart: () => void;
@@ -47,6 +49,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   items,
+  currentUser,
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
@@ -626,10 +629,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                       <button
                         onClick={onProceedToCheckout}
-                        className="flex-1 max-w-[220px] py-3 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-cream-100 font-bold text-xs sm:text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer group"
+                        className="flex-1 max-w-[240px] py-3 px-4 rounded-xl bg-forest-900 hover:bg-forest-800 text-cream-100 font-bold text-xs sm:text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer group"
                       >
-                        <span>{t('cart.proceedCheckout')}</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        {!currentUser ? (
+                          <>
+                            <Lock className="w-3.5 h-3.5 text-gold-400" />
+                            <span>{language === 'ta' ? 'உள்நுழைந்து ஆர்டர் செய்க' : 'Sign In to Order'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>{t('cart.proceedCheckout')}</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
                       </button>
                     </div>
 

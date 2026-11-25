@@ -52,8 +52,10 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { CartPage } from './pages/CartPage';
 import { FaqPage } from './pages/FaqPage';
+import { useLanguage } from './context/LanguageContext';
 
 export function App() {
+  const { language } = useLanguage();
   const { products, categories, settings } = useStore();
   const effectiveProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
@@ -389,6 +391,18 @@ export function App() {
 
   const handleProceedToCheckout = () => {
     setIsCartOpen(false);
+    if (!currentUser) {
+      setToastMessage(
+        language === 'ta'
+          ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
+          : '⚠️ Please sign in or register to place your order'
+      );
+      try {
+        sessionStorage.setItem('ssoil_redirect_checkout', 'true');
+      } catch (e) {}
+      navigateTo('/login');
+      return;
+    }
     setIsCheckoutOpen(true);
   };
 
@@ -481,8 +495,19 @@ export function App() {
             setToastMessage(`Welcome back, ${user.name}!`);
             navigateTo('/admin');
           } else {
-            setToastMessage(`Welcome, ${user.name}! Sign in successful`);
-            navigateTo('/');
+            setToastMessage(
+              language === 'ta'
+                ? `வணக்கம் ${user.name}! உள்நுழைவு வெற்றிகரமாக முடிந்தது`
+                : `Welcome, ${user.name}! Sign in successful`
+            );
+            const shouldResumeCheckout = sessionStorage.getItem('ssoil_redirect_checkout') === 'true';
+            if (shouldResumeCheckout) {
+              sessionStorage.removeItem('ssoil_redirect_checkout');
+              navigateTo('/');
+              setIsCheckoutOpen(true);
+            } else {
+              navigateTo('/');
+            }
           }
         }}
         onNavigate={navigateTo}
@@ -577,7 +602,19 @@ export function App() {
             onAddToCart={handleAddToCart}
             onBuyNow={(prod, pack, qty) => {
               handleAddToCart(prod, pack, qty);
-              setIsCheckoutOpen(true);
+              if (!currentUser) {
+                setToastMessage(
+                  language === 'ta'
+                    ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
+                    : '⚠️ Please sign in or register to place your order'
+                );
+                try {
+                  sessionStorage.setItem('ssoil_redirect_checkout', 'true');
+                } catch (e) {}
+                navigateTo('/login');
+              } else {
+                setIsCheckoutOpen(true);
+              }
             }}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
             onNavigate={navigateTo}
@@ -594,7 +631,19 @@ export function App() {
             onAddToCart={handleAddToCart}
             onBuyNow={(prod, pack, qty) => {
               handleAddToCart(prod, pack, qty);
-              setIsCheckoutOpen(true);
+              if (!currentUser) {
+                setToastMessage(
+                  language === 'ta'
+                    ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
+                    : '⚠️ Please sign in or register to place your order'
+                );
+                try {
+                  sessionStorage.setItem('ssoil_redirect_checkout', 'true');
+                } catch (e) {}
+                navigateTo('/login');
+              } else {
+                setIsCheckoutOpen(true);
+              }
             }}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
             onNavigate={navigateTo}
@@ -694,6 +743,7 @@ export function App() {
         {currentPath === '/cart' && (
           <CartPage
             items={cartItems}
+            currentUser={currentUser}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
@@ -812,6 +862,7 @@ export function App() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
+        currentUser={currentUser}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
@@ -828,6 +879,14 @@ export function App() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         items={cartItems}
+        currentUser={currentUser}
+        onRequireAuth={() => {
+          setIsCheckoutOpen(false);
+          try {
+            sessionStorage.setItem('ssoil_redirect_checkout', 'true');
+          } catch (e) {}
+          navigateTo('/login');
+        }}
         onOrderSuccess={handleOrderSuccess}
       />
 
