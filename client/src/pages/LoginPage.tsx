@@ -100,6 +100,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     return hasRegistered !== 'true'; // First time: Register! Second time: Sign In!
   });
 
+  // Keep in sync with initialMode if passed or updated dynamically
+  useEffect(() => {
+    if (initialMode === 'register') {
+      setIsRegister(true);
+    } else if (initialMode === 'login') {
+      setIsRegister(false);
+    }
+  }, [initialMode]);
+
   // Flow Step: 'details' -> 'verified'
   const [step, setStep] = useState<'details' | 'verified'>('details');
 
@@ -505,11 +514,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       {/* Top Bar: Back to Home + Language Toggle */}
       <div className="w-full max-w-md mb-4 flex items-center justify-between relative z-10">
         <button
-          onClick={() => onNavigate('/')}
+          onClick={() => {
+            try {
+              sessionStorage.setItem('ssoil_guest_browse', 'true');
+            } catch (e) {}
+            onNavigate('/');
+          }}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white px-3 py-1.5 rounded-xl border border-stone-200/80 shadow-2xs transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-forest-900" />
-          <span>{language === 'ta' ? 'முகப்பிற்குத் திரும்பு' : 'Back to Store'}</span>
+          <span>{language === 'ta' ? 'முகப்பிற்குத் திரும்பு (பொருட்களைப் பார்க்க)' : 'Back to Store (Browse Oils)'}</span>
         </button>
 
         <div className="flex items-center gap-1 bg-white/80 border border-stone-200/80 p-0.5 rounded-xl shadow-2xs text-[11px] font-bold">

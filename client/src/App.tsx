@@ -112,6 +112,7 @@ export function App() {
   const [selectedLabReportProduct, setSelectedLabReportProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
 
   // Path-based Router State (/ or /admin)
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -129,6 +130,17 @@ export function App() {
       setCurrentPath('/shop');
     }
   }, [currentPath]);
+
+  // When web is opened, prompt visitor to Sign In / Register if not logged in
+  useEffect(() => {
+    try {
+      const hasBrowsed = sessionStorage.getItem('ssoil_guest_browse') === 'true';
+      if (!currentUser && (currentPath === '/' || currentPath === '') && !hasBrowsed) {
+        setAuthMode('register');
+        navigateTo('/login');
+      }
+    } catch (e) {}
+  }, []);
 
   const navigateTo = (path: string) => {
     // When visiting /shop, always reset category to 'all' so every single admin product is visible
@@ -394,12 +406,13 @@ export function App() {
     if (!currentUser) {
       setToastMessage(
         language === 'ta'
-          ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
-          : '⚠️ Please sign in or register to place your order'
+          ? '⚠️ வாங்க அல்லது ஆர்டர் செய்ய தயவுசெய்து பதிவு செய்யவும்'
+          : '⚠️ Please register or sign in to purchase oils'
       );
       try {
         sessionStorage.setItem('ssoil_redirect_checkout', 'true');
       } catch (e) {}
+      setAuthMode('register');
       navigateTo('/login');
       return;
     }
@@ -482,10 +495,12 @@ export function App() {
   if (currentPath === '/login' || currentPath === '/login/') {
     return (
       <LoginPage
+        initialMode={authMode}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           try {
             localStorage.setItem('ssoil_user', JSON.stringify(user));
+            sessionStorage.removeItem('ssoil_guest_browse');
           } catch (e) {}
           if (user.role === 'admin') {
             setIsAdminUnlocked(true);
@@ -497,7 +512,7 @@ export function App() {
           } else {
             setToastMessage(
               language === 'ta'
-                ? `வணக்கம் ${user.name}! உள்நுழைவு வெற்றிகரமாக முடிந்தது`
+                ? `வணக்கம் ${user.name}! பதிவு / உள்நுழைவு வெற்றிகரமாக முடிந்தது`
                 : `Welcome, ${user.name}! Sign in successful`
             );
             const shouldResumeCheckout = sessionStorage.getItem('ssoil_redirect_checkout') === 'true';
@@ -584,7 +599,10 @@ export function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenFaq={() => navigateTo('/faq')}
         onOpenProfile={() => navigateTo('/profile')}
-        onNavigateToLogin={() => navigateTo('/login')}
+        onNavigateToLogin={(mode) => {
+          setAuthMode(mode || 'register');
+          navigateTo('/login');
+        }}
         onSignOut={handleGlobalSignOut}
         onNavigateCategory={(cat) => {
           setSelectedCategory(cat);
@@ -605,12 +623,13 @@ export function App() {
               if (!currentUser) {
                 setToastMessage(
                   language === 'ta'
-                    ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
-                    : '⚠️ Please sign in or register to place your order'
+                    ? '⚠️ வாங்க அல்லது ஆர்டர் செய்ய தயவுசெய்து பதிவு செய்யவும்'
+                    : '⚠️ Please register or sign in to purchase oils'
                 );
                 try {
                   sessionStorage.setItem('ssoil_redirect_checkout', 'true');
                 } catch (e) {}
+                setAuthMode('register');
                 navigateTo('/login');
               } else {
                 setIsCheckoutOpen(true);
@@ -634,12 +653,13 @@ export function App() {
               if (!currentUser) {
                 setToastMessage(
                   language === 'ta'
-                    ? '⚠️ ஆர்டர் செய்ய தயவுசெய்து உள்நுழையவும் அல்லது பதிவு செய்யவும்'
-                    : '⚠️ Please sign in or register to place your order'
+                    ? '⚠️ வாங்க அல்லது ஆர்டர் செய்ய தயவுசெய்து பதிவு செய்யவும்'
+                    : '⚠️ Please register or sign in to purchase oils'
                 );
                 try {
                   sessionStorage.setItem('ssoil_redirect_checkout', 'true');
                 } catch (e) {}
+                setAuthMode('register');
                 navigateTo('/login');
               } else {
                 setIsCheckoutOpen(true);
@@ -880,11 +900,12 @@ export function App() {
         onClose={() => setIsCheckoutOpen(false)}
         items={cartItems}
         currentUser={currentUser}
-        onRequireAuth={() => {
+        onRequireAuth={(mode) => {
           setIsCheckoutOpen(false);
           try {
             sessionStorage.setItem('ssoil_redirect_checkout', 'true');
           } catch (e) {}
+          setAuthMode(mode || 'register');
           navigateTo('/login');
         }}
         onOrderSuccess={handleOrderSuccess}
