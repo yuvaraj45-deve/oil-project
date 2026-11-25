@@ -46,7 +46,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     city: '',
     state: 'Tamil Nadu',
     pincode: '',
-    paymentMethod: 'UPI' as 'UPI' | 'CARD' | 'COD',
+    paymentMethod: 'COD' as 'UPI' | 'CARD' | 'COD',
     upiId: '',
   });
 
@@ -342,8 +342,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                                 <span className="text-[10px] line-through text-stone-400">₹{itemSubtotal}</span>
                                 <span className="text-xs font-serif font-black text-emerald-800">₹{itemSubtotal - itemDiscount}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200 block mt-0.5">
-                                -₹{itemDiscount} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                              <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300 block mt-0.5">
+                                {activeOffer?.discountType === 'percentage'
+                                  ? `${activeOffer.discountValue}% OFF (-₹${itemDiscount})`
+                                  : `-₹${itemDiscount} ${language === 'ta' ? 'குறைவு' : 'OFF'}`}
                               </span>
                             </div>
                           ) : (
@@ -532,12 +534,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              {/* Delivery Details (Step 1) */}
+              {/* Delivery Details */}
               <div className={`bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-4 ${!currentUser ? 'opacity-40 pointer-events-none' : ''}`}>
                 <div className="flex items-center gap-2 border-b border-cream-200 pb-2.5">
                   <MapPin className="w-4 h-4 text-forest-800" />
                   <h4 className="font-serif font-bold text-sm text-forest-950">
-                    {t('checkout.step1')}
+                    {language === 'ta' ? 'டெலிவரி முகவரி விவரங்கள்' : 'Delivery Address & Contact'}
                   </h4>
                 </div>
 
@@ -675,98 +677,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
-              {/* Payment Method Selector (Step 2) */}
-              <div className={`bg-white p-4 sm:p-5 rounded-2xl border border-cream-200/90 shadow-2xs space-y-3 ${!currentUser ? 'opacity-40 pointer-events-none' : ''}`}>
-                <div className="flex items-center gap-2 border-b border-cream-200 pb-2.5">
-                  <Banknote className="w-4 h-4 text-forest-800" />
-                  <h4 className="font-serif font-bold text-sm text-forest-950">
-                    {t('checkout.step2')}
-                  </h4>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2.5">
-                  {/* UPI Option */}
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, paymentMethod: 'UPI' })}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      formData.paymentMethod === 'UPI'
-                        ? 'border-forest-900 bg-forest-900/5 ring-2 ring-forest-900/20'
-                        : 'border-stone-200 hover:border-stone-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <Smartphone className="w-4 h-4 text-forest-900" />
-                      {formData.paymentMethod === 'UPI' && (
-                        <CheckCircle2 className="w-4 h-4 text-forest-900" />
-                      )}
-                    </div>
-                    <div className="mt-2">
-                      <span className="block text-xs font-bold text-stone-900">UPI / QR</span>
-                      <span className="text-[10px] text-stone-500">GPay, PhonePe</span>
-                    </div>
-                  </button>
-
-                  {/* Card Option */}
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, paymentMethod: 'CARD' })}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      formData.paymentMethod === 'CARD'
-                        ? 'border-forest-900 bg-forest-900/5 ring-2 ring-forest-900/20'
-                        : 'border-stone-200 hover:border-stone-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <CreditCard className="w-4 h-4 text-forest-900" />
-                      {formData.paymentMethod === 'CARD' && (
-                        <CheckCircle2 className="w-4 h-4 text-forest-900" />
-                      )}
-                    </div>
-                    <div className="mt-2">
-                      <span className="block text-xs font-bold text-stone-900">{language === 'ta' ? 'கார்டு' : 'Cards'}</span>
-                      <span className="text-[10px] text-stone-500">Credit / Debit</span>
-                    </div>
-                  </button>
-
-                  {/* COD Option */}
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, paymentMethod: 'COD' })}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      formData.paymentMethod === 'COD'
-                        ? 'border-forest-900 bg-forest-900/5 ring-2 ring-forest-900/20'
-                        : 'border-stone-200 hover:border-stone-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <Banknote className="w-4 h-4 text-emerald-700" />
-                      {formData.paymentMethod === 'COD' && (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                      )}
-                    </div>
-                    <div className="mt-2">
-                      <span className="block text-xs font-bold text-stone-900">{language === 'ta' ? 'நேரில் பணம்' : 'Cash on Del.'}</span>
-                      <span className="text-[10px] text-stone-500">{language === 'ta' ? 'பொருளைப் பெற்று' : 'Pay at doorstep'}</span>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Sub-view for UPI */}
-                {formData.paymentMethod === 'UPI' && (
-                  <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs space-y-1.5 text-emerald-950">
-                    <div className="flex items-center gap-2 font-bold">
-                      {language === 'ta' ? 'டெலிவரி போது அல்லது செயலியில் உடனடி UPI' : 'Instant UPI Payment on Delivery or App'}
-                    </div>
-                    <p className="text-[11px] text-emerald-800">
-                      {language === 'ta'
-                        ? 'உங்கள் ஆர்டர் ரசீதுடன் GPay/PhonePe க்யூஆர் கோடு மற்றும் கட்டண இணைப்பு வழங்கப்படும்.'
-                        : 'A dynamic GPay/PhonePe payment link & QR will be sent with your order invoice.'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
               {/* Fresh Mill Dispatch Assurance */}
               <div className="bg-cream-100/80 p-4 rounded-2xl border border-cream-300/80 space-y-2 text-xs text-stone-600">
                 <div className="flex items-center gap-2 text-forest-900 font-bold">
@@ -791,7 +701,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                   <span className="flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{language === 'ta' ? `இந்த ஆர்டரில் நீங்கள் ₹${discountAmount} சேமிக்கிறீர்கள்!` : `You saved ₹${discountAmount} with this offer!`}</span>
+                    <span>
+                      {activeOffer?.discountType === 'percentage'
+                        ? `${activeOffer.discountValue}% ${language === 'ta' ? 'ஆஃபர் மூலம் ₹' : 'Offer Applied: You saved ₹'}${discountAmount} ${language === 'ta' ? 'சேமிக்கிறீர்கள்!' : '!'}`
+                        : language === 'ta'
+                        ? `இந்த ஆர்டரில் நீங்கள் ₹${discountAmount} சேமிக்கிறீர்கள்!`
+                        : `You saved ₹${discountAmount} with this offer!`}
+                    </span>
                   </span>
                   <span className="text-emerald-700 font-black">-₹{discountAmount}</span>
                 </div>

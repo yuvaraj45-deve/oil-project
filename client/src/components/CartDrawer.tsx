@@ -410,8 +410,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </span>
                         </div>
 
-                        {/* If Applied Banner (No code leaked) */}
-                        {activeOffer && discountAmount > 0 ? (
+                        {/* If Applied Banner */}
+                        {activeOffer && discountAmount > 0 && (
                           <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between">
                             <div className="flex items-center gap-2 min-w-0">
                               <CheckCircle className="w-4 h-4 text-emerald-700 shrink-0" />
@@ -432,37 +432,41 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                               {language === 'ta' ? 'நீக்கு' : 'Remove'}
                             </button>
                           </div>
-                        ) : (
-                          /* Customer Types Their Secret Coupon Code */
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="text"
-                                value={couponInput}
-                                onChange={(e) => {
-                                  setCouponInput(e.target.value.toUpperCase());
-                                  setCouponError(null);
-                                  setCouponSuccess(null);
-                                }}
-                                placeholder={language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்...' : 'Enter your coupon code...'}
-                                className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs font-mono font-bold focus:outline-none focus:border-forest-900 uppercase bg-stone-50"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleApplyCouponCode()}
-                                className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-all shadow-2xs cursor-pointer shrink-0"
-                              >
-                                {language === 'ta' ? 'பயன்படுத்து' : 'Apply'}
-                              </button>
-                            </div>
-                            {couponError && (
-                              <p className="text-[10px] text-red-600 font-bold pl-1">{couponError}</p>
-                            )}
-                            {couponSuccess && (
-                              <p className="text-[10px] text-emerald-700 font-bold pl-1">{couponSuccess}</p>
-                            )}
-                          </div>
                         )}
+
+                        {/* Customer Types Their Secret Coupon Code */}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={couponInput}
+                              onChange={(e) => {
+                                setCouponInput(e.target.value.toUpperCase());
+                                setCouponError(null);
+                                setCouponSuccess(null);
+                              }}
+                              placeholder={
+                                activeOffer
+                                  ? (language === 'ta' ? 'வேறு கூப்பன் உள்ளிடவும்...' : 'Enter another coupon code...')
+                                  : (language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்...' : 'Enter your coupon code...')
+                              }
+                              className="flex-1 px-3 py-2 rounded-xl border border-stone-300 text-xs font-mono font-bold focus:outline-none focus:border-forest-900 uppercase bg-stone-50"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleApplyCouponCode()}
+                              className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-all shadow-2xs cursor-pointer shrink-0"
+                            >
+                              {language === 'ta' ? 'சேர்' : 'Apply'}
+                            </button>
+                          </div>
+                          {couponError && (
+                            <p className="text-[10px] text-red-600 font-bold pl-1">{couponError}</p>
+                          )}
+                          {couponSuccess && (
+                            <p className="text-[10px] text-emerald-700 font-bold pl-1">{couponSuccess}</p>
+                          )}
+                        </div>
                       </div>
 
                       {/* Cart Items List */}
@@ -561,7 +565,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                           <span className="text-sm font-serif font-black text-emerald-800">₹{rowSubtotal - rowDiscount}</span>
                                         </div>
                                         <span className="block text-[10px] font-black text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300 mt-0.5">
-                                          -₹{rowDiscount} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                                          {activeOffer?.discountType === 'percentage'
+                                            ? `${activeOffer.discountValue}% OFF (-₹${rowDiscount})`
+                                            : `-₹${rowDiscount} ${language === 'ta' ? 'குறைவு' : 'OFF'}`}
                                         </span>
                                       </>
                                     ) : (

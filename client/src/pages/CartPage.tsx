@@ -380,7 +380,9 @@ export const CartPage: React.FC<CartPageProps> = ({
                                     <span className="text-stone-400 line-through">₹{item.price}</span>
                                     <span className="text-emerald-700 font-serif font-black">₹{unitOfferPrice}</span>
                                     <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black border border-emerald-300">
-                                      -₹{unitSavings} {language === 'ta' ? 'குறைவு' : 'OFF'}
+                                      {activeOffer?.discountType === 'percentage'
+                                        ? `${activeOffer.discountValue}% OFF (-₹${unitSavings})`
+                                        : `-₹${unitSavings} ${language === 'ta' ? 'குறைவு' : 'OFF'}`}
                                     </span>
                                   </span>
                                 ) : (
@@ -461,8 +463,8 @@ export const CartPage: React.FC<CartPageProps> = ({
                               {itemDiscountAmount > 0 && (
                                 <span className="text-[11px] font-black text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-md inline-block mt-1 shadow-2xs">
                                   {language === 'ta'
-                                    ? `ஆஃபர் மூலம் ₹${itemDiscountAmount} குறைக்கப்பட்டுள்ளது!`
-                                    : `Reduced by ₹${itemDiscountAmount} with offer!`}
+                                    ? `${activeOffer?.discountValue ? `${activeOffer.discountValue}% ` : ''}ஆஃபர் மூலம் ₹${itemDiscountAmount} குறைக்கப்பட்டுள்ளது!`
+                                    : `Reduced by ₹${itemDiscountAmount} (${activeOffer?.discountValue ? `${activeOffer.discountValue}% ` : ''}offer)!`}
                                 </span>
                               )}
                             </div>
@@ -504,74 +506,82 @@ export const CartPage: React.FC<CartPageProps> = ({
                       </span>
                     </h3>
 
-                    {/* Applied Offer Box / Coupon Section */}
-                    <div className="space-y-3">
-                      {activeOffer ? (
-                        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 border border-emerald-300 shadow-2xs space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Tag className="w-4 h-4 text-emerald-700" />
-                              <span className="text-xs font-black text-emerald-900 bg-white px-2 py-0.5 rounded border border-emerald-300">
-                                {language === 'ta' ? 'சிறப்பு சலுகை' : 'Special Offer'}
-                              </span>
-                              <span className="text-xs font-bold text-emerald-950">
+                    {/* Applied Offer Box / Coupon Section: Always visible & easy to use */}
+                    <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-serif font-bold text-forest-950 flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>{language === 'ta' ? 'கூப்பன் தள்ளுபடி குறியீடு' : 'Apply Promo / Coupon Code'}</span>
+                        </span>
+                        {activeOffer && (
+                          <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full">
+                            {language === 'ta' ? 'செயலில் உள்ளது' : 'Active'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Active Coupon Card if applied */}
+                      {activeOffer && (
+                        <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 via-white to-emerald-100/60 border border-emerald-300 flex items-center justify-between gap-2 shadow-2xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-mono font-black text-xs text-emerald-950 bg-white px-2 py-0.5 rounded border border-emerald-300">
+                              {activeOffer.code}
+                            </span>
+                            <div className="min-w-0">
+                              <span className="text-xs font-bold text-emerald-900 block truncate">
                                 {activeOffer.discountType === 'percentage'
                                   ? `${activeOffer.discountValue}% OFF`
                                   : activeOffer.discountType === 'fixed'
                                   ? `₹${activeOffer.discountValue} FLAT OFF`
                                   : 'FREE DELIVERY'}
                               </span>
+                              {discountAmount > 0 && (
+                                <span className="text-[10px] text-emerald-700 font-bold block">
+                                  {language === 'ta' ? `₹${discountAmount} தள்ளுபடி பெற்றது` : `Saved ₹${discountAmount}!`}
+                                </span>
+                              )}
                             </div>
-                            <button
-                              type="button"
-                              onClick={removeOffer}
-                              className="text-stone-400 hover:text-red-500 p-1 rounded-lg transition-colors cursor-pointer"
-                              title="Remove coupon"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
                           </div>
-
-                          {/* How much is reduced (Evolo Koraikuranga) */}
-                          {discountAmount > 0 ? (
-                            <div className="p-2 rounded-xl bg-emerald-100/70 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-bold">
-                              <span>{language === 'ta' ? 'ஆஃபர் தள்ளுபடி:' : 'Offer Discount:'}</span>
-                              <span className="text-sm font-black text-emerald-700">-₹{discountAmount}</span>
-                            </div>
-                          ) : !cartOfferResult.isEligible ? (
-                            <p className="text-[10px] text-amber-800 font-semibold bg-amber-100/60 p-2 rounded-xl">
-                              {language === 'ta'
-                                ? `இன்னும் ₹${cartOfferResult.minOrderShortage} சேர்த்தால் இந்த கூப்பன் தள்ளுபடி கிடைக்கும் (குறைந்தபட்ச ஆர்டர்: ₹${activeOffer.minOrderValue})`
-                                : `Add ₹${cartOfferResult.minOrderShortage} more to activate this discount! (Min order: ₹${activeOffer.minOrderValue})`}
-                            </p>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={couponInput}
-                              onChange={(e) => {
-                                setCouponInput(e.target.value.toUpperCase());
-                                setCouponError(null);
-                              }}
-                              placeholder={language === 'ta' ? 'ரகசிய கூப்பன் குறியீடு (இருந்தால் உள்ளிடவும்)' : 'Secret coupon code (optional)'}
-                              className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs font-mono font-bold focus:outline-none focus:border-forest-900 uppercase bg-stone-50"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleApplyCouponCode()}
-                              className="px-4 py-2 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                            >
-                              {language === 'ta' ? 'சேர்' : 'Apply'}
-                            </button>
-                          </div>
-                          {couponError && (
-                            <p className="text-[10px] text-red-600 font-bold">{couponError}</p>
-                          )}
+                          <button
+                            type="button"
+                            onClick={removeOffer}
+                            className="text-stone-400 hover:text-rose-600 px-2 py-1 rounded-lg bg-white hover:bg-rose-50 text-[10px] font-bold border border-stone-200 hover:border-rose-300 transition-colors cursor-pointer shrink-0"
+                            title="Remove coupon"
+                          >
+                            {language === 'ta' ? 'நீக்கு' : 'Remove'}
+                          </button>
                         </div>
                       )}
+
+                      {/* Always Visible Coupon Input Box */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={couponInput}
+                            onChange={(e) => {
+                              setCouponInput(e.target.value.toUpperCase());
+                              setCouponError(null);
+                            }}
+                            placeholder={
+                              activeOffer
+                                ? (language === 'ta' ? 'வேறு கூப்பன் உள்ளிடவும்...' : 'Enter another coupon code...')
+                                : (language === 'ta' ? 'கூப்பன் குறியீட்டை உள்ளிடவும்...' : 'Enter coupon code (e.g. FIRST10)...')
+                            }
+                            className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-forest-900 uppercase bg-white shadow-2xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleApplyCouponCode()}
+                            className="px-4 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                          >
+                            {language === 'ta' ? 'சேர்' : 'Apply'}
+                          </button>
+                        </div>
+                        {couponError && (
+                          <p className="text-[11px] text-rose-600 font-bold bg-rose-50 p-2 rounded-xl border border-rose-200">{couponError}</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Price Breakdown */}
