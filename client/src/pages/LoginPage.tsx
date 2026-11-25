@@ -308,6 +308,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         try {
           localStorage.setItem('ssoil_user', JSON.stringify(verifiedUser));
+          sessionStorage.removeItem('ssoil_from_cart_add');
           const dirStr = localStorage.getItem('ssoil_users_directory');
           const dir = dirStr ? JSON.parse(dirStr) : [];
           const existingIdx = dir.findIndex(
@@ -477,6 +478,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       try {
         localStorage.setItem('ssoil_user', JSON.stringify(verifiedProfile));
+        sessionStorage.removeItem('ssoil_from_cart_add');
         const dirStr = localStorage.getItem('ssoil_users_directory');
         const dir = dirStr ? JSON.parse(dirStr) : [];
         const existingIdx = dir.findIndex(
@@ -587,6 +589,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               : 'Enter your registered Email/Phone and password to sign in'}
           </p>
         </div>
+
+        {/* Highlighted Banner if redirected from clicking Add to Cart / Buy Now while not registered */}
+        {step === 'details' && isRegister && (typeof window !== 'undefined' && sessionStorage.getItem('ssoil_from_cart_add') === 'true') && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-start gap-2.5 shadow-2xs">
+            <span className="text-base leading-none shrink-0">🛒</span>
+            <div className="flex-1">
+              <strong className="block font-bold text-amber-900">
+                {language === 'ta' ? 'பொருள் கார்ட்டில் சேர்க்கப்பட்டுள்ளது!' : 'Product added to cart!'}
+              </strong>
+              <span className="text-[11px] text-amber-800 mt-0.5 block leading-relaxed">
+                {language === 'ta'
+                  ? 'ஆர்டர் செய்ய தயவுசெய்து கீழே உங்கள் விவரங்களை உள்ளிட்டு ஒருமுறை பதிவு செய்யவும்.'
+                  : 'Please enter your details below to register and complete your order.'}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Tab Switcher: Sign In vs Register (Only on details step) */}
         {step === 'details' && (

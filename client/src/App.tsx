@@ -313,8 +313,26 @@ export function App() {
       }
     });
 
-    // Keep user on the page without auto-opening the cart drawer,
-    // so they can seamlessly select and add multiple products to cart.
+    // If customer is NOT registered / logged in, prompt them to register!
+    if (!currentUser) {
+      setToastMessage(
+        language === 'ta'
+          ? '⚠️ நீங்கள் இன்னும் பதிவு செய்யவில்லை. ஆர்டர் செய்ய தயவுசெய்து பதிவு செய்யவும்!'
+          : '⚠️ You are not registered yet. Please register to order!'
+      );
+      try {
+        sessionStorage.setItem('ssoil_from_cart_add', 'true');
+      } catch (e) {}
+      setAuthMode('register');
+      navigateTo('/login');
+      return;
+    }
+
+    setToastMessage(
+      language === 'ta'
+        ? `✓ ${getLocalizedProductName(product, language)} கார்ட்டில் சேர்க்கப்பட்டது!`
+        : `✓ Added ${product.name} to cart!`
+    );
   };
 
   const handleUpdateQuantity = (productId: string, packSize?: string, delta: number = 1) => {
