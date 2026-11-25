@@ -359,18 +359,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                 {/* Price Breakdown */}
                 <div className="pt-2.5 border-t border-cream-200 space-y-1.5 text-xs">
-                  <div className="flex justify-between text-stone-600">
-                    <span>{t('checkout.subtotal')}:</span>
-                    <span className="font-semibold text-stone-900">₹{subtotal}</span>
-                  </div>
-
-                  {discountAmount > 0 && activeOffer && (
-                    <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                      <span className="flex items-center gap-1.5">
-                        <Tag className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{language === 'ta' ? 'ஆஃபர் தள்ளுபடி' : 'Offer Discount'}:</span>
-                      </span>
-                      <span className="font-black text-emerald-700">-₹{discountAmount}</span>
+                  {discountAmount > 0 && activeOffer ? (
+                    <>
+                      <div className="flex justify-between text-stone-500">
+                        <span>{language === 'ta' ? 'பொருட்கள் அசல் மதிப்பு (MRP):' : 'Item Total (MRP):'}</span>
+                        <span className="font-semibold text-stone-500 line-through">₹{subtotal}</span>
+                      </div>
+                      <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                        <span className="flex items-center gap-1.5">
+                          <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{language === 'ta' ? 'ஆஃபர் தள்ளுபடி:' : 'Offer Discount:'}</span>
+                        </span>
+                        <span className="font-black text-emerald-700">-₹{discountAmount}</span>
+                      </div>
+                      <div className="flex justify-between text-forest-950 font-bold bg-amber-50/70 p-2 rounded-xl border border-amber-200/80">
+                        <span>{language === 'ta' ? 'பொருட்கள் மதிப்பு (Subtotal):' : 'Subtotal:'}</span>
+                        <span className="font-serif font-black text-forest-950">₹{subtotal - discountAmount}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-stone-600">
+                      <span>{t('checkout.subtotal')}:</span>
+                      <span className="font-semibold text-stone-900">₹{subtotal}</span>
                     </div>
                   )}
 

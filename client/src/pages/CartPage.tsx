@@ -444,7 +444,9 @@ export const CartPage: React.FC<CartPageProps> = ({
                             {/* Item Total with direct reduction callout */}
                             <div className="text-right">
                               <span className="text-[10px] text-stone-400 block uppercase font-bold">
-                                {itemDiscountAmount > 0 ? (language === 'ta' ? 'சலுகை விலை' : 'Offer Total') : 'Subtotal'}
+                                {itemDiscountAmount > 0
+                                  ? (language === 'ta' ? 'சலுகை விலை' : 'Offer Total')
+                                  : (language === 'ta' ? 'பொருட்கள் தொகை' : 'Item Total')}
                               </span>
                               <div className="flex items-baseline justify-end gap-1.5">
                                 {itemDiscountAmount > 0 && (
@@ -574,20 +576,32 @@ export const CartPage: React.FC<CartPageProps> = ({
 
                     {/* Price Breakdown */}
                     <div className="space-y-3 text-xs sm:text-sm border-t border-stone-100 pt-3">
-                      <div className="flex items-center justify-between text-stone-600">
-                        <span>{language === 'ta' ? 'பொருட்களின் மதிப்பு' : 'Subtotal'}</span>
-                        <span className="font-bold text-stone-900">₹{subtotal}</span>
-                      </div>
+                      {discountAmount > 0 && activeOffer ? (
+                        <>
+                          <div className="flex items-center justify-between text-stone-500 text-xs">
+                            <span>{language === 'ta' ? 'பொருட்களின் அசல் மதிப்பு (MRP)' : 'Item Total (MRP)'}</span>
+                            <span className="font-semibold text-stone-500 line-through">₹{subtotal}</span>
+                          </div>
 
-                      {discountAmount > 0 && activeOffer && (
-                        <div className="flex items-center justify-between text-emerald-700 font-bold bg-emerald-50/70 p-2 rounded-xl border border-emerald-200">
-                          <span className="flex items-center gap-1.5">
-                            <Tag className="w-3.5 h-3.5" />
-                            <span>
-                              {language === 'ta' ? 'ஆஃபர் தள்ளுபடி' : 'Offer Discount'}:
+                          <div className="flex items-center justify-between text-emerald-700 font-bold bg-emerald-50/80 p-2 rounded-xl border border-emerald-200">
+                            <span className="flex items-center gap-1.5">
+                              <Tag className="w-3.5 h-3.5" />
+                              <span>
+                                {language === 'ta' ? 'ஆஃபர் தள்ளுபடி' : 'Offer Discount'}:
+                              </span>
                             </span>
-                          </span>
-                          <span className="text-sm font-black">-₹{discountAmount}</span>
+                            <span className="text-sm font-black">-₹{discountAmount}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-forest-950 font-bold bg-amber-50/60 p-2 rounded-xl border border-amber-200/80">
+                            <span>{language === 'ta' ? 'பொருட்கள் மதிப்பு (Subtotal)' : 'Subtotal'}</span>
+                            <span className="text-forest-950 font-serif font-black text-sm">₹{subtotal - discountAmount}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between text-stone-600">
+                          <span>{language === 'ta' ? 'பொருட்களின் மதிப்பு (Subtotal)' : 'Subtotal'}</span>
+                          <span className="font-bold text-stone-900">₹{subtotal}</span>
                         </div>
                       )}
 
