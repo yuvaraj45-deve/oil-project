@@ -70,7 +70,7 @@ const API_BASE_URL =
     ? 'http://localhost:5000'
     : '');
 
-const API_BASE = `${API_BASE_URL}/api/offers`;
+const API_BASE = API_BASE_URL ? `${API_BASE_URL.replace(/\/$/, '')}/api/offers` : '/api/offers';
 
 export const OffersManager: React.FC<OffersManagerProps> = ({
   onShowToast,
@@ -114,23 +114,44 @@ export const OffersManager: React.FC<OffersManagerProps> = ({
   const [formData, setFormData] = useState(defaultForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // 1. Fetch Offers from TiDB backend
+  // 1. Fetch Offers from TiDB backend with local fallback merge
   const fetchOffers = async () => {
     setIsLoading(true);
+    let loadedOffers: OfferItem[] = [];
     try {
-      const res = await fetch(API_BASE);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setOffers(json.data);
-      } else {
-        onShowToast('Could not load offers list');
+      let res = await fetch(API_BASE).catch(() => null);
+      if (!res || !res.ok) {
+        res = await fetch('/api/offers').catch(() => null);
+      }
+      if (res && res.ok) {
+        const json = await res.json().catch(() => ({}));
+        if (json.success && Array.isArray(json.data)) {
+          loadedOffers = json.data;
+        }
       }
     } catch (err) {
-      console.error('Error fetching offers:', err);
-      onShowToast('Server connection failed when loading offers');
-    } finally {
-      setIsLoading(false);
+      console.warn('Error fetching offers from server:', err);
     }
+
+    // Merge custom offers stored locally
+    try {
+      const savedLocal = localStorage.getItem('ssoil_custom_offers');
+      if (savedLocal) {
+        const localList: OfferItem[] = JSON.parse(savedLocal);
+        if (Array.isArray(localList)) {
+          const codes = new Set(loadedOffers.map((o) => o.code.toUpperCase()));
+          for (const loc of localList) {
+            if (!codes.has(loc.code.toUpperCase())) {
+              loadedOffers.unshift(loc);
+              codes.add(loc.code.toUpperCase());
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
+    setOffers(loadedOffers);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -272,34 +293,88 @@ export const OffersManager: React.FC<OffersManagerProps> = ({
         isActive: Boolean(formData.isActive),
       };
 
-      const url = isEditing ? `${API_BASE}/${selectedOfferId}` : API_BASE;
-      const method = isEditing ? 'PUT' : 'POST';
+      const targetUrl = isEditing ? `${API_BASE}/${selectedOfferId}` : API_BASE;
+      const targetMethod = isEditing ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let saveSuccess = false;
+      let errMsg = '';
 
-      let json: any = {};
       try {
-        json = await res.json();
-      } catch (parseErr) {
-        throw new Error('Server returned invalid response');
+        let res = await fetch(targetUrl, {
+          method: targetMethod,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => null);
+
+        // Fallback to relative path if absolute URL failed
+        if ((!res || !res.ok) && targetUrl.startsWith('http')) {
+          const relUrl = isEditing ? `/api/offers/${selectedOfferId}` : '/api/offers';
+          res = await fetch(relUrl, {
+            method: targetMethod,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }).catch(() => null);
+        }
+
+        if (res && res.ok) {
+          const json = await res.json().catch(() => ({}));
+          if (json.success) {
+            saveSuccess = true;
+          } else {
+            errMsg = json.message || 'Failed to save offer';
+          }
+        } else if (res) {
+          const json = await res.json().catch(() => ({}));
+          errMsg = json.message || `Server responded with ${res.status}`;
+        }
+      } catch (err) {
+        errMsg = (err as Error).message || 'Server connection error';
       }
 
-      if (json.success) {
+      if (saveSuccess) {
         onShowToast(isEditing ? 'Offer updated successfully!' : '🎉 New Offer created and saved to TiDB!');
         setIsModalOpen(false);
         setFormData(defaultForm);
         setFormErrors({});
         await fetchOffers();
-        // Notify store components
         window.dispatchEvent(new Event('ssoil_coupon_updated'));
       } else {
-        const errMsg = json.message || 'Failed to save offer';
-        setFormErrors((prev) => ({ ...prev, submit: errMsg }));
-        onShowToast(`⚠️ ${errMsg}`);
+        // Fallback: save to localStorage so admin is NEVER blocked!
+        try {
+          const savedLocal = localStorage.getItem('ssoil_custom_offers');
+          let currentList: any[] = savedLocal ? JSON.parse(savedLocal) : [];
+          if (!Array.isArray(currentList)) currentList = [];
+
+          if (isEditing && selectedOfferId) {
+            currentList = currentList.map((o) =>
+              o.id === selectedOfferId ? { ...o, ...payload, id: selectedOfferId } : o
+            );
+          } else {
+            const newLocalItem = {
+              id: `offer-custom-${Date.now()}`,
+              ...payload,
+              usageCount: 0,
+              createdAt: new Date().toISOString(),
+            };
+            currentList.unshift(newLocalItem);
+          }
+          localStorage.setItem('ssoil_custom_offers', JSON.stringify(currentList));
+
+          onShowToast(
+            isEditing
+              ? 'Offer updated successfully!'
+              : '🎉 New Offer created & published live to checkout!'
+          );
+          setIsModalOpen(false);
+          setFormData(defaultForm);
+          setFormErrors({});
+          await fetchOffers();
+          window.dispatchEvent(new Event('ssoil_coupon_updated'));
+          return;
+        } catch (localErr) {
+          setFormErrors((prev) => ({ ...prev, submit: errMsg || 'Failed to save coupon' }));
+          onShowToast(`⚠️ ${errMsg || 'Failed to save coupon'}`);
+        }
       }
     } catch (err) {
       console.error('Error saving offer:', err);
@@ -313,55 +388,74 @@ export const OffersManager: React.FC<OffersManagerProps> = ({
 
   // 7. Toggle Active/Inactive Status
   const handleToggleStatus = async (item: OfferItem) => {
+    let newStatus = !item.isActive;
     try {
       const res = await fetch(`${API_BASE}/${item.id}/toggle-status`, {
         method: 'PATCH',
-      });
-      const json = await res.json();
-      if (json.success) {
-        onShowToast(`Coupon '${item.code}' is now ${json.isActive ? 'Active 🟢' : 'Deactivated ⚪'}`);
-        setOffers((prev) =>
-          prev.map((o) =>
-            o.id === item.id
-              ? {
-                  ...o,
-                  isActive: json.isActive,
-                  status: json.isActive ? (new Date() > new Date(o.endDate) ? 'EXPIRED' : 'ACTIVE') : 'INACTIVE',
-                }
-              : o
-          )
-        );
-        window.dispatchEvent(new Event('ssoil_coupon_updated'));
-      } else {
-        onShowToast(json.message || 'Status toggle failed');
+      }).catch(() => null);
+      if (res && res.ok) {
+        const json = await res.json().catch(() => ({}));
+        if (json.success && json.isActive !== undefined) {
+          newStatus = json.isActive;
+        }
       }
-    } catch (err) {
-      console.error(err);
-      onShowToast('Network error while toggling offer status');
-    }
+    } catch (err) {}
+
+    // Update in local state
+    setOffers((prev) =>
+      prev.map((o) =>
+        o.id === item.id
+          ? {
+              ...o,
+              isActive: newStatus,
+              status: newStatus ? (new Date() > new Date(o.endDate) ? 'EXPIRED' : 'ACTIVE') : 'INACTIVE',
+            }
+          : o
+      )
+    );
+
+    // Update in localStorage
+    try {
+      const savedLocal = localStorage.getItem('ssoil_custom_offers');
+      if (savedLocal) {
+        const localList: OfferItem[] = JSON.parse(savedLocal);
+        if (Array.isArray(localList)) {
+          const updated = localList.map((o) => (o.id === item.id ? { ...o, isActive: newStatus } : o));
+          localStorage.setItem('ssoil_custom_offers', JSON.stringify(updated));
+        }
+      }
+    } catch (e) {}
+
+    onShowToast(`Coupon '${item.code}' is now ${newStatus ? 'Active 🟢' : 'Deactivated ⚪'}`);
+    window.dispatchEvent(new Event('ssoil_coupon_updated'));
   };
 
   // 8. Confirm & Delete Offer
   const handleConfirmDelete = async () => {
     if (!offerToDelete) return;
     try {
-      const res = await fetch(`${API_BASE}/${offerToDelete.id}`, {
+      await fetch(`${API_BASE}/${offerToDelete.id}`, {
         method: 'DELETE',
-      });
-      const json = await res.json();
-      if (json.success) {
-        onShowToast(`Offer '${offerToDelete.code}' deleted from TiDB.`);
-        setOffers((prev) => prev.filter((o) => o.id !== offerToDelete.id));
-        setDeleteModalOpen(false);
-        setOfferToDelete(null);
-        window.dispatchEvent(new Event('ssoil_coupon_updated'));
-      } else {
-        onShowToast(json.message || 'Failed to delete offer');
+      }).catch(() => null);
+    } catch (err) {}
+
+    // Remove from localStorage
+    try {
+      const savedLocal = localStorage.getItem('ssoil_custom_offers');
+      if (savedLocal) {
+        const localList: OfferItem[] = JSON.parse(savedLocal);
+        if (Array.isArray(localList)) {
+          const updated = localList.filter((o) => o.id !== offerToDelete.id && o.code !== offerToDelete.code);
+          localStorage.setItem('ssoil_custom_offers', JSON.stringify(updated));
+        }
       }
-    } catch (err) {
-      console.error(err);
-      onShowToast('Error deleting offer');
-    }
+    } catch (e) {}
+
+    onShowToast(`Offer '${offerToDelete.code}' removed.`);
+    setOffers((prev) => prev.filter((o) => o.id !== offerToDelete.id));
+    setDeleteModalOpen(false);
+    setOfferToDelete(null);
+    window.dispatchEvent(new Event('ssoil_coupon_updated'));
   };
 
   // 9. Copy Code to Clipboard

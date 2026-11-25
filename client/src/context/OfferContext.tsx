@@ -231,6 +231,60 @@ export const OfferProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           };
         });
 
+        // Merge any locally created coupons from admin
+        try {
+          const savedLocal = localStorage.getItem('ssoil_custom_offers');
+          if (savedLocal) {
+            const localList = JSON.parse(savedLocal);
+            if (Array.isArray(localList)) {
+              for (const item of localList) {
+                if (!item || !item.code || !item.isActive) continue;
+                const formattedDate = item.endDate
+                  ? new Date(item.endDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : 'Valid till 31 Dec 2026';
+
+                const existingIdx = dynamicList.findIndex((o) => o.code === item.code.toUpperCase());
+                const formattedCustom: ActiveOffer = {
+                  code: item.code.toUpperCase(),
+                  discountType:
+                    item.discountType === 'PERCENTAGE'
+                      ? 'percentage'
+                      : item.discountType === 'FIXED'
+                      ? 'fixed'
+                      : 'free_shipping',
+                  discountValue: Number(item.discountValue) || 0,
+                  title: item.title,
+                  tamilTitle: item.title,
+                  description: item.description || 'Special promotional coupon',
+                  tamilDescription: item.description || 'சிறப்பு சலுகைக் கூப்பன்',
+                  minOrderValue: Number(item.minOrderValue) || 0,
+                  maxDiscount: item.maxDiscount ? Number(item.maxDiscount) : undefined,
+                  expiryDate: `Valid till ${formattedDate}`,
+                  tamilExpiryDate: `${formattedDate} வரை செல்லுபடியாகும்`,
+                  badge:
+                    item.discountType === 'PERCENTAGE'
+                      ? `${item.discountValue}% SAVINGS`
+                      : item.discountType === 'FIXED'
+                      ? `₹${item.discountValue} FLAT OFF`
+                      : 'FREE EXPRESS',
+                  tamilBadge: 'சிறப்புச் சலுகை',
+                  badgeColor: 'bg-[#1e7e34]',
+                };
+
+                if (existingIdx >= 0) {
+                  dynamicList[existingIdx] = formattedCustom;
+                } else {
+                  dynamicList.unshift(formattedCustom);
+                }
+              }
+            }
+          }
+        } catch (e) {}
+
         setAvailableOffers(dynamicList);
 
         // If current activeOffer matches a database offer, sync it
@@ -259,7 +313,11 @@ export const OfferProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     window.addEventListener('ssoil_offer_updated', handleStorageChange);
-    return () => window.removeEventListener('ssoil_offer_updated', handleStorageChange);
+    window.addEventListener('ssoil_coupon_updated', refreshOffers);
+    return () => {
+      window.removeEventListener('ssoil_offer_updated', handleStorageChange);
+      window.removeEventListener('ssoil_coupon_updated', refreshOffers);
+    };
   }, []);
 
   const applyOffer = (offerOrCode: ActiveOffer | string) => {
