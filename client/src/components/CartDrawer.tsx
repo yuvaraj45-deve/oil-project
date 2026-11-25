@@ -510,21 +510,31 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                             <div className="flex items-center justify-between mt-2">
                               {/* Quantity Controls */}
-                              <div className="flex items-center border border-stone-300 rounded-lg bg-white">
+                              <div className="flex items-center border border-stone-300 rounded-lg bg-white overflow-hidden shadow-2xs">
                                 <button
-                                  onClick={() => onUpdateQuantity(item.product.id, item.packSize, -1)}
-                                  className="p-1 hover:bg-cream-100 text-stone-600 rounded-l-lg transition-colors cursor-pointer"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdateQuantity(item.product.id, item.packSize, -1);
+                                  }}
+                                  className="w-7 h-7 flex items-center justify-center hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer active:scale-95"
+                                  title="Decrease quantity"
                                 >
-                                  <Minus className="w-3 h-3" />
+                                  <Minus className="w-3.5 h-3.5" />
                                 </button>
-                                <span className="px-2.5 text-xs font-bold text-stone-800">
+                                <span className="w-7 text-center text-xs font-black text-stone-800 select-none">
                                   {item.quantity}
                                 </span>
                                 <button
-                                  onClick={() => onUpdateQuantity(item.product.id, item.packSize, 1)}
-                                  className="p-1 hover:bg-cream-100 text-stone-600 rounded-r-lg transition-colors cursor-pointer"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdateQuantity(item.product.id, item.packSize, 1);
+                                  }}
+                                  className="w-7 h-7 flex items-center justify-center hover:bg-amber-100 text-stone-900 transition-colors cursor-pointer active:scale-95"
+                                  title="Increase quantity"
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  <Plus className="w-3.5 h-3.5" />
                                 </button>
                               </div>
 

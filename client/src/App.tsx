@@ -63,7 +63,15 @@ export function App() {
       const saved = localStorage.getItem('ssoil_cart');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed
+            .filter((item) => item && item.product && item.product.id)
+            .map((item) => ({
+              ...item,
+              quantity: Math.max(1, parseInt(String(item.quantity || 1), 10) || 1),
+              packSize: item.packSize || '1 Litre Bottle',
+            }));
+        }
       }
     } catch (e) {}
     return [];
@@ -272,15 +280,21 @@ export function App() {
 
   // Cart helper functions
   const handleAddToCart = (product: Product, packSize: string, quantity = 1) => {
-    const unitPrice = calculatePackPrice(product.price, packSize);
+    const safePackSize = packSize || (product.packSizes && product.packSizes[0]) || product.defaultPack || '1 Litre Bottle';
+    const safeQty = Math.max(1, parseInt(String(quantity || 1), 10) || 1);
+    const unitPrice = calculatePackPrice(product.price, safePackSize);
+
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
-        (item) => item.product.id === product.id && item.packSize === packSize
+        (item) =>
+          String(item.product.id).trim() === String(product.id).trim() &&
+          item.packSize.trim().toLowerCase() === safePackSize.trim().toLowerCase()
       );
 
       if (existingIndex > -1) {
         const updated = [...prevItems];
-        updated[existingIndex].quantity += quantity;
+        const currentQty = Math.max(1, parseInt(String(updated[existingIndex].quantity || 1), 10) || 1);
+        updated[existingIndex].quantity = currentQty + safeQty;
         updated[existingIndex].price = unitPrice;
         return updated;
       } else {
@@ -288,8 +302,8 @@ export function App() {
           ...prevItems,
           {
             product,
-            packSize,
-            quantity,
+            packSize: safePackSize,
+            quantity: safeQty,
             price: unitPrice,
           },
         ];
@@ -300,13 +314,23 @@ export function App() {
     // so they can seamlessly select and add multiple products to cart.
   };
 
-  const handleUpdateQuantity = (productId: string, packSize: string, delta: number) => {
+  const handleUpdateQuantity = (productId: string, packSize?: string, delta: number = 1) => {
     setCartItems((prevItems) => {
       return prevItems
         .map((item) => {
-          if (item.product.id === productId && item.packSize === packSize) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          const idMatch = String(item.product.id).trim() === String(productId).trim();
+          const packMatch = !packSize || !item.packSize || item.packSize.trim().toLowerCase() === packSize.trim().toLowerCase();
+
+          if (idMatch && packMatch) {
+            const currentQty = Math.max(1, parseInt(String(item.quantity || 1), 10) || 1);
+            if (delta > 0) {
+              // Touching '+' can NEVER cancel or remove the product! Always increments quantity safely.
+              return { ...item, quantity: currentQty + delta };
+            } else {
+              // Decrementing with '-'
+              const newQty = currentQty + delta;
+              return newQty > 0 ? { ...item, quantity: newQty } : null;
+            }
           }
           return item;
         })
@@ -314,10 +338,14 @@ export function App() {
     });
   };
 
-  const handleRemoveItem = (productId: string, packSize: string) => {
+  const handleRemoveItem = (productId: string, packSize?: string) => {
     setCartItems((prevItems) =>
       prevItems.filter(
-        (item) => !(item.product.id === productId && item.packSize === packSize)
+        (item) =>
+          !(
+            String(item.product.id).trim() === String(productId).trim() &&
+            (!packSize || !item.packSize || item.packSize.trim().toLowerCase() === packSize.trim().toLowerCase())
+          )
       )
     );
   };

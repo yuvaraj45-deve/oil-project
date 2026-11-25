@@ -412,18 +412,26 @@ export const CartPage: React.FC<CartPageProps> = ({
                             {/* Quantity Controls */}
                             <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
                               <button
-                                onClick={() => onUpdateQuantity(item.product.id, item.packSize, -1)}
-                                className="w-7 h-7 rounded-lg bg-white hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs font-bold"
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUpdateQuantity(item.product.id, item.packSize, -1);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-white hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs font-bold active:scale-95"
                                 title="Decrease"
                               >
                                 <Minus className="w-3.5 h-3.5" />
                               </button>
-                              <span className="w-8 text-center text-xs font-black text-forest-950">
+                              <span className="w-8 text-center text-xs font-black text-forest-950 select-none">
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => onUpdateQuantity(item.product.id, item.packSize, 1)}
-                                className="w-7 h-7 rounded-lg bg-white hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs font-bold"
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUpdateQuantity(item.product.id, item.packSize, 1);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-white hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs font-bold active:scale-95"
                                 title="Increase"
                               >
                                 <Plus className="w-3.5 h-3.5" />

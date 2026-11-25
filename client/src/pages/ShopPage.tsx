@@ -937,9 +937,18 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-stretch">
               {bestSellingProducts.map((product) => {
-                const currentPack = product.defaultPack || '1 Litre Bottle';
-                const currentPackPrice = product.price;
+                const packOptions =
+                  product.packSizes && product.packSizes.length > 0
+                    ? product.packSizes
+                    : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Bottle', '5 Litre Can'];
+                const currentPack =
+                  selectedPacks[`bestseller-${product.id}`] ||
+                  product.defaultPack ||
+                  packOptions[0] ||
+                  '1 Litre Bottle';
+                const currentPackPrice = getPackPrice(product, currentPack);
                 const isJustAdded = addedItemEffect === product.id;
+                const isBuying = buyingProductId === `bestseller-${product.id}` || buyingProductId === product.id;
                 const resolvedImage = resolveProductImage(product);
                 const productName = getLocalizedProductName(product, language);
 
@@ -948,6 +957,59 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     key={`bestseller-${product.id}`}
                     className="relative group rounded-3xl bg-white border border-stone-200/90 hover:border-gold-400 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
                   >
+                    {/* Liter Selection Overlay */}
+                    {isBuying && (
+                      <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
+                        <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
+                          <div>
+                            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
+                              {t('prod.selectLiter')}
+                            </span>
+                            <h4 className="font-serif font-bold text-forest-950 text-sm sm:text-base leading-tight">
+                              {t('prod.howManyLiters')}
+                            </h4>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBuyingProductId(null);
+                            }}
+                            className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                            title="Close"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
+                          {packOptions.map((pack) => {
+                            const packPrice = getPackPrice(product, pack);
+                            const packFormatted = formatPack(pack, language);
+                            return (
+                              <button
+                                key={pack}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectLiterAndBuy(product, pack);
+                                }}
+                                className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
+                              >
+                                <span className="font-bold">{packFormatted}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold font-serif text-sm">₹{packPrice}</span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 group-hover/opt:bg-gold-400 group-hover/opt:text-forest-950 font-bold transition-colors">
+                                    {language === 'ta' ? 'தேர்ந்தெடு' : 'Select'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <div
                       onClick={() => onQuickView(product)}
                       className="relative h-52 overflow-hidden bg-[#FAF8F5] p-4 flex items-center justify-center cursor-pointer"
@@ -984,7 +1046,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
                         <button
                           type="button"
-                          onClick={() => handleSelectLiterAndBuy(product, currentPack)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBuyingProductId(`bestseller-${product.id}`);
+                          }}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm cursor-pointer ${
                             isJustAdded
                               ? 'bg-emerald-600 text-white'
@@ -999,7 +1064,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                           ) : (
                             <>
                               <ShoppingBag className="w-3 h-3 text-gold-400" />
-                              <span>Add</span>
+                              <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add'}</span>
                             </>
                           )}
                         </button>
