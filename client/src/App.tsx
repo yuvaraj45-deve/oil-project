@@ -131,17 +131,6 @@ export function App() {
     }
   }, [currentPath]);
 
-  // When web is opened, prompt visitor to Sign In / Register if not logged in
-  useEffect(() => {
-    try {
-      const hasBrowsed = sessionStorage.getItem('ssoil_guest_browse') === 'true';
-      if (!currentUser && (currentPath === '/' || currentPath === '') && !hasBrowsed) {
-        setAuthMode('register');
-        navigateTo('/login');
-      }
-    } catch (e) {}
-  }, []);
-
   const navigateTo = (path: string) => {
     // When visiting /shop, always reset category to 'all' so every single admin product is visible
     if (path === '/shop') {
