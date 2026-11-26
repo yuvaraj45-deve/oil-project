@@ -142,8 +142,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Sleek Reduced Height Hero Viewport: Exactly proportioned, full image completely visible */}
-      <div className="relative w-full h-[280px] sm:h-[380px] md:h-[440px] lg:h-[480px] overflow-hidden flex items-center justify-center">
+      {/* Sleek Proportioned Hero Viewport: Reduced length, 100% full image completely visible */}
+      <div className="relative w-full h-[220px] sm:h-[340px] md:h-[400px] lg:h-[450px] overflow-hidden flex items-center justify-center">
 
         {/* Ambient Blurred Backdrop - Fills entire screen width with matching natural colors (zero white gaps) */}
         {slides.map((slide, index) => {
@@ -152,14 +152,14 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
             <div
               key={`bg-${slide.id}`}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-50 z-0' : 'opacity-0 pointer-events-none'
+                isActive ? 'opacity-40 z-0' : 'opacity-0 pointer-events-none'
               }`}
             >
               <img
                 src={slide.bannerImage}
                 alt=""
                 aria-hidden="true"
-                className="w-full h-full object-cover blur-2xl scale-110 brightness-60 pointer-events-none select-none"
+                className="w-full h-full object-cover blur-2xl scale-110 brightness-75 pointer-events-none select-none"
               />
             </div>
           );
@@ -178,46 +178,22 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-2xl"
+                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
           );
         })}
 
-        {/* Subtle Scrim for text readability on left side */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/45 via-black/10 to-transparent pointer-events-none" />
+        {/* Minimal Soft Scrim - Keeps full image bright, vibrant and clearly visible */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/35 via-black/10 to-transparent pointer-events-none" />
 
-        {/* Top-Right Brand Badge with User's Golden Drop Logo */}
-        <div className="absolute top-2.5 right-3 sm:top-4 sm:right-6 z-20 flex items-center gap-2 bg-[#06180d]/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/50 shadow-xl pointer-events-none">
-          <img
-            src="/admin_assets/ss_gold_drop_logo.png"
-            alt="SS OIL Logo"
-            className="w-4 h-4 sm:w-5 sm:h-5 object-contain drop-shadow"
-          />
-          <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase font-serif">
-            SS OIL
-          </span>
-        </div>
-
-        {/* Text Overlay - Left Aligned with smooth animation & user logo */}
+        {/* Text Overlay - Clean, elegant left-aligned title & Shop Now button */}
         <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-4 sm:px-8 lg:px-14 flex flex-col justify-center pointer-events-none">
           <div
             key={currentSlide}
-            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-2 sm:space-y-3 animate-fadeIn"
+            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-2 sm:space-y-3.5 animate-fadeIn"
           >
-            {/* User Logo Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06180d]/90 border border-amber-400/60 shadow-md backdrop-blur-xs">
-              <img
-                src="/admin_assets/ss_gold_drop_logo.png"
-                alt="SS OIL Logo"
-                className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
-              />
-              <span className="text-[10px] sm:text-xs font-bold tracking-wider text-amber-300 font-serif uppercase">
-                SS OIL • Traditional Mara Chekku
-              </span>
-            </div>
-
             <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
               {activeSlide.headline}
             </h1>
@@ -233,17 +209,9 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
                   }
                   onShopNow();
                 }}
-                className="group inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[11px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-xl cursor-pointer hover:scale-105 active:scale-95"
+                className="px-5 sm:px-7 py-2 sm:py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[11px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer rounded-none hover:scale-105 active:scale-95"
               >
-                <img
-                  src="/admin_assets/ss_gold_drop_logo.png"
-                  alt="SS Oil"
-                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
-                />
-                <span>{activeSlide.buttonText}</span>
-                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-black text-amber-400 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-[9px] sm:text-xs">
-                  →
-                </span>
+                {activeSlide.buttonText}
               </button>
             </div>
           </div>
