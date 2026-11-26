@@ -142,8 +142,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full-Bleed Compact Hero Banner Viewport - Matching User Reference Screenshot */}
-      <div className="relative w-full h-[250px] sm:h-[340px] md:h-[390px] lg:h-[420px] overflow-hidden">
+      {/* Full-Bleed Hero Banner Viewport - Desktop: width: 100%, height: 650px, aspect-ratio: 16/9, object-fit: cover, object-position: center */}
+      <div className="relative w-full aspect-[16/9] h-[280px] sm:h-[420px] md:h-[520px] lg:h-[650px] overflow-hidden">
         {/* Background Banner Images with Smooth Dissolve Transition */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
@@ -157,7 +157,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-cover object-[center_20%] pointer-events-none select-none"
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
