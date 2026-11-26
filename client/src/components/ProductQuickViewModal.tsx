@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShoppingBag, Check, ShieldCheck, Flame, Droplets, FileText, Edit, Tag } from 'lucide-react';
 import { Product } from '../types';
+import { resolveProductImage } from '../utils/productUtils';
 import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
 import { useOffers } from '../context/OfferContext';
 
@@ -115,11 +116,16 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             
             {/* Left Image Section */}
             <div className="md:col-span-5 bg-cream-100 p-6 flex flex-col justify-between relative">
-              <div className="relative h-72 md:h-full rounded-2xl overflow-hidden bg-white border border-cream-200">
+              <div className="relative h-72 md:h-full rounded-2xl overflow-hidden bg-white border border-cream-200 p-4 flex items-center justify-center">
+                {/* User SS OIL Logo & Brand Badge */}
+                <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                  <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-4 h-4 object-contain" />
+                  <span className="text-xs font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                </div>
                 <img
-                  src={product.image}
+                  src={resolveProductImage(product)}
                   alt={productName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>

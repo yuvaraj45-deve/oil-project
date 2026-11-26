@@ -332,6 +332,12 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                 )}
                 {/* Product Image & Badges */}
                 <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
+                  {/* User SS OIL Logo & Brand Watermark Badge */}
+                  <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                    <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
+                    <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                  </div>
+
                   <img
                     src={resolveProductImage(product)}
                     alt={productName}

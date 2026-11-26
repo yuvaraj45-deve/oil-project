@@ -182,10 +182,13 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
             ? categories
             : categories.filter((c) => c.slug === selectedCategorySlug)
           ).map((item) => {
-            const displayName =
+            const baseDisplayName =
               language === 'ta' && item.tamilName
                 ? item.tamilName
                 : item.name;
+            const displayName = baseDisplayName.startsWith('SS OIL')
+              ? baseDisplayName
+              : `SS OIL ${baseDisplayName.replace(/^SS\s+/i, '')}`;
             const displayBenefit = item.benefit;
             const displayBadge = language === 'ta' ? (item.badgeTa || item.badge) : item.badge;
 
@@ -197,6 +200,12 @@ export const OurProductRange: React.FC<OurProductRangeProps> = ({ onShopProduct 
               >
                 {/* Product Category Visual */}
                 <div className="relative h-56 sm:h-64 rounded-2xl overflow-hidden mb-5 bg-white p-2 flex items-center justify-center shadow-xs">
+                  {/* User SS OIL Logo & Brand Badge */}
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                    <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
+                    <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                  </div>
+
                   <img
                     src={item.image}
                     alt={displayName}

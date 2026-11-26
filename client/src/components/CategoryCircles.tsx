@@ -46,8 +46,11 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
       <div className="flex overflow-hidden relative w-full">
         <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee pt-0 pb-0.5 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
           {marqueeBottles.map((bottle, idx) => {
-            const displayName =
+            const rawDisplayName =
               language === 'ta' && bottle.tamilName ? bottle.tamilName : bottle.name;
+            const displayName = rawDisplayName.startsWith('SS OIL')
+              ? rawDisplayName
+              : `SS OIL ${rawDisplayName.replace(/^SS\s+/i, '')}`;
 
             return (
               <div
@@ -69,10 +72,17 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
                   <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none" />
                 </div>
 
-                {/* Bottle Title Label - exact reddish-brown serif font */}
-                <span className="mt-2.5 text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center text-[#8B2323] whitespace-nowrap select-none">
-                  {displayName}
-                </span>
+                {/* Bottle Title Label with user-provided SS OIL logo */}
+                <div className="mt-2.5 flex items-center justify-center gap-1.5 select-none">
+                  <img
+                    src="/admin_assets/ss_gold_drop_logo.png"
+                    alt="SS Oil"
+                    className="w-3.5 h-3.5 object-contain shrink-0"
+                  />
+                  <span className="text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center text-[#8B2323] whitespace-nowrap select-none">
+                    {displayName}
+                  </span>
+                </div>
               </div>
             );
           })}

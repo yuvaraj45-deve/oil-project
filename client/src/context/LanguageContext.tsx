@@ -830,64 +830,72 @@ export const getLocalizedProductName = (
     product.name.includes('prod-');
 
   const resolvedCleanName = isCorruptedName
-    ? (product.categoryName || 'SS Mara Chekku Pure Oil')
+    ? (product.categoryName || 'SS OIL Mara Chekku Pure Oil')
     : product.name;
 
+  const brandPrefixedName = resolvedCleanName.startsWith('SS OIL')
+    ? resolvedCleanName
+    : resolvedCleanName.startsWith('SS ')
+    ? `SS OIL ${resolvedCleanName.slice(3)}`
+    : `SS OIL ${resolvedCleanName}`;
+
   if (language === 'ta') {
+    const formatTa = (txt: string) => (txt.startsWith('SS OIL') ? txt : `SS OIL ${txt}`);
+
     // 1. If explicit tamilName has valid Tamil characters (not English text or copy of name)
     if (product.tamilName && TAMIL_SCRIPT_REGEX.test(product.tamilName)) {
-      return product.tamilName.trim();
+      return formatTa(product.tamilName.trim());
     }
     // 2. If name itself is in Tamil characters
     if (product.name && TAMIL_SCRIPT_REGEX.test(product.name)) {
-      return product.name.trim();
+      return formatTa(product.name.trim());
     }
     // 3. Known product id translation
     if (product.id && translations.ta[`prod.${product.id}.name`]) {
-      return translations.ta[`prod.${product.id}.name`];
+      return formatTa(translations.ta[`prod.${product.id}.name`]);
     }
     // 4. Common exact phrase map
     const lower = (resolvedCleanName || '').toLowerCase().trim();
     if (COMMON_TAMIL_NAME_MAP[lower]) {
-      return COMMON_TAMIL_NAME_MAP[lower];
+      return formatTa(COMMON_TAMIL_NAME_MAP[lower]);
     }
     // 5. Keyword mappings
-    if (lower.includes('gold winner')) return 'கோல்ட் வின்னர் சமையல் எண்ணெய்';
-    if (lower.includes('kannan')) return 'கண்ணன் நல்லெண்ணெய்';
-    if (lower.includes('sesame') || lower.includes('gingelly')) return 'மரச்செக்கு நல்லெண்ணெய்';
-    if (lower.includes('groundnut') || lower.includes('peanut')) return 'மரச்செக்கு கடலை எண்ணெய்';
-    if (lower.includes('coconut')) return 'மரச்செக்கு தேங்காய் எண்ணெய்';
-    if (lower.includes('cooking') || lower.includes('daily')) return 'தூய தினசரி சமையல் எண்ணெய்';
-    if (lower.includes('sunflower')) return 'தூய சூரியகாந்தி எண்ணெய்';
-    if (lower.includes('rice bran') || lower.includes('ricebran')) return 'இதய நலம் தரும் தவிட்டு எண்ணெய்';
-    if (lower.includes('deepam') || lower.includes('pooja') || lower.includes('lamp')) return 'பஞ்ச தீப பூஜை எண்ணெய்';
-    if (lower.includes('ghee')) return 'நாட்டு மாட்டு பிலோனா நெய்';
-    if (lower.includes('jaggery') || lower.includes('karupatti')) return 'உடன்குடி பனை கருப்பட்டி';
-    if (lower.includes('mustard')) return 'மரச்செக்கு கடுகு எண்ணெய்';
-    if (lower.includes('castor')) return 'தூய விளக்கெண்ணெய்';
-    if (lower.includes('neem')) return 'மரச்செக்கு வேப்ப எண்ணெய்';
+    if (lower.includes('gold winner')) return formatTa('கோல்ட் வின்னர் சமையல் எண்ணெய்');
+    if (lower.includes('kannan')) return formatTa('கண்ணன் நல்லெண்ணெய்');
+    if (lower.includes('sesame') || lower.includes('gingelly')) return formatTa('மரச்செக்கு நல்லெண்ணெய்');
+    if (lower.includes('groundnut') || lower.includes('peanut')) return formatTa('மரச்செக்கு கடலை எண்ணெய்');
+    if (lower.includes('coconut')) return formatTa('மரச்செக்கு தேங்காய் எண்ணெய்');
+    if (lower.includes('cooking') || lower.includes('daily')) return formatTa('தூய தினசரி சமையல் எண்ணெய்');
+    if (lower.includes('sunflower')) return formatTa('தூய சூரியகாந்தி எண்ணெய்');
+    if (lower.includes('rice bran') || lower.includes('ricebran')) return formatTa('இதய நலம் தரும் தவிட்டு எண்ணெய்');
+    if (lower.includes('deepam') || lower.includes('pooja') || lower.includes('lamp')) return formatTa('பஞ்ச தீப பூஜை எண்ணெய்');
+    if (lower.includes('ghee')) return formatTa('நாட்டு மாட்டு பிலோனா நெய்');
+    if (lower.includes('jaggery') || lower.includes('karupatti')) return formatTa('உடன்குடி பனை கருப்பட்டி');
+    if (lower.includes('mustard')) return formatTa('மரச்செக்கு கடுகு எண்ணெய்');
+    if (lower.includes('castor')) return formatTa('தூய விளக்கெண்ணெய்');
+    if (lower.includes('neem')) return formatTa('மரச்செக்கு வேப்ப எண்ணெய்');
 
     // 6. Category-based fallback (handles any custom product or English name without Tamil translation)
     const rawCat = (product.category || '').toLowerCase().trim();
     const catSlug = rawCat.replace(/\s+/g, '-');
     if (catSlug && CATEGORY_DEFAULT_TAMIL_NAMES[catSlug]) {
-      return CATEGORY_DEFAULT_TAMIL_NAMES[catSlug];
+      return formatTa(CATEGORY_DEFAULT_TAMIL_NAMES[catSlug]);
     }
     if (rawCat && CATEGORY_DEFAULT_TAMIL_NAMES[rawCat]) {
-      return CATEGORY_DEFAULT_TAMIL_NAMES[rawCat];
+      return formatTa(CATEGORY_DEFAULT_TAMIL_NAMES[rawCat]);
     }
     const catName = (product.categoryName || '').toLowerCase().trim();
     for (const [key, val] of Object.entries(CATEGORY_DEFAULT_TAMIL_NAMES)) {
       if (catName.includes(key) || rawCat.includes(key)) {
-        return val;
+        return formatTa(val);
       }
     }
 
     // 7. General pure oil fallback
-    return 'மரச்செக்கு தூய எண்ணெய்';
+    return formatTa('மரச்செக்கு தூய எண்ணெய்');
   }
 
-  return resolvedCleanName;
+  return brandPrefixedName;
 };
 
 export const getLocalizedProductTagline = (

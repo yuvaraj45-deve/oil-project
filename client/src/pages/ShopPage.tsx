@@ -537,6 +537,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                       onClick={() => onQuickView(product)}
                       className="relative h-60 sm:h-64 overflow-hidden bg-[#FAF8F5] p-4 flex items-center justify-center cursor-pointer"
                     >
+                      {/* User SS OIL Logo & Brand Badge */}
+                      <div className="absolute top-3.5 right-12 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                        <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
+                        <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                      </div>
+
                       <img
                         src={resolvedImage}
                         alt={productName}
@@ -761,6 +767,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                       onClick={() => onQuickView(product)}
                       className="relative h-52 overflow-hidden bg-[#FAF8F5] p-4 flex items-center justify-center cursor-pointer"
                     >
+                      {/* User SS OIL Logo & Brand Badge */}
+                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                        <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
+                        <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                      </div>
+
                       <img
                         src={resolvedImage}
                         alt={productName}

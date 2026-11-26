@@ -39,7 +39,7 @@ export const FLAGSHIP_HERO_OILS: FlagshipHeroOil[] = [
   },
   {
     id: 'ss-cooking-daily-1000',
-    name: 'SS Gold Everyday Pure Cooking Oil',
+    name: 'SS OIL Everyday Pure Cooking Oil',
     botanicalSource: 'Cold Micro-Filtration Culinary Extract',
     tagline: 'Light, Balanced & Nutrient-Rich Oil for Modern Kitchens',
     highlightBadge: 'Multi-Filtration Cold Extract',
@@ -255,7 +255,7 @@ export const CATEGORIES_DATA: Category[] = [
 export const PRODUCTS_DATA: Product[] = [
   {
     id: 'ss-sesame-1000',
-    name: 'SS Premium Wood-Pressed Sesame Oil',
+    name: 'SS OIL Premium Wood-Pressed Sesame Oil',
     tagline: 'Gingelly Oil slow-pressed with Natural Palm Jaggery',
     category: 'sesame-oil',
     categoryName: 'Sesame Oil',
@@ -295,7 +295,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-coconut-1000',
-    name: 'SS Pure Cold-Pressed Coconut Oil',
+    name: 'SS OIL Pure Cold-Pressed Coconut Oil',
     tagline: 'Raw Extra-Virgin Oil from Sulphur-Free Sun-Dried Copra',
     category: 'coconut-oil',
     categoryName: 'Coconut Oil',
@@ -335,7 +335,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-cooking-daily-1000',
-    name: 'SS Gold Everyday Pure Cooking Oil',
+    name: 'SS OIL Everyday Pure Cooking Oil',
     tagline: 'Light, Balanced & Nutrient-Rich Oil for Modern Kitchens',
     category: 'cooking-oil',
     categoryName: 'Cooking Oil',
@@ -375,7 +375,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-groundnut-1000',
-    name: 'SS Mara Chekku Groundnut Oil',
+    name: 'SS OIL Mara Chekku Groundnut Oil',
     tagline: 'Traditional Wood-Pressed Groundnut Oil with Rich Nutty Aroma',
     category: 'groundnut-oil',
     categoryName: 'Groundnut Oil',
@@ -415,7 +415,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-sunflower-1000',
-    name: 'SS Pure Light Sunflower Oil',
+    name: 'SS OIL Pure Light Sunflower Oil',
     tagline: 'Light, Pure & Vitamin E Enriched for Modern Health',
     category: 'cooking-oil',
     categoryName: 'Cooking Oil',
@@ -455,7 +455,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-ricebran-1000',
-    name: 'SS Heart-Care Pure Rice Bran Oil',
+    name: 'SS OIL Heart-Care Pure Rice Bran Oil',
     tagline: 'Physically Refined with 10,000+ ppm Natural Gamma Oryzanol',
     category: 'cooking-oil',
     categoryName: 'Cooking Oil',
@@ -495,7 +495,7 @@ export const PRODUCTS_DATA: Product[] = [
   },
   {
     id: 'ss-deepam-1000',
-    name: 'SS Pancha Deepam Pooja Oil',
+    name: 'SS OIL Pancha Deepam Pooja Lamp Oil',
     tagline: 'Sacred 5-Oil Blend Infused with Sugandha Herbs for Divine Peace',
     category: 'pooja-special',
     categoryName: 'Pooja Deepam Oil',
