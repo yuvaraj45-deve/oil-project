@@ -138,57 +138,58 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   return (
     <section
       id="home"
-      className="relative overflow-hidden bg-black text-white select-none w-full p-0 m-0"
+      className="relative overflow-hidden bg-[#FAF8F5] select-none w-full p-0 m-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full-Bleed Hero Banner Viewport - Desktop: width: 100%, reduced sleek height: 460px, object-fit: cover, object-position: center */}
-      <div className="relative w-full h-[240px] sm:h-[340px] md:h-[400px] lg:h-[460px] overflow-hidden">
-        {/* Background Banner Images with Smooth Dissolve Transition */}
+      {/* Responsive Hero Banner Viewport: Height adjusts automatically based on image dimensions, NO cropping */}
+      <div className="relative w-full overflow-hidden">
+        {/* Responsive Image Elements: width: 100%, height: auto, object-fit: contain */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
-              }`}
+              className={`w-full transition-opacity duration-1000 ease-in-out ${
+                index === 0 ? 'relative' : 'absolute inset-0'
+              } ${isActive ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'}`}
             >
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-cover object-center pointer-events-none select-none"
+                className="w-full h-auto block object-contain pointer-events-none select-none"
+                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
           );
         })}
 
-        {/* Gradient Scrim */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        {/* Minimal Soft Scrim - Keeps full image bright, vibrant and clearly visible (no excessive dark overlay) */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/35 via-black/10 to-transparent pointer-events-none" />
 
         {/* Text Overlay - Left Aligned with smooth animation */}
-        <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+        <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-4 sm:px-8 lg:px-14 flex flex-col justify-center pointer-events-none">
           <div
             key={currentSlide}
-            className="max-w-xl sm:max-w-2xl space-y-2.5 sm:space-y-3.5 animate-fadeIn"
+            className="pointer-events-auto max-w-sm sm:max-w-md lg:max-w-xl space-y-2 sm:space-y-3.5 animate-fadeIn"
           >
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-lg">
+            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
               {activeSlide.headline}
             </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
+            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-white font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)] max-w-md">
               {activeSlide.subheadline}
             </p>
-            <div className="pt-1.5 sm:pt-2">
+            <div className="pt-1 sm:pt-2">
               <button
+                type="button"
                 onClick={() => {
                   if (onSelectCategory && activeSlide.category !== 'all') {
                     onSelectCategory(activeSlide.category);
                   }
                   onShopNow();
                 }}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+                className="px-4 sm:px-7 py-1.5 sm:py-2.5 lg:py-3 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[10px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer rounded-none hover:scale-105 active:scale-95"
               >
                 {activeSlide.buttonText}
               </button>
@@ -200,22 +201,22 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
         <button
           onClick={handlePrev}
           aria-label="Previous Banner Slide"
-          className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none"
+          className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1.5 sm:p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
         >
-          <ChevronLeft className="w-7 h-7 sm:w-9 sm:h-9 stroke-[2.5]" />
+          <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 stroke-[2.5]" />
         </button>
 
         {/* Right Arrow Navigation */}
         <button
           onClick={handleNext}
           aria-label="Next Banner Slide"
-          className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none"
+          className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1.5 sm:p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
         >
-          <ChevronRight className="w-7 h-7 sm:w-9 sm:h-9 stroke-[2.5]" />
+          <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 stroke-[2.5]" />
         </button>
 
         {/* Bottom Slide Indicators */}
-        <div className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-2">
+        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
           {slides.map((slide, idx) => (
             <button
               key={slide.id}
@@ -223,8 +224,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
               aria-label={`Go to slide ${idx + 1}`}
               className={`h-1.5 sm:h-2 transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
                 idx === currentSlide
-                  ? 'w-7 sm:w-8 bg-[#f59e0b]'
-                  : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/80'
+                  ? 'w-6 sm:w-8 bg-[#f59e0b]'
+                  : 'w-2 sm:w-2.5 bg-white/50 hover:bg-white/90 drop-shadow'
               }`}
             />
           ))}
