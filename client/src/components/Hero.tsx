@@ -158,132 +158,130 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   return (
     <section
       id="home"
-      className="relative overflow-hidden bg-gradient-to-b from-[#FAF8F5] via-amber-50/20 to-[#FAF8F5] text-stone-900 select-none w-full py-2.5 sm:py-4"
+      className="relative overflow-hidden bg-black text-white select-none w-full p-0 m-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Centered Compact Hero Banner Card: Shrunk to compact size, showing 100% full image without ANY cropping */}
-      <div className="max-w-4xl lg:max-w-5xl mx-auto px-3 sm:px-6">
-        <div
-          onClick={() => {
-            if (activeSlide.isStandaloneGraphic) {
-              onShopNow();
-            }
-          }}
-          className={`relative w-full aspect-[16/9] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-300/80 bg-black group ${
-            activeSlide.isStandaloneGraphic ? 'cursor-pointer' : ''
-          }`}
-        >
-          {/* Background Banner Images with Smooth Dissolve Transition */}
-          {slides.map((slide, index) => {
-            const isActive = index === currentSlide;
-            return (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  isActive ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
-                }`}
-              >
-                <img
-                  src={slide.bannerImage}
-                  alt={`SS OIL Hero Banner ${index + 1}`}
-                  className="w-full h-full object-cover object-center pointer-events-none select-none"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                />
-              </div>
-            );
-          })}
-
-          {/* Render overlay based on isStandaloneGraphic */}
-          {activeSlide.isStandaloneGraphic ? (
-            /* For full graphic banner (3 Generations), keep image 100% visible and provide an interactive CTA covering the bottom-right button */
-            <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end p-2 sm:p-4">
-              <div className="w-full flex justify-end">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShopNow();
-                  }}
-                  className="group pointer-events-auto relative inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-[#0d3b24] hover:bg-[#072a18] text-[#f7e7ce] hover:text-white font-bold text-[10px] sm:text-xs tracking-wide shadow-xl border border-amber-400/60 backdrop-blur-xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer mr-1 sm:mr-3 mb-1"
-                >
-                  <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
-                  <span>{language === 'ta' ? 'மரச்செக்கு எண்ணெய்கள்' : 'Explore Pure Oils'}</span>
-                  <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 text-forest-950 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-[8px] sm:text-[10px]">
-                    →
-                  </span>
-                </button>
-              </div>
+      {/* Full-Width Edge-to-Edge Hero Banner Viewport (16:9 Aspect Ratio) */}
+      <div
+        onClick={() => {
+          if (activeSlide.isStandaloneGraphic) {
+            onShopNow();
+          }
+        }}
+        className={`relative w-full aspect-[16/9] overflow-hidden ${
+          activeSlide.isStandaloneGraphic ? 'cursor-pointer' : ''
+        }`}
+      >
+        {/* Background Banner Images with Smooth Dissolve Transition */}
+        {slides.map((slide, index) => {
+          const isActive = index === currentSlide;
+          return (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <img
+                src={slide.bannerImage}
+                alt={`SS OIL Hero Banner ${index + 1}`}
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
+                loading={index === 0 ? 'eager' : 'lazy'}
+              />
             </div>
-          ) : (
-            <>
-              {/* Gradient Scrim */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+          );
+        })}
 
-              {/* Text Overlay - Left Aligned with smooth animation */}
-              <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
-                <div
-                  key={currentSlide}
-                  className="max-w-xl sm:max-w-2xl space-y-3 sm:space-y-4 animate-fadeIn"
-                >
-                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-lg">
-                    {activeSlide.headline}
-                  </h1>
-                  <p className="text-xs sm:text-sm lg:text-base text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
-                    {activeSlide.subheadline}
-                  </p>
-                  <div className="pt-1.5 sm:pt-2">
-                    <button
-                      onClick={() => {
-                        if (onSelectCategory && activeSlide.category !== 'all') {
-                          onSelectCategory(activeSlide.category);
-                        }
-                        onShopNow();
-                      }}
-                      className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
-                    >
-                      {activeSlide.buttonText}
-                    </button>
-                  </div>
+        {/* Render overlay based on isStandaloneGraphic */}
+        {activeSlide.isStandaloneGraphic ? (
+          /* For full graphic banner (3 Generations), keep image 100% visible and provide an interactive CTA covering the bottom-right button */
+          <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end p-2 sm:p-5 lg:p-7">
+            <div className="w-full flex justify-end">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShopNow();
+                }}
+                className="group pointer-events-auto relative inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-1.5 sm:py-2.5 rounded-full bg-[#0d3b24] hover:bg-[#072a18] text-[#f7e7ce] hover:text-white font-bold text-[10px] sm:text-xs md:text-sm tracking-wide shadow-xl border border-amber-400/60 backdrop-blur-xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer mr-2 sm:mr-6 lg:mr-10 mb-1 sm:mb-3"
+              >
+                <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-4 h-4 object-contain" />
+                <span>{language === 'ta' ? 'மரச்செக்கு எண்ணெய்கள்' : 'Explore Pure Oils'}</span>
+                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-forest-950 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-[9px] sm:text-xs">
+                  →
+                </span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Gradient Scrim */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+            {/* Text Overlay - Left Aligned with smooth animation */}
+            <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+              <div
+                key={currentSlide}
+                className="max-w-xl sm:max-w-2xl space-y-3 sm:space-y-4 animate-fadeIn"
+              >
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-lg">
+                  {activeSlide.headline}
+                </h1>
+                <p className="text-xs sm:text-sm lg:text-base text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
+                  {activeSlide.subheadline}
+                </p>
+                <div className="pt-1.5 sm:pt-2">
+                  <button
+                    onClick={() => {
+                      if (onSelectCategory && activeSlide.category !== 'all') {
+                        onSelectCategory(activeSlide.category);
+                      }
+                      onShopNow();
+                    }}
+                    className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+                  >
+                    {activeSlide.buttonText}
+                  </button>
                 </div>
               </div>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {/* Left Arrow Navigation */}
-          <button
-            onClick={handlePrev}
-            aria-label="Previous Banner Slide"
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-1.5 transition-all cursor-pointer hover:scale-110 focus:outline-none"
-          >
-            <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 stroke-[2.5]" />
-          </button>
+        {/* Left Arrow Navigation */}
+        <button
+          onClick={handlePrev}
+          aria-label="Previous Banner Slide"
+          className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none"
+        >
+          <ChevronLeft className="w-7 h-7 sm:w-9 sm:h-9 stroke-[2.5]" />
+        </button>
 
-          {/* Right Arrow Navigation */}
-          <button
-            onClick={handleNext}
-            aria-label="Next Banner Slide"
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-1.5 transition-all cursor-pointer hover:scale-110 focus:outline-none"
-          >
-            <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 stroke-[2.5]" />
-          </button>
+        {/* Right Arrow Navigation */}
+        <button
+          onClick={handleNext}
+          aria-label="Next Banner Slide"
+          className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 text-white/70 hover:text-white p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none"
+        >
+          <ChevronRight className="w-7 h-7 sm:w-9 sm:h-9 stroke-[2.5]" />
+        </button>
 
-          {/* Bottom Slide Indicators */}
-          <div className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
-            {slides.map((slide, idx) => (
-              <button
-                key={slide.id}
-                onClick={() => setCurrentSlide(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`h-1.5 sm:h-2 transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
-                  idx === currentSlide
-                    ? 'w-6 sm:w-7 bg-[#f59e0b]'
-                    : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/80'
-                }`}
-              />
-            ))}
-          </div>
+        {/* Bottom Slide Indicators */}
+        <div className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-2">
+          {slides.map((slide, idx) => (
+            <button
+              key={slide.id}
+              onClick={() => setCurrentSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-1.5 sm:h-2 transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
+                idx === currentSlide
+                  ? 'w-7 sm:w-8 bg-[#f59e0b]'
+                  : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/80'
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>
