@@ -52,7 +52,7 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { CartPage } from './pages/CartPage';
 import { FaqPage } from './pages/FaqPage';
-import { useLanguage } from './context/LanguageContext';
+import { useLanguage, getLocalizedProductName } from './context/LanguageContext';
 
 export function App() {
   const { language } = useLanguage();

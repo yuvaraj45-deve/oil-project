@@ -28,8 +28,6 @@ import { useStore } from '../context/StoreContext';
 import { useCMS } from '../context/CMSContext';
 import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
-import { ComboDetailsModal } from '../components/ComboDetailsModal';
-import { useCombos, comboOfferToProduct } from '../context/ComboContext';
 
 interface ShopPageProps {
   initialCategory?: string;
@@ -49,7 +47,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const { language, t } = useLanguage();
   const { activeOffer, removeOffer } = useOffers();
   const { products, categories: storeCategories } = useStore();
-  const { activeCombos } = useCombos();
 
   const [selectedCat, setSelectedCat] = useState<string>(
     initialCategory && initialCategory !== 'combo-offers' ? initialCategory : 'all'
@@ -60,9 +57,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const [selectedPacks, setSelectedPacks] = useState<Record<string, string>>({});
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
-
-  // Selected combo for dedicated Combo Details Modal
-  const [selectedComboForDetails, setSelectedComboForDetails] = useState<Product | null>(null);
 
   useEffect(() => {
     const handleFavChange = (e: any) => {
@@ -190,15 +184,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     );
   };
 
-  // 1. Dynamic active Combo Offers from TiDB (Section 2)
-  const comboOffers = useMemo(() => {
-    if (activeCombos && activeCombos.length > 0) {
-      return activeCombos.map(comboOfferToProduct);
-    }
-    return sourceProducts.filter((p) => isComboProduct(p) && p.inStock !== false);
-  }, [activeCombos, sourceProducts]);
-
-  // 2. Regular individual oils for Section 4 (All Products)
+  // Regular individual oils for products grid (excluding any legacy combo badges)
   const regularSourceProducts = useMemo(() => {
     return sourceProducts.filter((p) => !isComboProduct(p));
   }, [sourceProducts]);
@@ -251,13 +237,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     language === 'ta'
       ? productCms?.tamilDescription || t('shop.subtitle')
       : productCms?.description || t('shop.subtitle');
-
-  const scrollToCombos = () => {
-    const el = document.getElementById('special-combo-offers-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   return (
     <div className="bg-[#FAF8F5] min-h-screen py-10 sm:py-14 text-stone-900 select-none">
@@ -314,293 +293,36 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-200 border-2 border-amber-500 text-forest-950 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
-                <div className="absolute right-0 top-0 translate-x-10 -translate-y-6 opacity-15 pointer-events-none">
-                  <Gift className="w-48 h-48 text-forest-950" />
-                </div>
-
+              <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-forest-900 to-emerald-950 border border-emerald-800 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
                 <div className="flex items-center gap-3.5 relative z-10">
-                  <div className="w-11 h-11 rounded-2xl bg-forest-950 text-gold-400 flex items-center justify-center font-black shrink-0 shadow-md">
-                    <Flame className="w-6 h-6 fill-amber-400 text-amber-400 animate-pulse" />
+                  <div className="w-11 h-11 rounded-2xl bg-amber-400 text-forest-950 flex items-center justify-center font-black shrink-0 shadow-md">
+                    <Award className="w-6 h-6 text-forest-950" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-md bg-forest-950 text-white font-mono text-[10px] font-black uppercase tracking-wider">
-                        LIMITED TIME
+                      <span className="px-2.5 py-0.5 rounded-md bg-amber-400 text-forest-950 font-mono text-[10px] font-black uppercase tracking-wider">
+                        100% PURE & NATURAL
                       </span>
-                      <strong className="text-base sm:text-lg font-serif font-black text-forest-950">
+                      <strong className="text-base sm:text-lg font-serif font-bold text-cream-100">
                         {language === 'ta'
-                          ? '🔥 சிறப்பு காம்போ சலுகைகள்: 33% வரை நேரடி ஆலை சேமிப்பு!'
-                          : '🔥 Special Combo Deals: Buy More & Save More! Up to 33% Instant Savings'}
+                          ? '🌿 100% தூய வாகை மரச்செக்கு எண்ணெய்கள் • நேரடி ஆலை உத்திரவாதம்'
+                          : '🌿 100% Traditional Cold-Pressed Wood Chekku Oils • Mill Direct Guarantee'}
                       </strong>
                     </div>
-                    <p className="text-xs sm:text-sm text-forest-900 font-medium mt-0.5">
+                    <p className="text-xs sm:text-sm text-cream-200/80 font-medium mt-0.5">
                       {language === 'ta'
-                        ? 'பாரம்பரிய மரச்செக்கு ஹெரிட்டேஜ் மூவர் பேக் மற்றும் 2 வாங்கினால் 1 இலவச சலுகைகள் கீழே தயாராக உள்ளன.'
-                        : 'Authentic Mara Chekku Heritage Trio & Buy 2 Get 1 Free cold-pressed oil bundles.'}
+                        ? 'எந்தவித கலப்படமும் இன்றி, பாரம்பரிய வாகை மரச்செக்கில் பிழியப்படும் ஆரோக்கியமான சமையல் எண்ணெய்கள்.'
+                        : 'Pure, chemical-free cold-pressed oils crushed in authentic Vaagai wood mortars.'}
                     </p>
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={scrollToCombos}
-                  className="px-5 py-2.5 rounded-2xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-black text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-md transition-all shrink-0 active:scale-95 relative z-10 hover:shadow-xl"
-                >
-                  <span>{language === 'ta' ? 'காம்போ சலுகைகளைப் பார்' : 'Explore Combo Deals'}</span>
-                  <ArrowDown className="w-4 h-4 text-gold-400 animate-bounce" />
-                </button>
               </div>
             )}
           </div>
         </div>
 
         {/* ============================================================ */}
-        {/* 2. SPECIAL COMBO OFFERS SECTION                              */}
-        {/* ============================================================ */}
-        {comboOffers.length > 0 && (
-          <section id="special-combo-offers-section" className="space-y-6 pt-2 scroll-mt-24">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-300 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-400 text-forest-950 flex items-center justify-center font-black shadow-md">
-                  <Gift className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                      FEATURED VALUE PACKS
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-serif font-black text-forest-950">
-                    🔥 Special Combo Offers
-                  </h2>
-                  <p className="text-xs sm:text-sm font-bold text-amber-800">
-                    Buy More & Save More!
-                  </p>
-                </div>
-              </div>
-              <span className="px-3.5 py-1.5 rounded-full bg-forest-950 text-gold-300 text-xs font-black self-start sm:self-auto border border-gold-400/30 shadow-xs">
-                {comboOffers.length} {language === 'ta' ? 'காம்போக்கள் நேரலையில்' : 'Active Combo Deals'}
-              </span>
-            </div>
-
-            {/* Responsive Combo Cards Grid: Desktop 3-col, Tablet 2-col, Mobile 1-col */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-              {comboOffers.map((combo) => {
-                const comboPack =
-                  combo.defaultPack || (combo.packSizes && combo.packSizes[0]) || '1 Combo Pack';
-                const savings =
-                  combo.originalPrice && combo.originalPrice > combo.price
-                    ? combo.originalPrice - combo.price
-                    : 0;
-                const isJustAdded = addedItemEffect === combo.id;
-                const resolvedImage = resolveProductImage(combo);
-                const comboName = getLocalizedProductName(combo, language);
-                const comboTagline = getLocalizedProductTagline(combo, language);
-
-                // Extract included items
-                const includedList =
-                  combo.benefits && combo.benefits.length > 0
-                    ? combo.benefits
-                    : combo.description
-                    ? combo.description.split(/[,•\n]+/).map((s) => s.trim()).filter(Boolean)
-                    : [];
-
-                return (
-                  <div
-                    key={combo.id}
-                    className="relative rounded-3xl bg-gradient-to-b from-amber-50/60 via-white to-stone-50 border-2 border-amber-300 hover:border-amber-500 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden group"
-                  >
-                    {/* Top Badges Row */}
-                    <div className="p-4 bg-gradient-to-r from-amber-100 via-amber-50 to-stone-50 border-b border-amber-200/80 flex items-center justify-between gap-2">
-                      <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs ${
-                        (combo.badge || '').toLowerCase().includes('best')
-                          ? 'bg-gradient-to-r from-emerald-600 to-forest-900 text-white'
-                          : (combo.badge || '').toLowerCase().includes('limited')
-                          ? 'bg-gradient-to-r from-rose-600 to-amber-700 text-white'
-                          : 'bg-gradient-to-r from-amber-400 to-amber-500 text-forest-950'
-                      }`}>
-                        <Sparkles className="w-3 h-3 fill-current" />
-                        <span>{combo.badge || 'Special Deal'}</span>
-                      </span>
-                      {savings > 0 && (
-                        <span className="px-2.5 py-1 rounded-xl text-[10px] font-black bg-emerald-600 text-white shadow-xs">
-                          {language === 'ta'
-                            ? `சேமிப்பு ₹${savings} (${combo.discountPercent || Math.round((savings / combo.originalPrice!) * 100)}% தள்ளுபடி)`
-                            : `Save ₹${savings} (${combo.discountPercent || Math.round((savings / combo.originalPrice!) * 100)}% OFF)`}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Image Showcase */}
-                    <div
-                      onClick={() => setSelectedComboForDetails(combo)}
-                      className="relative h-60 sm:h-64 overflow-hidden bg-gradient-to-b from-amber-50/30 to-[#FAF8F5] p-5 flex items-center justify-center cursor-pointer"
-                    >
-                      <img
-                        src={resolvedImage}
-                        alt={comboName}
-                        className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-500 drop-shadow-lg"
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(combo.id);
-                        }}
-                        className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all cursor-pointer shadow-md z-10 ${
-                          favoritesList.includes(combo.id)
-                            ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
-                            : 'bg-white/95 text-stone-400 hover:text-red-500 hover:bg-white'
-                        }`}
-                        title="Add to Favorites"
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 ${
-                            favoritesList.includes(combo.id) ? 'fill-red-500 text-red-500' : ''
-                          }`}
-                        />
-                      </button>
-
-                      <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-xl bg-forest-950/85 backdrop-blur-xs text-white text-[10px] font-bold">
-                        {comboPack}
-                      </div>
-                    </div>
-
-                    {/* Content Details */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3.5">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs text-amber-600 font-bold">
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                          <span className="text-stone-800">{combo.rating || 5.0}</span>
-                          <span className="text-stone-400 text-[10px]">({combo.reviewsCount || 240}+ reviews)</span>
-                        </div>
-
-                        <h3
-                          onClick={() => setSelectedComboForDetails(combo)}
-                          className="font-serif text-lg sm:text-xl font-black text-forest-950 group-hover:text-amber-800 transition-colors line-clamp-2 leading-snug cursor-pointer"
-                        >
-                          {comboName}
-                        </h3>
-
-                        {combo.tamilName && language === 'en' && (
-                          <p className="text-xs font-bold text-amber-900 line-clamp-1">
-                            {combo.tamilName}
-                          </p>
-                        )}
-
-                        <p className="text-xs text-stone-500 line-clamp-2">
-                          {comboTagline}
-                        </p>
-
-                        {/* Included Products & Quantities Pills */}
-                        {includedList.length > 0 && (
-                          <div className="pt-1.5 space-y-1.5">
-                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1">
-                              <Boxes className="w-3.5 h-3.5 text-amber-700" />
-                              <span>{language === 'ta' ? 'உள்ளடங்கிய பொருட்கள்:' : 'Included In This Combo:'}</span>
-                            </span>
-                            <div className="flex flex-wrap gap-1">
-                              {includedList.slice(0, 3).map((item, idx) => (
-                                <span
-                                  key={idx}
-                                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-stone-800 bg-amber-50/80 px-2.5 py-0.5 rounded-lg border border-amber-200"
-                                >
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                                  <span className="truncate max-w-[160px]">{item}</span>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Pricing Breakdown */}
-                      <div className="pt-3 border-t border-stone-200">
-                        <div className="flex items-baseline justify-between mb-3">
-                          <div>
-                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
-                              Combo Offer Price
-                            </span>
-                            <div className="flex items-baseline gap-2 mt-0.5">
-                              <span className="text-2xl font-serif font-black text-forest-950">
-                                ₹{combo.price}
-                              </span>
-                              {combo.originalPrice && combo.originalPrice > combo.price && (
-                                <span className="text-xs font-bold line-through text-stone-400">
-                                  MRP ₹{combo.originalPrice}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {savings > 0 && (
-                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                              Save ₹{savings}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Required Action Buttons: "Buy Combo" & "Add to Cart" */}
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (onBuyNow) {
-                                  onBuyNow(combo, comboPack, 1);
-                                } else {
-                                  handleSelectLiterAndBuy(combo, comboPack);
-                                }
-                              }}
-                              className="py-3 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-black text-xs flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 group"
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-gold-400 group-hover:rotate-12 transition-transform" />
-                              <span>{language === 'ta' ? 'உடனே வாங்க' : 'Buy Combo'}</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleSelectLiterAndBuy(combo, comboPack)}
-                              className={`py-3 px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer active:scale-95 ${
-                                isJustAdded
-                                  ? 'bg-emerald-600 text-white'
-                                  : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-stone-950'
-                              }`}
-                            >
-                              {isJustAdded ? (
-                                <>
-                                  <Check className="w-3.5 h-3.5 text-white" />
-                                  <span>{t('prod.added')}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <ShoppingBag className="w-3.5 h-3.5 text-stone-950" />
-                                  <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => setSelectedComboForDetails(combo)}
-                            className="w-full py-1.5 text-center text-[11px] font-bold text-stone-500 hover:text-forest-950 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>{language === 'ta' ? 'முழு விபரம் பார்க்க' : 'View Full Combo Breakdown'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================================================ */}
-        {/* 3. PRODUCT CATEGORIES / FILTERS & SEARCH TOOLBAR             */}
+        {/* 2. PRODUCT CATEGORIES / FILTERS & SEARCH TOOLBAR             */}
         {/* ============================================================ */}
         <section className="space-y-5 pt-4">
           <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -635,11 +357,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <button
               type="button"
               onClick={() => setSelectedCat('all')}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                selectedCat === 'all'
-                  ? 'bg-forest-950 text-white shadow-md'
-                  : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-              }`}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${selectedCat === 'all'
+                ? 'bg-forest-950 text-white shadow-md'
+                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+                }`}
             >
               {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
             </button>
@@ -655,11 +376,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   key={cat.id || cat.slug}
                   type="button"
                   onClick={() => setSelectedCat(cat.slug)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                    isSelected
-                      ? 'bg-forest-950 text-white shadow-md'
-                      : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${isSelected
+                    ? 'bg-forest-950 text-white shadow-md'
+                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+                    }`}
                 >
                   {displayName}
                 </button>
@@ -836,17 +556,15 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                           e.stopPropagation();
                           toggleFavorite(product.id);
                         }}
-                        className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all cursor-pointer shadow-sm z-10 ${
-                          favoritesList.includes(product.id)
-                            ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
-                            : 'bg-white/90 text-stone-400 hover:text-red-500 hover:bg-white'
-                        }`}
+                        className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all cursor-pointer shadow-sm z-10 ${favoritesList.includes(product.id)
+                          ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-105'
+                          : 'bg-white/90 text-stone-400 hover:text-red-500 hover:bg-white'
+                          }`}
                         title={favoritesList.includes(product.id) ? 'In Favorites' : 'Add to Favorites'}
                       >
                         <Heart
-                          className={`w-3.5 h-3.5 ${
-                            favoritesList.includes(product.id) ? 'fill-red-500 text-red-500' : ''
-                          }`}
+                          className={`w-3.5 h-3.5 ${favoritesList.includes(product.id) ? 'fill-red-500 text-red-500' : ''
+                            }`}
                         />
                       </button>
                     </div>
@@ -913,11 +631,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                             e.stopPropagation();
                             setBuyingProductId(product.id);
                           }}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
-                            isJustAdded
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
-                          }`}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${isJustAdded
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
+                            }`}
                         >
                           {isJustAdded ? (
                             <>
@@ -1080,11 +797,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                             e.stopPropagation();
                             setBuyingProductId(`bestseller-${product.id}`);
                           }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm cursor-pointer ${
-                            isJustAdded
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
-                          }`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm cursor-pointer ${isJustAdded
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
+                            }`}
                         >
                           {isJustAdded ? (
                             <>
@@ -1107,16 +823,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           </section>
         )}
       </div>
-
-      {/* ============================================================ */}
-      {/* DEDICATED COMBO DETAILS MODAL                                */}
-      {/* ============================================================ */}
-      <ComboDetailsModal
-        combo={selectedComboForDetails}
-        isOpen={!!selectedComboForDetails}
-        onClose={() => setSelectedComboForDetails(null)}
-        onAddToCart={handleSelectLiterAndBuy}
-      />
     </div>
   );
 };

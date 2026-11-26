@@ -73,7 +73,6 @@ import { useStore, normalizeHomepage4 } from '../context/StoreContext';
 import { getYouTubeEmbedUrl } from './HomeFeaturedVideoBanner';
 import { CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
 import { OffersManager } from './admin/OffersManager';
-import { ComboOffersManager } from './admin/ComboOffersManager';
 import { autoTranslateProductNameToTamil } from '../utils/productUtils';
 
 interface AdminPageProps {
@@ -169,7 +168,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   type AdminTab =
     | 'dashboard'
     | 'products'
-    | 'combos'
     | 'orders'
     | 'customers'
     | 'users'
@@ -1351,7 +1349,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'products', label: 'Products', icon: Package },
-            { id: 'combos', label: 'Combo Offers (காம்போ சலுகைகள்)', icon: Gift },
             { id: 'categories', label: 'Categories', icon: Layers },
             { id: 'videos', label: 'Homepage Video', icon: Video },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
@@ -1379,11 +1376,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <Icon className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
-                {item.id === 'combos' ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-400 text-stone-900 text-[10px] font-black tracking-wide shadow-2xs">
-                    NEW
-                  </span>
-                ) : item.count !== undefined && item.count > 0 ? (
+                {item.count !== undefined && item.count > 0 ? (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       isActive ? 'bg-[#132c19] text-white' : 'bg-amber-400 text-stone-900 shadow-2xs font-extrabold'
@@ -1470,8 +1463,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
                 {activeTab === 'orders' && 'Orders Management'}
-                {activeTab === 'combos' && 'Combo Offers Management (காம்போ சலுகைகள்)'}
-                {activeTab === 'offers' && 'Offers & Coupons'}
+{activeTab === 'offers' && 'Offers & Coupons'}
                 {activeTab === 'analytics' && 'Analytics & Performance'}
               </h2>
             </div>
@@ -1563,20 +1555,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               )}
 
-              {activeTab === 'combos' && (
-                <div className="flex items-center gap-2">
-                  <a
-                    href="/shop"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-stone-200 shadow-2xs"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>View Customer Store</span>
-                  </a>
-                </div>
-              )}
-
+              
               {activeTab === 'offers' && (
                 <div className="flex items-center gap-2">
                   <a
@@ -3029,13 +3008,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           {/* ============================================================ */}
           {/* COMBO OFFERS VIEW (காம்போ சலுகைகள்)                           */}
           {/* ============================================================ */}
-          {activeTab === 'combos' && (
-            <ComboOffersManager
-              onShowToast={showToast}
-              onBackToStore={onBackToStore}
-            />
-          )}
-
+          
           {/* ============================================================ */}
           {/* OFFERS & COUPONS VIEW                                        */}
           {/* ============================================================ */}

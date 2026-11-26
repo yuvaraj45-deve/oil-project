@@ -6,7 +6,6 @@ import { orderRouter } from './routes/orderRoutes.js';
 import { newsletterRouter } from './routes/newsletterRoutes.js';
 import { cmsRouter } from './routes/cmsRoutes.js';
 import { offerRouter } from './routes/offerRoutes.js';
-import { comboRouter } from './routes/comboRoutes.js';
 import { prisma } from './config/db.js';
 
 dotenv.config();
@@ -70,7 +69,6 @@ app.use('/api/orders', orderRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/cms', cmsRouter);
 app.use('/api/offers', offerRouter);
-app.use('/api/combos', comboRouter);
 
 // 404 Route Handler
 app.use((_req: Request, res: Response) => {

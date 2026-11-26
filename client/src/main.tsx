@@ -6,7 +6,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { StoreProvider } from './context/StoreContext';
 import { CMSProvider } from './context/CMSContext';
 import { OfferProvider } from './context/OfferContext';
-import { ComboProvider } from './context/ComboContext';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
@@ -14,9 +13,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <StoreProvider>
         <CMSProvider>
           <OfferProvider>
-            <ComboProvider>
-              <App />
-            </ComboProvider>
+            <App />
           </OfferProvider>
         </CMSProvider>
       </StoreProvider>
