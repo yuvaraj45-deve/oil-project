@@ -162,8 +162,17 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full-Bleed Hero Banner Viewport - Compact & well-proportioned */}
-      <div className="relative w-full h-[250px] sm:h-[340px] md:h-[400px] lg:h-[450px] overflow-hidden">
+      {/* Full Hero Banner Viewport - Exact 16:9 Aspect Ratio to showcase 100% of the banner without cropping */}
+      <div
+        onClick={() => {
+          if (activeSlide.isStandaloneGraphic) {
+            onShopNow();
+          }
+        }}
+        className={`relative w-full aspect-[16/9] max-w-[1500px] mx-auto overflow-hidden ${
+          activeSlide.isStandaloneGraphic ? 'cursor-pointer' : ''
+        }`}
+      >
         {/* Background Banner Images with Smooth Dissolve Transition */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
@@ -177,7 +186,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-cover object-[center_20%] pointer-events-none select-none"
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
@@ -186,11 +195,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
 
         {/* Render overlay based on isStandaloneGraphic */}
         {activeSlide.isStandaloneGraphic ? (
-          /* For full graphic banner (3 Generations), keep image vibrant and provide an interactive CTA */
-          <div
-            onClick={onShopNow}
-            className="absolute inset-0 z-20 cursor-pointer flex flex-col justify-end p-4 sm:p-6 lg:p-8"
-          >
+          /* For full graphic banner (3 Generations), keep image 100% visible and provide an interactive CTA covering the bottom-right button */
+          <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end p-2 sm:p-5 lg:p-7">
             <div className="max-w-7xl mx-auto w-full flex justify-end">
               <button
                 type="button"
@@ -198,10 +204,10 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
                   e.stopPropagation();
                   onShopNow();
                 }}
-                className="group relative inline-flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#0a3820]/95 hover:bg-[#072a18] text-[#f7e7ce] hover:text-white font-bold text-xs sm:text-sm tracking-wide shadow-xl border border-amber-400/50 backdrop-blur-xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                className="group pointer-events-auto relative inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-1.5 sm:py-2.5 rounded-full bg-[#0d3b24] hover:bg-[#072a18] text-[#f7e7ce] hover:text-white font-bold text-[10px] sm:text-xs md:text-sm tracking-wide shadow-xl border border-amber-400/60 backdrop-blur-xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer mr-1 sm:mr-4 lg:mr-8 mb-1 sm:mb-2"
               >
                 <span>{language === 'ta' ? 'மரச்செக்கு எண்ணெய்கள்' : 'Explore Pure Oils'}</span>
-                <span className="w-5 h-5 rounded-full bg-amber-400 text-forest-950 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-xs">
+                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-forest-950 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-[9px] sm:text-xs">
                   →
                 </span>
               </button>
