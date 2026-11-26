@@ -142,8 +142,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full-Bleed Hero Banner Viewport - Desktop: width: 100%, height: 650px, aspect-ratio: 16/9, object-fit: cover, object-position: center */}
-      <div className="relative w-full aspect-[16/9] h-[280px] sm:h-[420px] md:h-[520px] lg:h-[650px] overflow-hidden">
+      {/* Full-Bleed Hero Banner Viewport - Desktop: width: 100%, reduced sleek height: 460px, object-fit: cover, object-position: center */}
+      <div className="relative w-full h-[240px] sm:h-[340px] md:h-[400px] lg:h-[460px] overflow-hidden">
         {/* Background Banner Images with Smooth Dissolve Transition */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
