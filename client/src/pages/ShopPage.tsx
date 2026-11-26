@@ -29,10 +29,12 @@ import { useCMS } from '../context/CMSContext';
 import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { ComboDetailsModal } from '../components/ComboDetailsModal';
+import { useCombos, comboOfferToProduct } from '../context/ComboContext';
 
 interface ShopPageProps {
   initialCategory?: string;
   onAddToCart: (product: Product, packSize: string, quantity?: number) => void;
+  onBuyNow?: (product: Product, packSize: string, quantity?: number) => void;
   onQuickView: (product: Product) => void;
   onViewLabReport: (product: Product) => void;
 }
@@ -40,12 +42,14 @@ interface ShopPageProps {
 export const ShopPage: React.FC<ShopPageProps> = ({
   initialCategory = 'all',
   onAddToCart,
+  onBuyNow,
   onQuickView,
   onViewLabReport,
 }) => {
   const { language, t } = useLanguage();
   const { activeOffer, removeOffer } = useOffers();
   const { products, categories: storeCategories } = useStore();
+  const { activeCombos } = useCombos();
 
   const [selectedCat, setSelectedCat] = useState<string>(
     initialCategory && initialCategory !== 'combo-offers' ? initialCategory : 'all'
@@ -186,10 +190,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     );
   };
 
-  // 1. Dynamic active Combo Offers (Section 2)
+  // 1. Dynamic active Combo Offers from TiDB (Section 2)
   const comboOffers = useMemo(() => {
+    if (activeCombos && activeCombos.length > 0) {
+      return activeCombos.map(comboOfferToProduct);
+    }
     return sourceProducts.filter((p) => isComboProduct(p) && p.inStock !== false);
-  }, [sourceProducts]);
+  }, [activeCombos, sourceProducts]);
 
   // 2. Regular individual oils for Section 4 (All Products)
   const regularSourceProducts = useMemo(() => {
@@ -406,14 +413,20 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   >
                     {/* Top Badges Row */}
                     <div className="p-4 bg-gradient-to-r from-amber-100 via-amber-50 to-stone-50 border-b border-amber-200/80 flex items-center justify-between gap-2">
-                      <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-amber-500 text-forest-950 shadow-xs flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 fill-forest-950" />
-                        <span>SPECIAL COMBO DEAL</span>
+                      <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs ${
+                        (combo.badge || '').toLowerCase().includes('best')
+                          ? 'bg-gradient-to-r from-emerald-600 to-forest-900 text-white'
+                          : (combo.badge || '').toLowerCase().includes('limited')
+                          ? 'bg-gradient-to-r from-rose-600 to-amber-700 text-white'
+                          : 'bg-gradient-to-r from-amber-400 to-amber-500 text-forest-950'
+                      }`}>
+                        <Sparkles className="w-3 h-3 fill-current" />
+                        <span>{combo.badge || 'Special Deal'}</span>
                       </span>
                       {savings > 0 && (
                         <span className="px-2.5 py-1 rounded-xl text-[10px] font-black bg-emerald-600 text-white shadow-xs">
                           {language === 'ta'
-                            ? `சேமிப்பு ₹${savings}`
+                            ? `சேமிப்பு ₹${savings} (${combo.discountPercent || Math.round((savings / combo.originalPrice!) * 100)}% தள்ளுபடி)`
                             : `Save ₹${savings} (${combo.discountPercent || Math.round((savings / combo.originalPrice!) * 100)}% OFF)`}
                         </span>
                       )}
@@ -527,37 +540,54 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                           )}
                         </div>
 
-                        {/* Two Required Buttons: "View Combo Details" and "Add Combo to Cart" */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedComboForDetails(combo)}
-                            className="px-3 py-2.5 rounded-xl border border-stone-300 hover:border-forest-900 bg-white hover:bg-stone-50 text-forest-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-stone-600" />
-                            <span>View Details</span>
-                          </button>
+                        {/* Required Action Buttons: "Buy Combo" & "Add to Cart" */}
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (onBuyNow) {
+                                  onBuyNow(combo, comboPack, 1);
+                                } else {
+                                  handleSelectLiterAndBuy(combo, comboPack);
+                                }
+                              }}
+                              className="py-3 px-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-black text-xs flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 group"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-gold-400 group-hover:rotate-12 transition-transform" />
+                              <span>{language === 'ta' ? 'உடனே வாங்க' : 'Buy Combo'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSelectLiterAndBuy(combo, comboPack)}
+                              className={`py-3 px-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer active:scale-95 ${
+                                isJustAdded
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-stone-950'
+                              }`}
+                            >
+                              {isJustAdded ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-white" />
+                                  <span>{t('prod.added')}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShoppingBag className="w-3.5 h-3.5 text-stone-950" />
+                                  <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
 
                           <button
                             type="button"
-                            onClick={() => handleSelectLiterAndBuy(combo, comboPack)}
-                            className={`px-3 py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer transform active:scale-95 ${
-                              isJustAdded
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-stone-950'
-                            }`}
+                            onClick={() => setSelectedComboForDetails(combo)}
+                            className="w-full py-1.5 text-center text-[11px] font-bold text-stone-500 hover:text-forest-950 flex items-center justify-center gap-1 transition-colors cursor-pointer"
                           >
-                            {isJustAdded ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-white" />
-                                <span>{t('prod.added')}</span>
-                              </>
-                            ) : (
-                              <>
-                                <ShoppingBag className="w-3.5 h-3.5 text-stone-950" />
-                                <span>Add to Cart</span>
-                              </>
-                            )}
+                            <Eye className="w-3 h-3" />
+                            <span>{language === 'ta' ? 'முழு விபரம் பார்க்க' : 'View Full Combo Breakdown'}</span>
                           </button>
                         </div>
                       </div>

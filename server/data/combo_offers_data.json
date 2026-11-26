@@ -1,0 +1,129 @@
+[
+  {
+    "id": "combo-1",
+    "title": "Heritage Mara Chekku Trio Combo",
+    "tamilTitle": "பாரம்பரிய மரச்செக்கு முக்கூட்டு காம்போ",
+    "description": "1L Cold-Pressed Sesame Oil + 1L Groundnut Oil + 1L Pure Coconut Oil in celebratory protective gift box.",
+    "tamilDescription": "1லி நல்லெண்ணெய் + 1லி கடலை எண்ணெய் + 1லி தேங்காய் எண்ணெய் அடங்கிய சிறப்பு ஆலை பரிசு தொகுப்பு.",
+    "badge": "Best Value",
+    "imageUrl": "/banners/groundnut_hero_banner.jpg",
+    "originalPrice": 1060,
+    "discountedPrice": 869,
+    "discountPercent": 18,
+    "packSize": "3 Litre Heritage Combo Box (1L x 3 Bottles)",
+    "items": [
+      {
+        "productId": "ss-sesame-1000",
+        "productName": "SS Cold-Pressed Sesame Oil (நல்லெண்ணெய்)",
+        "productTamilName": "மரச்செக்கு நல்லெண்ணெய்",
+        "packSize": "1 Litre Glass Bottle",
+        "quantity": 1,
+        "unitPrice": 420
+      },
+      {
+        "productId": "ss-groundnut-1000",
+        "productName": "SS Cold-Pressed Groundnut Oil (கடலை எண்ணெய்)",
+        "productTamilName": "மரச்செக்கு கடலை எண்ணெய்",
+        "packSize": "1 Litre Glass Bottle",
+        "quantity": 1,
+        "unitPrice": 320
+      },
+      {
+        "productId": "ss-coconut-1000",
+        "productName": "SS Pure Cold-Pressed Coconut Oil (தேங்காய் எண்ணெய்)",
+        "productTamilName": "மரச்செக்கு தேங்காய் எண்ணெய்",
+        "packSize": "1 Litre Glass Bottle",
+        "quantity": 1,
+        "unitPrice": 320
+      }
+    ],
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-12-31T23:59:59.000Z",
+    "isActive": true,
+    "sortOrder": 1,
+    "rating": 5,
+    "reviewsCount": 384
+  },
+  {
+    "id": "combo-2",
+    "title": "Buy 2 Get 1 Free Mara Chekku Deal",
+    "tamilTitle": "2 வாங்கினால் 1 இலவசம் - சிறப்பு மரச்செக்கு சலுகை",
+    "description": "Buy 2 bottles of 1L Mara Chekku Sesame Oil and get 1L Pure Coconut Oil completely FREE!",
+    "tamilDescription": "2 நல்லெண்ணெய் 1L வாங்கினால் 1 தேங்காய் எண்ணெய் 1L முற்றிலும் இலவசம்!",
+    "badge": "Special Deal",
+    "imageUrl": "/banners/sesame_sunflower_banner.jpg",
+    "originalPrice": 1160,
+    "discountedPrice": 840,
+    "discountPercent": 28,
+    "packSize": "3 Litre Festive Bundle (1L x 3 Bottles)",
+    "items": [
+      {
+        "productId": "ss-sesame-1000",
+        "productName": "SS Cold-Pressed Sesame Oil (நல்லெண்ணெய்)",
+        "productTamilName": "மரச்செக்கு நல்லெண்ணெய்",
+        "packSize": "1 Litre Glass Bottle",
+        "quantity": 2,
+        "unitPrice": 420
+      },
+      {
+        "productId": "ss-coconut-1000",
+        "productName": "SS Pure Cold-Pressed Coconut Oil (Free Bottle)",
+        "productTamilName": "இலவச தேங்காய் எண்ணெய்",
+        "packSize": "1 Litre Glass Bottle",
+        "quantity": 1,
+        "unitPrice": 320
+      }
+    ],
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-12-31T23:59:59.000Z",
+    "isActive": true,
+    "sortOrder": 2,
+    "rating": 4.9,
+    "reviewsCount": 295
+  },
+  {
+    "id": "combo-3",
+    "title": "Mega Health & Deepam Family Combo",
+    "tamilTitle": "மெகா குடும்ப நல்வாழ்வு & தீபம் காம்போ",
+    "description": "2L Sesame Oil + 2L Groundnut Oil + 1L Pure Pooja Lamp Oil for divine pooja and healthy kitchen.",
+    "tamilDescription": "2லி நல்லெண்ணெய் + 2லி கடலை எண்ணெய் + 1லி கோவில் தீப எண்ணெய் அடங்கிய முழு குடும்ப தொகுப்பு.",
+    "badge": "Limited Offer",
+    "imageUrl": "/products/ss_oil_can.jpg",
+    "originalPrice": 1580,
+    "discountedPrice": 1249,
+    "discountPercent": 21,
+    "packSize": "5 Litre Family Mega Pack",
+    "items": [
+      {
+        "productId": "ss-sesame-2000",
+        "productName": "SS Cold-Pressed Sesame Oil (2L)",
+        "productTamilName": "மரச்செக்கு நல்லெண்ணெய் 2லி",
+        "packSize": "2 Litre Can",
+        "quantity": 1,
+        "unitPrice": 819
+      },
+      {
+        "productId": "ss-groundnut-2000",
+        "productName": "SS Cold-Pressed Groundnut Oil (2L)",
+        "productTamilName": "மரச்செக்கு கடலை எண்ணெய் 2லி",
+        "packSize": "2 Litre Can",
+        "quantity": 1,
+        "unitPrice": 624
+      },
+      {
+        "productId": "ss-pooja-1000",
+        "productName": "SS Pure Vaagai Lamp Oil (தீப எண்ணெய் 1L)",
+        "productTamilName": "கோவில் விசேஷ தீப எண்ணெய்",
+        "packSize": "1 Litre Bottle",
+        "quantity": 1,
+        "unitPrice": 137
+      }
+    ],
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-12-31T23:59:59.000Z",
+    "isActive": true,
+    "sortOrder": 3,
+    "rating": 5,
+    "reviewsCount": 168
+  }
+]

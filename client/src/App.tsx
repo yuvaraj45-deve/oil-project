@@ -683,6 +683,10 @@ export function App() {
           <ShopPage
             initialCategory={selectedCategory}
             onAddToCart={handleAddToCart}
+            onBuyNow={(prod, pack, qty) => {
+              handleAddToCart(prod, pack, qty);
+              setIsCheckoutOpen(true);
+            }}
             onQuickView={handleOpenProduct}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
           />
@@ -707,6 +711,10 @@ export function App() {
           <ShopPage
             initialCategory="all"
             onAddToCart={handleAddToCart}
+            onBuyNow={(prod, pack, qty) => {
+              handleAddToCart(prod, pack, qty);
+              setIsCheckoutOpen(true);
+            }}
             onQuickView={handleOpenProduct}
             onViewLabReport={(p) => setSelectedLabReportProduct(p)}
           />

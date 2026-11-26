@@ -147,3 +147,26 @@ model Offer {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
+
+model ComboOffer {
+  id              String   @id @default(uuid())
+  title           String
+  tamilTitle      String?
+  description     String   @db.Text
+  tamilDescription String? @db.Text
+  badge           String   @default("Special Deal")
+  imageUrl        String   @db.LongText
+  originalPrice   Float
+  discountedPrice Float
+  discountPercent Float    @default(0)
+  packSize        String   @default("Combo Pack")
+  items           String   @db.LongText
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  rating          Float    @default(5.0)
+  reviewsCount    Int      @default(120)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

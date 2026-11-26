@@ -39,6 +39,38 @@ export interface Product {
   bestForDish?: string;
 }
 
+export interface ComboItem {
+  productId: string;
+  productName: string;
+  productTamilName?: string;
+  packSize: string;
+  quantity: number;
+  unitPrice?: number;
+}
+
+export interface ComboOffer {
+  id: string;
+  title: string;
+  tamilTitle?: string;
+  description: string;
+  tamilDescription?: string;
+  badge: 'Special Deal' | 'Best Value' | 'Limited Offer' | 'Festive Special' | 'Buy 2 Get 1 Free' | string;
+  imageUrl: string;
+  originalPrice: number;
+  discountedPrice: number;
+  discountPercent: number;
+  packSize: string;
+  items: ComboItem[];
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  sortOrder?: number;
+  rating?: number;
+  reviewsCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface FlagshipHeroOil {
   id: string;
   name: string;
