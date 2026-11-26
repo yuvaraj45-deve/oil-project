@@ -20,6 +20,26 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   // Slides matching the flagship homepage layout
   const slides = [
     {
+      id: '3-generations-heritage',
+      bannerImage: '/banners/ssoil_3generations_hero_banner.jpg',
+      isStandaloneGraphic: true,
+      headline: (
+        <>
+          {language === 'ta' ? (
+            <>3 தலைமுறை நம்பிக்கை & தூய்மை</>
+          ) : (
+            <>3 Generations of Trust & Purity</>
+          )}
+        </>
+      ),
+      subheadline:
+        language === 'ta'
+          ? 'எங்கள் குடும்பத்திலிருந்து உங்கள் குடும்பத்திற்கு... தலைமுறைகளாக மாறாத அதே தூய்மை மற்றும் நேர்மை.'
+          : 'From our family to yours, with the same commitment for over generations.',
+      buttonText: language === 'ta' ? 'மரச்செக்கு எண்ணெய்கள்' : 'EXPLORE PURE OILS',
+      category: 'all',
+    },
+    {
       id: 'conveyor-bottling',
       bannerImage: homeCms?.heroBgImage || '/banners/ssoil_bottling_hero_banner.jpg',
       headline: (
@@ -164,37 +184,64 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           );
         })}
 
-        {/* Gradient Scrim */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
-
-        {/* Text Overlay - Left Aligned with smooth animation */}
-        <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+        {/* Render overlay based on isStandaloneGraphic */}
+        {activeSlide.isStandaloneGraphic ? (
+          /* For full graphic banner (3 Generations), keep image vibrant and provide an interactive CTA */
           <div
-            key={currentSlide}
-            className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn"
+            onClick={onShopNow}
+            className="absolute inset-0 z-20 cursor-pointer flex flex-col justify-end p-6 sm:p-10 lg:p-14"
           >
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
-              {activeSlide.headline}
-            </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
-              {activeSlide.subheadline}
-            </p>
-            <div className="pt-2 sm:pt-3">
+            <div className="max-w-7xl mx-auto w-full flex justify-end">
               <button
-                onClick={() => {
-                  if (onSelectCategory && activeSlide.category !== 'all') {
-                    onSelectCategory(activeSlide.category);
-                  }
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
                   onShopNow();
                 }}
-                className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+                className="group relative inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#0a3820]/90 hover:bg-[#072a18] text-[#f7e7ce] hover:text-white font-bold text-xs sm:text-sm tracking-wide shadow-2xl border border-amber-400/50 backdrop-blur-xs transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
               >
-                {activeSlide.buttonText}
+                <span>{language === 'ta' ? 'மரச்செக்கு எண்ணெய்களைப் பார்' : 'Explore Pure Oils'}</span>
+                <span className="w-6 h-6 rounded-full bg-amber-400 text-forest-950 flex items-center justify-center font-black group-hover:translate-x-1 transition-transform text-xs">
+                  →
+                </span>
               </button>
             </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Gradient Scrim */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+            {/* Text Overlay - Left Aligned with smooth animation */}
+            <div className="relative z-20 max-w-7xl mx-auto h-full px-5 sm:px-10 lg:px-14 flex flex-col justify-center">
+              <div
+                key={currentSlide}
+                className="max-w-xl sm:max-w-2xl space-y-4 sm:space-y-5 animate-fadeIn"
+              >
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] drop-shadow-lg">
+                  {activeSlide.headline}
+                </h1>
+                <p className="text-sm sm:text-base lg:text-lg text-white/95 font-normal leading-relaxed drop-shadow-md max-w-lg">
+                  {activeSlide.subheadline}
+                </p>
+                <div className="pt-2 sm:pt-3">
+                  <button
+                    onClick={() => {
+                      if (onSelectCategory && activeSlide.category !== 'all') {
+                        onSelectCategory(activeSlide.category);
+                      }
+                      onShopNow();
+                    }}
+                    className="px-8 sm:px-10 py-3 sm:py-3.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-md cursor-pointer rounded-none"
+                  >
+                    {activeSlide.buttonText}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Left Arrow Navigation */}
         <button

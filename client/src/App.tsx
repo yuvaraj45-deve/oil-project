@@ -75,7 +75,7 @@ export function App() {
             }));
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return [];
   });
 
@@ -83,7 +83,7 @@ export function App() {
   useEffect(() => {
     try {
       localStorage.setItem('ssoil_cart', JSON.stringify(cartItems));
-    } catch (e) {}
+    } catch (e) { }
   }, [cartItems]);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -153,12 +153,12 @@ export function App() {
     : null;
   const currentProduct = productIdentifier
     ? effectiveProducts.find((p) => p.id === productIdentifier) ||
-      effectiveProducts.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
-      effectiveProducts.find((p) => p.name && p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === productIdentifier.toLowerCase()) ||
-      effectiveProducts.find((p) => p.name && p.name.toLowerCase().trim() === productIdentifier.toLowerCase()) ||
-      PRODUCTS_DATA.find((p) => p.id === productIdentifier) ||
-      PRODUCTS_DATA.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
-      null
+    effectiveProducts.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
+    effectiveProducts.find((p) => p.name && p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === productIdentifier.toLowerCase()) ||
+    effectiveProducts.find((p) => p.name && p.name.toLowerCase().trim() === productIdentifier.toLowerCase()) ||
+    PRODUCTS_DATA.find((p) => p.id === productIdentifier) ||
+    PRODUCTS_DATA.find((p) => p.slug && p.slug.toLowerCase() === productIdentifier.toLowerCase()) ||
+    null
     : null;
 
   // Dedicated Category Route Helper (/category/:slug)
@@ -191,7 +191,7 @@ export function App() {
           return parsed.filter(isGenuineOrder);
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return [];
   });
 
@@ -209,14 +209,14 @@ export function App() {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Sync orders to localStorage on any change
   useEffect(() => {
     try {
       localStorage.setItem('ssoil_orders', JSON.stringify(orders));
-    } catch (e) {}
+    } catch (e) { }
   }, [orders]);
 
   // User-isolated genuine orders: Only show orders belonging to the logged-in user
@@ -237,11 +237,11 @@ export function App() {
       prev.map((o) =>
         o.id === orderId
           ? {
-              ...o,
-              orderStatus: 'CANCELLED' as const,
-              cancelReason: reason,
-              cancelledAt: new Date().toISOString(),
-            }
+            ...o,
+            orderStatus: 'CANCELLED' as const,
+            cancelReason: reason,
+            cancelledAt: new Date().toISOString(),
+          }
           : o
       )
     );
@@ -322,7 +322,7 @@ export function App() {
       );
       try {
         sessionStorage.setItem('ssoil_from_cart_add', 'true');
-      } catch (e) {}
+      } catch (e) { }
       setAuthMode('register');
       navigateTo('/login');
       return;
@@ -375,7 +375,7 @@ export function App() {
     setCartItems([]);
     try {
       localStorage.removeItem('ssoil_cart');
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleCategorySelect = (categorySlug: string) => {
@@ -418,7 +418,7 @@ export function App() {
       );
       try {
         sessionStorage.setItem('ssoil_redirect_checkout', 'true');
-      } catch (e) {}
+      } catch (e) { }
       setAuthMode('register');
       navigateTo('/login');
       return;
@@ -448,7 +448,7 @@ export function App() {
     try {
       sessionStorage.removeItem('pureva_admin_unlocked');
       localStorage.removeItem('ssoil_user');
-    } catch (e) {}
+    } catch (e) { }
     setCurrentUser(null);
     setToastMessage('Signed out successfully.');
     window.location.href = '/';
@@ -464,13 +464,13 @@ export function App() {
             setCurrentUser(user);
             try {
               localStorage.setItem('ssoil_user', JSON.stringify(user));
-            } catch (e) {}
+            } catch (e) { }
             if (user.role === 'admin') {
               setIsAdminUnlocked(true);
               try {
                 sessionStorage.setItem('pureva_admin_unlocked', 'true');
                 sessionStorage.setItem('admin_active_tab', 'dashboard');
-              } catch (e) {}
+              } catch (e) { }
               setToastMessage(`Welcome back, ${user.name}! Admin Portal Unlocked 🛡️`);
               navigateTo('/admin');
             } else {
@@ -508,12 +508,12 @@ export function App() {
           try {
             localStorage.setItem('ssoil_user', JSON.stringify(user));
             sessionStorage.removeItem('ssoil_guest_browse');
-          } catch (e) {}
+          } catch (e) { }
           if (user.role === 'admin') {
             setIsAdminUnlocked(true);
             try {
               sessionStorage.setItem('pureva_admin_unlocked', 'true');
-            } catch (e) {}
+            } catch (e) { }
             setToastMessage(`Welcome back, ${user.name}!`);
             navigateTo('/admin');
           } else {
@@ -635,7 +635,7 @@ export function App() {
                 );
                 try {
                   sessionStorage.setItem('ssoil_redirect_checkout', 'true');
-                } catch (e) {}
+                } catch (e) { }
                 setAuthMode('register');
                 navigateTo('/login');
               } else {
@@ -665,7 +665,7 @@ export function App() {
                 );
                 try {
                   sessionStorage.setItem('ssoil_redirect_checkout', 'true');
-                } catch (e) {}
+                } catch (e) { }
                 setAuthMode('register');
                 navigateTo('/login');
               } else {
@@ -756,7 +756,7 @@ export function App() {
               setCurrentUser(updated);
               try {
                 localStorage.setItem('ssoil_user', JSON.stringify(updated));
-              } catch (e) {}
+              } catch (e) { }
               setToastMessage('Profile details updated successfully');
             }}
             onSignOut={handleGlobalSignOut}
@@ -919,7 +919,7 @@ export function App() {
           setIsCheckoutOpen(false);
           try {
             sessionStorage.setItem('ssoil_redirect_checkout', 'true');
-          } catch (e) {}
+          } catch (e) { }
           setAuthMode(mode || 'register');
           navigateTo('/login');
         }}
@@ -981,7 +981,7 @@ export function App() {
           setCurrentUser(null);
           try {
             localStorage.removeItem('ssoil_user');
-          } catch (e) {}
+          } catch (e) { }
           setToastMessage('You have been signed out.');
         }}
         onNavigateToLogin={() => navigateTo('/login')}
