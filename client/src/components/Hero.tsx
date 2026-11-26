@@ -142,10 +142,10 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Sleek Proportioned Hero Viewport: Reduced length, 100% full image completely visible */}
-      <div className="relative w-full h-[220px] sm:h-[340px] md:h-[400px] lg:h-[450px] overflow-hidden flex items-center justify-center">
+      {/* Full Width Hero Viewport: Edge-to-edge width cover with sleek responsive height */}
+      <div className="relative w-full h-[260px] sm:h-[360px] md:h-[440px] lg:h-[500px] overflow-hidden flex items-center justify-center">
 
-        {/* Ambient Blurred Backdrop - Fills entire screen width with matching natural colors (zero white gaps) */}
+        {/* Ambient Backdrop Fallback */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
@@ -159,26 +159,26 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
                 src={slide.bannerImage}
                 alt=""
                 aria-hidden="true"
-                className="w-full h-full object-cover blur-2xl scale-110 brightness-75 pointer-events-none select-none"
+                className="w-full h-full object-cover blur-xl scale-105 pointer-events-none select-none"
               />
             </div>
           );
         })}
 
-        {/* High-Resolution Crisp Foreground Image - 100% FULL Image Visible, ZERO Cropping */}
+        {/* High-Resolution Foreground Image - Edge-to-Edge Full Width Cover */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
+              className={`absolute inset-0 z-10 transition-opacity duration-1000 ease-in-out ${
                 isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
