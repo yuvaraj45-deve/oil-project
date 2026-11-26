@@ -1311,7 +1311,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   return (
-    <div className="h-screen w-full bg-stone-100 text-stone-900 flex flex-col md:flex-row font-sans overflow-hidden">
+    <div className="h-screen w-full bg-stone-100 text-stone-900 flex flex-row font-sans overflow-x-auto overflow-y-hidden">
 
       {/* Toast Notification */}
       {toastMessage && (
@@ -1322,27 +1322,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* MOBILE DRAWER BACKDROP (Only active on phone view)           */}
+      {/* SIDEBAR: ALWAYS VISIBLE ON THE LEFT (LAPTOP & PHONE FULL VIEW)*/}
       {/* ============================================================ */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs transition-opacity animate-fadeIn"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      <aside className="w-56 sm:w-64 lg:w-72 bg-[#132c19] text-cream-100 border-r border-[#1a3821] flex flex-col shrink-0 h-screen sticky top-0 z-30 overflow-y-auto select-none">
 
-      {/* ============================================================ */}
-      {/* MOBILE DRAWER SIDEBAR: Slide-over Drawer for Phone View       */}
-      {/* ============================================================ */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[#132c19] text-cream-100 border-r border-[#1a3821] flex flex-col shrink-0 h-full overflow-hidden transition-transform duration-300 ease-in-out md:hidden shadow-2xl ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
-        }`}
-      >
-        {/* Brand Header with Close Button */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 p-1 flex items-center justify-center shadow-md shrink-0 border border-white/10 overflow-hidden">
+        {/* Brand Header: SS Oil Pure & Healthy */}
+        <div className="p-4 sm:p-5 lg:p-6 border-b border-white/10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/10 p-1 flex items-center justify-center shadow-md shrink-0 border border-white/10 overflow-hidden">
               <img
                 src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
                 alt="SS Oil Logo"
@@ -1350,26 +1337,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               />
             </div>
             <div>
-              <h1 className="font-serif text-xl font-black tracking-tight text-white leading-none">
+              <h1 className="font-serif text-lg sm:text-xl font-black tracking-tight text-white leading-none">
                 {settings.storeName || "ss oil"}
               </h1>
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">
+              <p className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">
                 {settings.tagline || 'Pure & Healthy'}
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 rounded-xl text-stone-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-            aria-label="Close Navigation Menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Sidebar Navigation Items */}
-        <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto select-none relative z-10">
+        <nav className="p-3 sm:p-4 space-y-1.5 flex-1 select-none relative z-10">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'products', label: 'Products', icon: Package },
@@ -1390,85 +1369,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   handleTabChange(item.id as AdminTab);
                   setSearchTerm('');
                 }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                  isActive
-                    ? 'bg-[#1e7e34] text-white shadow-md font-bold'
-                    : 'text-stone-300 hover:text-white hover:bg-white/10 font-medium'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
-                </div>
-                {item.count !== undefined && item.count > 0 ? (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-[#132c19] text-white' : 'bg-amber-400 text-stone-900 shadow-2xs font-extrabold'
-                    }`}
-                  >
-                    {item.count}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* ============================================================ */}
-      {/* DESKTOP SIDEBAR: Sticky Column on Desktop (Hidden on Mobile) */}
-      {/* ============================================================ */}
-      <aside className="hidden md:flex md:w-64 lg:w-72 bg-[#132c19] text-cream-100 border-r border-[#1a3821] flex-col shrink-0 h-screen sticky top-0 z-30 overflow-hidden relative">
-
-        {/* Brand Header: SS Oil Pure & Healthy */}
-        <div className="p-5 lg:p-6 border-b border-white/10 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 p-1 flex items-center justify-center shadow-md shrink-0 border border-white/10 overflow-hidden">
-              <img
-                src={settings.logoUrl || "/admin_assets/ss_gold_drop_logo.png"}
-                alt="SS Oil Logo"
-                className="w-full h-full object-contain rounded-xl drop-shadow"
-              />
-            </div>
-            <div>
-              <h1 className="font-serif text-xl font-black tracking-tight text-white leading-none">
-                {settings.storeName || "ss oil"}
-              </h1>
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">
-                {settings.tagline || 'Pure & Healthy'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar Navigation Items from Screenshot */}
-        <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto select-none relative z-10">
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: Home },
-            { id: 'products', label: 'Products', icon: Package },
-            { id: 'categories', label: 'Categories', icon: Layers },
-            { id: 'videos', label: 'Homepage Video', icon: Video },
-            { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
-            { id: 'customers', label: 'Customers', icon: Users, count: unreadCustomersCount },
-            { id: 'settings', label: 'Settings', icon: Settings },
-            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  handleTabChange(item.id as AdminTab);
-                  setSearchTerm('');
-                }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${isActive
+                className={`w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${isActive
                   ? 'bg-[#1e7e34] text-white shadow-md font-bold'
                   : 'text-stone-300 hover:text-white hover:bg-white/10 font-medium'
                   }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
                   <Icon className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
@@ -1488,35 +1394,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       </aside>
 
       {/* ============================================================ */}
-      {/* RIGHT MAIN CONTENT AREA                                      */}
+      {/* RIGHT MAIN CONTENT AREA: FULL DESKTOP PROPORTIONS           */}
       {/* ============================================================ */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden bg-[#F8FAF9]">
+      <div className="flex-1 flex flex-col min-w-[700px] md:min-w-0 h-full overflow-y-auto overflow-x-hidden bg-[#F8FAF9]">
 
         {/* Top Header Bar matching Screenshot */}
-        <header className="bg-white border-b border-stone-200 sticky top-0 z-20 px-3 sm:px-8 py-3 flex items-center justify-between shadow-2xs">
-          {/* Search Anything Bar & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 flex-1 max-w-md">
-            {/* Hamburger Button for Mobile Phones */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-all shrink-0 cursor-pointer border border-stone-200"
-              title="Open Navigation Menu"
-              aria-label="Open Navigation Menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search anything..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 sm:pr-4 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] focus:bg-white transition-all text-stone-800 placeholder-stone-400"
-              />
-            </div>
+        <header className="bg-white border-b border-stone-200 sticky top-0 z-20 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+          {/* Search Anything Bar */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search anything..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs focus:outline-none focus:border-[#1e7e34] focus:bg-white transition-all text-stone-800 placeholder-stone-400"
+            />
           </div>
 
           {/* Right: Notifications & Admin Profile */}
