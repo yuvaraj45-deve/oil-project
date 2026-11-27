@@ -816,6 +816,9 @@ export function App() {
               selectedCategory={selectedCategory}
             />
 
+            {/* 2-inch Space between Oil Cans and Home Hero Section (~2 inches / 80-96px) */}
+            <div className="h-16 sm:h-20 lg:h-24 w-full bg-[#fbfbf9]" aria-hidden="true" />
+
             {/* 2. Hero Section: Timeless Purity, Modern Convenience with Yellow SHOP NOW Button */}
             <Hero
               onShopNow={() => navigateTo('/shop')}
