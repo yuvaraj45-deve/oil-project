@@ -41,10 +41,10 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   const marqueeBottles = [...bottles, ...bottles];
 
   return (
-    <div className="w-full bg-white border-b border-stone-200/90 pt-0 pb-1.5 sm:pt-0 sm:pb-2.5 select-none relative overflow-hidden">
+    <div className="w-full bg-white border-b border-stone-200/90 pt-0.5 pb-1 sm:pb-1.5 select-none relative overflow-hidden">
       {/* Moving Oil Cans / Standing Bottles Marquee (Right to Left Continuous Motion) */}
       <div className="flex overflow-hidden relative w-full">
-        <div className="flex items-end gap-10 sm:gap-14 md:gap-16 lg:gap-20 animate-bottles-marquee pt-0 pb-0.5 pr-10 sm:pr-14 md:pr-16 lg:pr-20">
+        <div className="flex items-end gap-8 sm:gap-12 md:gap-14 lg:gap-16 animate-bottles-marquee pt-0 pb-0.5 pr-8 sm:pr-12 md:pr-14 lg:pr-16">
           {marqueeBottles.map((bottle, idx) => {
             const rawDisplayName =
               language === 'ta' && bottle.tamilName ? bottle.tamilName : bottle.name;
@@ -59,7 +59,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
                 className="group flex flex-col items-center shrink-0 select-none cursor-default"
               >
                 {/* Standing Bottle Presentation with Floor Shadow - 100% Transparent PNG */}
-                <div className="relative h-28 sm:h-36 lg:h-44 w-20 sm:w-24 lg:w-28 flex items-end justify-center pointer-events-none select-none">
+                <div className="relative h-20 sm:h-24 lg:h-28 w-14 sm:w-16 lg:w-20 flex items-end justify-center pointer-events-none select-none">
                   <img
                     src={bottle.image}
                     alt={displayName}
@@ -69,11 +69,11 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
                     className="max-h-full max-w-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.14)] pointer-events-none select-none"
                   />
                   {/* Subtle Floor Shadow */}
-                  <div className="absolute -bottom-1 w-14 h-2 bg-black/15 blur-xs rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-1 w-12 sm:w-14 h-1.5 bg-black/15 blur-xs rounded-full pointer-events-none" />
                 </div>
 
                 {/* Bottle Title Label with user-provided SS OIL logo */}
-                <div className="mt-2.5 flex items-center justify-center gap-1.5 select-none">
+                <div className="mt-1 sm:mt-1.5 flex items-center justify-center gap-1.5 select-none">
                   <img
                     src="/admin_assets/ss_gold_drop_logo.png"
                     alt="SS Oil"

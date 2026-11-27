@@ -295,7 +295,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div
           className={`bg-white overflow-hidden transition-all duration-300 ease-in-out border-t border-stone-100/90 ${
             showHeadingBar
-              ? 'max-h-[600px] opacity-100 pt-1 pb-3 sm:pb-3.5 px-3 sm:px-4 block'
+              ? 'max-h-[600px] opacity-100 pt-0.5 pb-1 sm:pb-1.5 px-3 sm:px-4 block'
               : 'max-h-0 opacity-0 py-0 px-3 sm:px-4 pointer-events-none'
           }`}
         >
