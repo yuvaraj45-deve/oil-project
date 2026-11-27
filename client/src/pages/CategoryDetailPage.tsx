@@ -201,6 +201,20 @@ const CATEGORY_METAS: Record<string, CategoryMeta> = {
   },
 };
 
+const formatPackSizeBadge = (pack: string, lang: string): string => {
+  if (!pack) return '';
+  const isTa = lang === 'ta';
+  if (/500\s*ml/i.test(pack)) return isTa ? '500மி.லி' : '500ml';
+  if (/250\s*ml/i.test(pack)) return isTa ? '250மி.லி' : '250ml';
+  if (/1\s*litre|1\s*liter|1\s*l\b/i.test(pack)) return isTa ? '1லி' : '1L';
+  if (/2\s*litre|2\s*liter|2\s*l\b/i.test(pack)) return isTa ? '2லி' : '2L';
+  if (/5\s*litre|5\s*liter|5\s*l\b/i.test(pack)) return isTa ? '5லி' : '5L';
+  if (/15\s*litre|15\s*liter|15\s*l\b/i.test(pack)) return isTa ? '15லி' : '15L';
+  if (/500\s*g\b/i.test(pack)) return isTa ? '500கி' : '500g';
+  if (/1\s*kg\b/i.test(pack)) return isTa ? '1கிலோ' : '1kg';
+  return pack.replace(/\s*(Bottle|Glass Jar|Jar|Can|Tin|Pouch|Pack|Block)\b/gi, '').trim();
+};
+
 export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   categorySlug,
   onAddToCart,
@@ -250,16 +264,74 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const isProductInCategory = (p: Product, slug: string): boolean => {
     const target = slug.toLowerCase().trim();
     const pCat = (p.category || '').toLowerCase().trim();
+    const pName = (p.name || '').toLowerCase().trim();
+
+    // Prevent cross-category oil leakage by name verification:
+    // Mustard Oil should never leak into Sesame Oil, Groundnut into Coconut, etc.
+    if (target.includes('sesame')) {
+      if (pName.includes('mustard') || pName.includes('groundnut') || pName.includes('peanut') || pName.includes('coconut') || pName.includes('sunflower')) {
+        return false;
+      }
+    }
+    if (target.includes('groundnut')) {
+      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('mustard') || pName.includes('coconut') || pName.includes('sunflower')) {
+        return false;
+      }
+    }
+    if (target.includes('coconut')) {
+      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('mustard') || pName.includes('sunflower')) {
+        return false;
+      }
+    }
+    if (target.includes('sunflower')) {
+      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('mustard') || pName.includes('coconut')) {
+        return false;
+      }
+    }
+    if (target.includes('mustard')) {
+      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('coconut')) {
+        return false;
+      }
+    }
+
     if (pCat === target) return true;
     if (pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
     return false;
   };
 
-  // Find all products matching this category slug
-  const matchingProducts = sourceProducts.filter((p) => isProductInCategory(p, categorySlug));
+  const getProductCanonicalKey = (p: Product): string => {
+    let clean = (p.name || '').toLowerCase()
+      .replace(/\bss\s*oil\b/gi, '')
+      .replace(/\bss\b/gi, '')
+      .replace(/\bmara\s*chekku\b/gi, '')
+      .replace(/\b(pure|raw|premium|wood-pressed|cold-pressed|traditional|virgin|authentic|everyday|light|heart-care)\b/gi, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+    const slugKey = (p.slug || '').toLowerCase()
+      .replace(/ss-oil-|ss-|-1000/g, '')
+      .replace(/[^a-z0-9]/g, '');
+    return clean || slugKey || p.id;
+  };
 
-  // If there are other popular products, show them as related
-  const otherProducts = sourceProducts.filter((p) => p.category !== categorySlug).slice(0, 4);
+  // Find all products matching this category slug with strict deduplication
+  const rawMatching = sourceProducts.filter((p) => isProductInCategory(p, categorySlug));
+  const seenMatchingKeys = new Set<string>();
+  const matchingProducts = rawMatching.filter((p) => {
+    const key = getProductCanonicalKey(p);
+    if (seenMatchingKeys.has(key)) return false;
+    seenMatchingKeys.add(key);
+    return true;
+  });
+
+  // If there are other popular products, show them as related (strictly deduplicated)
+  const seenOtherKeys = new Set<string>(seenMatchingKeys);
+  const otherProducts = sourceProducts.filter((p) => {
+    if (isProductInCategory(p, categorySlug)) return false;
+    const key = getProductCanonicalKey(p);
+    if (seenOtherKeys.has(key)) return false;
+    seenOtherKeys.add(key);
+    return true;
+  }).slice(0, 4);
 
   // Pack price calculator
   const getPackPrice = (basePrice: number, pack: string): number => {
@@ -505,24 +577,26 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 </div>
 
                 {/* Pack Size Selector with Live Price Update */}
-                <div className="mb-4 space-y-1.5">
+                <div className="mb-4 space-y-1.5 min-h-[48px]">
                   <label className="text-[11px] font-bold uppercase text-stone-500 block">
                     {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்:' : 'Choose Pack Size:'}
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5">
                     {product.packSizes.map((pack) => {
                       const isSelected = selectedPack === pack;
+                      const compactLabel = formatPackSizeBadge(pack, language);
                       return (
                         <button
                           key={pack}
                           onClick={() => handlePackChange(product.id, pack)}
-                          className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
                             isSelected
                               ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
                               : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
                           }`}
+                          title={pack}
                         >
-                          {pack}
+                          {compactLabel}
                         </button>
                       );
                     })}

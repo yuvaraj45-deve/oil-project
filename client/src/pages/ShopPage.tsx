@@ -184,9 +184,25 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     );
   };
 
-  // Regular individual oils for products grid (excluding any legacy combo badges)
+  // Regular individual oils for products grid (excluding any legacy combo badges, strictly deduplicated)
   const regularSourceProducts = useMemo(() => {
-    return sourceProducts.filter((p) => !isComboProduct(p));
+    const nonCombos = sourceProducts.filter((p) => !isComboProduct(p));
+    const seen = new Set<string>();
+    return nonCombos.filter((p) => {
+      const normName = (p.name || '')
+        .toLowerCase()
+        .replace(/\bss\s*oil\b/gi, '')
+        .replace(/\bss\b/gi, '')
+        .replace(/\bmara\s*chekku\b/gi, '')
+        .replace(/\b(pure|raw|premium|wood-pressed|cold-pressed|traditional|virgin|authentic|everyday|light|heart-care)\b/gi, '')
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
+      const cat = (p.category || '').toLowerCase().replace(/-oil$/, '').trim();
+      const key = `${normName}::${cat}` || p.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [sourceProducts]);
 
   // Filter regular products by category pill and search query
@@ -322,72 +338,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         </div>
 
         {/* ============================================================ */}
-        {/* 2. PRODUCT CATEGORIES / FILTERS & SEARCH TOOLBAR             */}
+        {/* 2. SEARCH & SORT TOOLBAR (Categories removed as requested)   */}
         {/* ============================================================ */}
-        <section className="space-y-5 pt-4">
-          <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="font-serif font-black text-xl text-forest-950">
-                {language === 'ta' ? 'தயாரிப்பு வகைகள் & வடிகட்டி' : 'Explore by Category'}
-              </h3>
-              <p className="text-xs text-stone-500">
-                Filter pure cold-pressed oils by seed type & culinary usage
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-stone-500 font-medium">
-                {t('shop.sortBy')}
-              </span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer shadow-2xs"
-              >
-                <option value="featured">{t('shop.sort.featured')}</option>
-                <option value="price-low">{t('shop.sort.priceLow')}</option>
-                <option value="price-high">{t('shop.sort.priceHigh')}</option>
-                <option value="rating">{t('shop.sort.rating')}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button
-              type="button"
-              onClick={() => setSelectedCat('all')}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${selectedCat === 'all'
-                ? 'bg-forest-950 text-white shadow-md'
-                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-                }`}
-            >
-              {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
-            </button>
-            {categoriesList.map((cat) => {
-              const isSelected = selectedCat === cat.slug;
-              const displayName =
-                language === 'ta'
-                  ? cat.tamilTitle || CATEGORY_DEFAULT_TAMIL_NAMES[cat.slug] || cat.title
-                  : cat.title;
-
-              return (
-                <button
-                  key={cat.id || cat.slug}
-                  type="button"
-                  onClick={() => setSelectedCat(cat.slug)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${isSelected
-                    ? 'bg-forest-950 text-white shadow-md'
-                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-                    }`}
-                >
-                  {displayName}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search Box & Product Counter */}
+        <section className="pt-2">
           <div className="bg-white rounded-2xl border border-stone-200 p-3 sm:px-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
             <div className="relative w-full sm:w-96">
               <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -409,10 +362,28 @@ export const ShopPage: React.FC<ShopPageProps> = ({
               )}
             </div>
 
-            <div className="text-xs text-stone-500 font-medium">
-              <span>{t('shop.showing')} </span>
-              <strong className="text-forest-950 font-bold">{sortedRegularProducts.length}</strong>
-              <span> {t('shop.productsCount')}</span>
+            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="text-xs text-stone-500 font-medium">
+                <span>{t('shop.showing')} </span>
+                <strong className="text-forest-950 font-bold">{sortedRegularProducts.length}</strong>
+                <span> {t('shop.productsCount')}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-stone-500 font-medium whitespace-nowrap">
+                  {t('shop.sortBy')}
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer shadow-2xs"
+                >
+                  <option value="featured">{t('shop.sort.featured')}</option>
+                  <option value="price-low">{t('shop.sort.priceLow')}</option>
+                  <option value="price-high">{t('shop.sort.priceHigh')}</option>
+                  <option value="rating">{t('shop.sort.rating')}</option>
+                </select>
+              </div>
             </div>
           </div>
         </section>

@@ -90,6 +90,19 @@ export const normalizeHomepage4 = (configuredIds: string[] | undefined, allProds
   return selected;
 };
 
+const getNormalizedProductKey = (p: Product): string => {
+  const normCategory = (p.category || '').toLowerCase().replace(/-oil$/, '').trim();
+  const normName = (p.name || '')
+    .toLowerCase()
+    .replace(/\bss\s*oil\b/gi, '')
+    .replace(/\bss\b/gi, '')
+    .replace(/\bmara\s*chekku\b/gi, '')
+    .replace(/\b(pure|raw|premium|wood-pressed|cold-pressed|traditional|virgin|authentic|everyday|light|heart-care)\b/gi, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  return `${normName}::${normCategory}`;
+};
+
 const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | null)[]): Product[] => {
   const deletedIds = getDeletedProductIds();
   const map = new Map<string, Product>();
@@ -100,7 +113,9 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
     if (!deletedIds.includes(p.id)) {
       map.set(p.id, p);
       const nameKey = `${(p.name || '').toLowerCase().trim()}::${(p.category || '').toLowerCase().trim()}`;
+      const normKey = getNormalizedProductKey(p);
       if (nameKey) nameToIdMap.set(nameKey, p.id);
+      if (normKey) nameToIdMap.set(normKey, p.id);
     }
   });
 
@@ -123,18 +138,20 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
       }
 
       const nameKey = `${(sanitized.name || '').toLowerCase().trim()}::${(sanitized.category || '').toLowerCase().trim()}`;
+      const normKey = getNormalizedProductKey(sanitized);
+      const matchedExistingId = (nameKey && nameToIdMap.get(nameKey)) || (normKey && nameToIdMap.get(normKey));
 
       if (map.has(p.id)) {
         const existing = map.get(p.id)!;
         map.set(p.id, { ...existing, ...sanitized });
-      } else if (nameKey && nameToIdMap.has(nameKey)) {
+      } else if (matchedExistingId && map.has(matchedExistingId)) {
         // If a product with the exact same name & category exists under another ID (e.g. temp client ID vs server ID):
-        const existingId = nameToIdMap.get(nameKey)!;
-        const existing = map.get(existingId)!;
-        map.set(existingId, { ...existing, ...sanitized, id: existingId });
+        const existing = map.get(matchedExistingId)!;
+        map.set(matchedExistingId, { ...existing, ...sanitized, id: matchedExistingId });
       } else {
         map.set(p.id, sanitized);
         if (nameKey) nameToIdMap.set(nameKey, p.id);
+        if (normKey) nameToIdMap.set(normKey, p.id);
       }
     });
   });
