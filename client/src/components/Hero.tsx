@@ -165,20 +165,20 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           );
         })}
 
-        {/* High-Resolution Foreground Image - Edge-to-Edge Full Width Cover */}
+        {/* High-Resolution Foreground Image - 100% FULL Image Visible, ZERO Cropping */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 z-10 transition-opacity duration-1000 ease-in-out ${
+              className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
                 isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-cover object-center pointer-events-none select-none"
+                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
