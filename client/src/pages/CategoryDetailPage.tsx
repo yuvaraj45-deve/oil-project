@@ -260,57 +260,79 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const { products } = useStore();
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Strict 1:1 category matcher (Guarantees zero cross-category product leakage)
+  // Resolve botanical category from product metadata
+  const getResolvedCategory = (p: Product): string => {
+    const name = (p.name || '').toLowerCase();
+    const slug = (p.slug || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase().trim();
+
+    // 1. Combo detection
+    if (
+      cat === 'combo-offers' ||
+      cat === 'combo' ||
+      name.includes('combo') ||
+      name.includes('buy 2 get 1') ||
+      name.includes('b2g1') ||
+      name.includes('trio')
+    ) {
+      return 'combo-offers';
+    }
+
+    // 2. Specific botanical source based matching
+    if (name.includes('mustard') || slug.includes('mustard')) return 'mustard-oil';
+    if (name.includes('sunflower') || slug.includes('sunflower')) return 'sunflower-oil';
+    if (name.includes('rice bran') || name.includes('ricebran') || slug.includes('ricebran')) return 'ricebran-oil';
+    if (name.includes('groundnut') || name.includes('peanut') || name.includes('kadala') || slug.includes('groundnut')) return 'groundnut-oil';
+    if (name.includes('sesame') || name.includes('gingelly') || name.includes('til') || slug.includes('sesame')) return 'sesame-oil';
+    if (name.includes('coconut') || name.includes('copra') || slug.includes('coconut')) return 'coconut-oil';
+    if (name.includes('pooja') || name.includes('deepam') || name.includes('lamp') || slug.includes('pooja')) return 'pooja-special';
+    if (name.includes('ghee') || name.includes('bilona') || slug.includes('ghee')) return 'a2-desi-ghee';
+    if (name.includes('jaggery') || name.includes('karupatti') || slug.includes('jaggery')) return 'palm-jaggery-special';
+
+    // 3. Everyday cooking oil
+    if (name.includes('cooking') || name.includes('everyday') || cat === 'cooking-oil') return 'cooking-oil';
+
+    return cat;
+  };
+
+  // Strict 1:1 category matcher (Guarantees zero cross-category product leakage & zero missing products)
   const isProductInCategory = (p: Product, slug: string): boolean => {
     const target = slug.toLowerCase().trim();
+    const resolvedCat = getResolvedCategory(p);
+
+    if (resolvedCat === target) return true;
+    if (resolvedCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
+
     const pCat = (p.category || '').toLowerCase().trim();
-    const pName = (p.name || '').toLowerCase().trim();
-
-    // Prevent cross-category oil leakage by name verification:
-    // Mustard Oil should never leak into Sesame Oil, Groundnut into Coconut, etc.
-    if (target.includes('sesame')) {
-      if (pName.includes('mustard') || pName.includes('groundnut') || pName.includes('peanut') || pName.includes('coconut') || pName.includes('sunflower')) {
-        return false;
-      }
-    }
-    if (target.includes('groundnut')) {
-      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('mustard') || pName.includes('coconut') || pName.includes('sunflower')) {
-        return false;
-      }
-    }
-    if (target.includes('coconut')) {
-      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('mustard') || pName.includes('sunflower')) {
-        return false;
-      }
-    }
-    if (target.includes('sunflower')) {
-      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('mustard') || pName.includes('coconut')) {
-        return false;
-      }
-    }
-    if (target.includes('mustard')) {
-      if (pName.includes('sesame') || pName.includes('gingelly') || pName.includes('groundnut') || pName.includes('coconut')) {
-        return false;
-      }
+    if (pCat === target || pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) {
+      const name = (p.name || '').toLowerCase();
+      // Ensure botanical name doesn't belong to another category
+      if (target.includes('sesame') && (name.includes('mustard') || name.includes('coconut') || name.includes('groundnut'))) return false;
+      if (target.includes('ghee') && name.includes('cooking')) return false;
+      if (target.includes('cooking') && (name.includes('sunflower') || name.includes('rice bran') || name.includes('ricebran'))) return false;
+      return true;
     }
 
-    if (pCat === target) return true;
-    if (pCat.replace(/-oil$/, '') === target.replace(/-oil$/, '')) return true;
     return false;
   };
 
   const getProductCanonicalKey = (p: Product): string => {
-    let clean = (p.name || '').toLowerCase()
-      .replace(/\bss\s*oil\b/gi, '')
-      .replace(/\bss\b/gi, '')
-      .replace(/\bmara\s*chekku\b/gi, '')
-      .replace(/\b(pure|raw|premium|wood-pressed|cold-pressed|traditional|virgin|authentic|everyday|light|heart-care)\b/gi, '')
-      .replace(/[^a-z0-9]/g, '')
-      .trim();
-    const slugKey = (p.slug || '').toLowerCase()
-      .replace(/ss-oil-|ss-|-1000/g, '')
-      .replace(/[^a-z0-9]/g, '');
-    return clean || slugKey || p.id;
+    const name = (p.name || '').toLowerCase();
+    if (name.includes('groundnut') || name.includes('peanut')) return 'groundnut-oil';
+    if (name.includes('sesame') || name.includes('gingelly')) return 'sesame-oil';
+    if (name.includes('coconut')) return 'coconut-oil';
+    if (name.includes('sunflower')) return 'sunflower-oil';
+    if (name.includes('rice bran') || name.includes('ricebran')) return 'ricebran-oil';
+    if (name.includes('mustard')) return 'mustard-oil';
+    if (name.includes('pooja') || name.includes('deepam')) return 'pooja-special';
+    if (name.includes('ghee')) return 'a2-desi-ghee';
+    if (name.includes('jaggery') || name.includes('karupatti')) return 'palm-jaggery-special';
+    if (name.includes('everyday') || name.includes('gold everyday')) return 'everyday-cooking-oil';
+    if (name.includes('gold winner')) return 'gold-winner-oil';
+    if (name.includes('buy 2 get 1') || name.includes('b2g1')) return 'b2g1-combo';
+    if (name.includes('trio')) return 'heritage-trio-combo';
+
+    return (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') || p.id;
   };
 
   // Find all products matching this category slug with strict deduplication

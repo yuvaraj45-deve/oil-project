@@ -189,16 +189,21 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     const nonCombos = sourceProducts.filter((p) => !isComboProduct(p));
     const seen = new Set<string>();
     return nonCombos.filter((p) => {
-      const normName = (p.name || '')
-        .toLowerCase()
-        .replace(/\bss\s*oil\b/gi, '')
-        .replace(/\bss\b/gi, '')
-        .replace(/\bmara\s*chekku\b/gi, '')
-        .replace(/\b(pure|raw|premium|wood-pressed|cold-pressed|traditional|virgin|authentic|everyday|light|heart-care)\b/gi, '')
-        .replace(/[^a-z0-9]/g, '')
-        .trim();
-      const cat = (p.category || '').toLowerCase().replace(/-oil$/, '').trim();
-      const key = `${normName}::${cat}` || p.id;
+      const name = (p.name || '').toLowerCase();
+      let key = '';
+      if (name.includes('groundnut') || name.includes('peanut')) key = 'groundnut-oil';
+      else if (name.includes('sesame') || name.includes('gingelly')) key = 'sesame-oil';
+      else if (name.includes('coconut')) key = 'coconut-oil';
+      else if (name.includes('sunflower')) key = 'sunflower-oil';
+      else if (name.includes('rice bran') || name.includes('ricebran')) key = 'ricebran-oil';
+      else if (name.includes('mustard')) key = 'mustard-oil';
+      else if (name.includes('pooja') || name.includes('deepam')) key = 'pooja-special';
+      else if (name.includes('ghee')) key = 'a2-desi-ghee';
+      else if (name.includes('jaggery') || name.includes('karupatti')) key = 'palm-jaggery-special';
+      else if (name.includes('everyday') || name.includes('gold everyday')) key = 'everyday-cooking-oil';
+      else if (name.includes('gold winner')) key = 'gold-winner-oil';
+      else key = name.replace(/[^a-z0-9]/g, '') || p.id;
+
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

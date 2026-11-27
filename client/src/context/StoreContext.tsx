@@ -91,9 +91,23 @@ export const normalizeHomepage4 = (configuredIds: string[] | undefined, allProds
 };
 
 const getNormalizedProductKey = (p: Product): string => {
+  const name = (p.name || '').toLowerCase();
+  if (name.includes('groundnut') || name.includes('peanut')) return 'groundnut-oil';
+  if (name.includes('sesame') || name.includes('gingelly')) return 'sesame-oil';
+  if (name.includes('coconut')) return 'coconut-oil';
+  if (name.includes('sunflower')) return 'sunflower-oil';
+  if (name.includes('rice bran') || name.includes('ricebran')) return 'ricebran-oil';
+  if (name.includes('mustard')) return 'mustard-oil';
+  if (name.includes('pooja') || name.includes('deepam')) return 'pooja-special';
+  if (name.includes('ghee')) return 'a2-desi-ghee';
+  if (name.includes('jaggery') || name.includes('karupatti')) return 'palm-jaggery-special';
+  if (name.includes('everyday') || name.includes('gold everyday')) return 'everyday-cooking-oil';
+  if (name.includes('gold winner')) return 'gold-winner-oil';
+  if (name.includes('buy 2 get 1') || name.includes('b2g1')) return 'b2g1-combo';
+  if (name.includes('trio')) return 'heritage-trio-combo';
+
   const normCategory = (p.category || '').toLowerCase().replace(/-oil$/, '').trim();
-  const normName = (p.name || '')
-    .toLowerCase()
+  const normName = name
     .replace(/\bss\s*oil\b/gi, '')
     .replace(/\bss\b/gi, '')
     .replace(/\bmara\s*chekku\b/gi, '')
