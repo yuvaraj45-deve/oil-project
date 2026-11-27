@@ -71,18 +71,6 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
                   {/* Subtle Floor Shadow */}
                   <div className="absolute -bottom-1 w-12 sm:w-14 h-1.5 bg-black/15 blur-xs rounded-full pointer-events-none" />
                 </div>
-
-                {/* Bottle Title Label with user-provided SS OIL logo */}
-                <div className="mt-1 sm:mt-1.5 flex items-center justify-center gap-1.5 select-none">
-                  <img
-                    src="/admin_assets/ss_gold_drop_logo.png"
-                    alt="SS Oil"
-                    className="w-3.5 h-3.5 object-contain shrink-0"
-                  />
-                  <span className="text-xs sm:text-[13px] font-serif font-bold tracking-tight text-center text-[#8B2323] whitespace-nowrap select-none">
-                    {displayName}
-                  </span>
-                </div>
               </div>
             );
           })}

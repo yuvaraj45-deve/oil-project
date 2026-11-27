@@ -93,25 +93,6 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       buttonText: language === 'ta' ? 'நல்லெண்ணெய் வாங்க' : 'SHOP NOW',
       category: 'sesame-oil',
     },
-    {
-      id: 'smart-dispenser',
-      bannerImage: '/banners/smart_measuring_banner.jpg',
-      headline: (
-        <>
-          {language === 'ta' ? (
-            <>ஸ்மார்ட் அளவீடு,<br />சொட்டு சிந்தாத மூடி</>
-          ) : (
-            <>Smart Dosage,<br />Zero Mess Pouring</>
-          )}
-        </>
-      ),
-      subheadline:
-        language === 'ta'
-          ? 'உள்ளமைக்கப்பட்ட 10ml, 20ml, 30ml சேம்பர் மற்றும் ஆன்டி-டிரிப் ஸ்பவுட்டுடன் கூடிய பிரத்யேக ஸ்மார்ட் பாட்டில்.'
-          : 'Built-in 10ml, 20ml & 30ml measuring chamber dispenser keeping your kitchen countertops spotless and clean.',
-      buttonText: language === 'ta' ? 'ஸ்மார்ட் பாட்டில் வாங்க' : 'SHOP NOW',
-      category: 'cooking-oil',
-    },
   ];
 
   const handleNext = useCallback(() => {
@@ -166,35 +147,50 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           );
         })}
 
-        {/* Minimal Soft Scrim - Keeps text overlay legible without hiding the banner details */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-black/15 to-transparent pointer-events-none" />
-
-        {/* Text Overlay - Clean, elegant left-aligned title & Shop Now button */}
-        <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-4 sm:px-8 lg:px-14 flex flex-col justify-center pointer-events-none">
+        {/* Text Overlay - Clean, elegant title & Shop Now button */}
+        <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-4 sm:px-8 lg:px-14 flex flex-col justify-end pb-8 sm:pb-10 lg:pb-12 pointer-events-none">
           <div
             key={currentSlide}
-            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-1.5 sm:space-y-2.5 animate-fadeIn"
+            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-1.5 sm:space-y-2 animate-fadeIn"
           >
-            <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-              {activeSlide.headline}
-            </h1>
-            <p className="text-[11px] sm:text-xs md:text-sm text-white/95 font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] max-w-md line-clamp-2 sm:line-clamp-none">
-              {activeSlide.subheadline}
-            </p>
-            <div className="pt-0.5 sm:pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onSelectCategory && activeSlide.category !== 'all') {
-                    onSelectCategory(activeSlide.category);
-                  }
-                  onShopNow();
-                }}
-                className="px-4 sm:px-6 py-1.5 sm:py-2 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[10px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer rounded-none hover:scale-105 active:scale-95"
-              >
-                {activeSlide.buttonText}
-              </button>
-            </div>
+            {activeSlide.id === '3-generations-heritage' ? (
+              /* Slide 1 has rich heritage artwork with built-in title; only display the clean Shop Now button so zero artwork is covered */
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onShopNow();
+                  }}
+                  className="px-5 sm:px-7 py-2 sm:py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-xs sm:text-sm tracking-wider uppercase transition-all duration-150 shadow-xl cursor-pointer hover:scale-105 active:scale-95"
+                >
+                  {activeSlide.buttonText}
+                </button>
+              </div>
+            ) : (
+              /* Slide 2 & 3: Clean, crisp text with strong drop shadows for 100% legibility without dark scrim */
+              <>
+                <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+                  {activeSlide.headline}
+                </h1>
+                <p className="text-[11px] sm:text-xs md:text-sm text-white/95 font-medium leading-relaxed drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)] max-w-md line-clamp-2 sm:line-clamp-none">
+                  {activeSlide.subheadline}
+                </p>
+                <div className="pt-0.5 sm:pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSelectCategory && activeSlide.category !== 'all') {
+                        onSelectCategory(activeSlide.category);
+                      }
+                      onShopNow();
+                    }}
+                    className="px-4 sm:px-6 py-1.5 sm:py-2 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[10px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer hover:scale-105 active:scale-95"
+                  >
+                    {activeSlide.buttonText}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
