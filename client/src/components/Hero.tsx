@@ -138,47 +138,28 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   return (
     <section
       id="home"
-      className="relative overflow-hidden bg-[#0a1e12] text-white select-none w-full p-0 m-0"
+      className="relative overflow-hidden bg-[#0a1e12] text-white select-none w-full max-w-none p-0 m-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full Width Hero Viewport: Edge-to-edge width cover with sleek responsive height */}
-      <div className="relative w-full h-[260px] sm:h-[360px] md:h-[440px] lg:h-[500px] overflow-hidden flex items-center justify-center">
+      {/* Full Width Hero Viewport: 100% width edge-to-edge cover without blurred sides */}
+      <div className="relative w-full max-w-none h-[280px] sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[650px] overflow-hidden p-0 m-0">
 
-        {/* Ambient Backdrop Fallback */}
-        {slides.map((slide, index) => {
-          const isActive = index === currentSlide;
-          return (
-            <div
-              key={`bg-${slide.id}`}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-40 z-0' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              <img
-                src={slide.bannerImage}
-                alt=""
-                aria-hidden="true"
-                className="w-full h-full object-cover blur-xl scale-105 pointer-events-none select-none"
-              />
-            </div>
-          );
-        })}
-
-        {/* High-Resolution Foreground Image - 100% FULL Image Visible, ZERO Cropping */}
+        {/* Full-Width Foreground Banner Images - object-fit: cover, object-position: center center */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              className={`absolute inset-0 w-full h-full max-w-none transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               }`}
             >
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
+                className="w-full h-full object-cover object-center pointer-events-none select-none max-w-none"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }}
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
