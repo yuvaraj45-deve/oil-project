@@ -20,25 +20,6 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
   // Slides matching the flagship homepage layout
   const slides = [
     {
-      id: 'groundnut-tradition',
-      bannerImage: '/banners/groundnut_hero_banner.jpg',
-      headline: (
-        <>
-          {language === 'ta' ? (
-            <>பாரம்பரியத்தில் வேரூன்றி,<br />நிகழ்காலத்திற்கு</>
-          ) : (
-            <>Rooted in Tradition,<br />Made for Today</>
-          )}
-        </>
-      ),
-      subheadline:
-        language === 'ta'
-          ? 'வாகை மரச்செக்கில் 42°C-க்கு கீழ் இயற்கை வெப்பமின்றிக் கடையப்பட்ட 100% தூய கடலை எண்ணெய்.'
-          : '100% Cold-Pressed Mara Chekku Groundnut Oil crafted with decades of heritage and zero chemical refining.',
-      buttonText: language === 'ta' ? 'கடலை எண்ணெய் வாங்க' : 'SHOP NOW',
-      category: 'groundnut-oil',
-    },
-    {
       id: '3-generations-heritage',
       bannerImage: '/banners/ssoil_3generations_hero_banner.jpg',
       headline: (
@@ -73,6 +54,25 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           ? homeCms?.buttonTamilText || 'இப்போதே வாங்க'
           : homeCms?.buttonText || 'SHOP NOW',
       category: 'all',
+    },
+    {
+      id: 'groundnut-tradition',
+      bannerImage: '/banners/groundnut_hero_banner.jpg',
+      headline: (
+        <>
+          {language === 'ta' ? (
+            <>பாரம்பரியத்தில் வேரூன்றி,<br />நிகழ்காலத்திற்கு</>
+          ) : (
+            <>Rooted in Tradition,<br />Made for Today</>
+          )}
+        </>
+      ),
+      subheadline:
+        language === 'ta'
+          ? 'வாகை மரச்செக்கில் 42°C-க்கு கீழ் இயற்கை வெப்பமின்றிக் கடையப்பட்ட 100% தூய கடலை எண்ணெய்.'
+          : '100% Cold-Pressed Mara Chekku Groundnut Oil crafted with decades of heritage and zero chemical refining.',
+      buttonText: language === 'ta' ? 'கடலை எண்ணெய் வாங்க' : 'SHOP NOW',
+      category: 'groundnut-oil',
     },
     {
       id: 'sesame-sunflower',
