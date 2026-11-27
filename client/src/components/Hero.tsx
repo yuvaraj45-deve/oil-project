@@ -145,21 +145,21 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       {/* Full Width Compact Hero Viewport: Responsive height (Mobile: 250px, Tablet: 340px, Desktop: 420px) */}
       <div className="relative w-full max-w-none h-[250px] sm:h-[340px] lg:h-[420px] overflow-hidden p-0 m-0">
 
-        {/* Full-Width Foreground Banner Images - object-fit: cover, object-position: center center */}
+        {/* Full-Width Foreground Banner Images - object-fit: contain, object-position: center center (Zero Cropping) */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 w-full h-full max-w-none transition-opacity duration-1000 ease-in-out ${
+              className={`absolute inset-0 w-full h-full max-w-none flex items-center justify-center transition-opacity duration-1000 ease-in-out ${
                 isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               }`}
             >
               <img
                 src={slide.bannerImage}
                 alt={`SS OIL Hero Banner ${index + 1}`}
-                className="w-full h-full object-cover object-center pointer-events-none select-none max-w-none"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }}
+                className="w-full h-full object-contain object-center pointer-events-none select-none max-w-none drop-shadow-md"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center center' }}
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             </div>
