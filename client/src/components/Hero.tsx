@@ -142,8 +142,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Full Width Hero Viewport: 100% width edge-to-edge cover without blurred sides */}
-      <div className="relative w-full max-w-none h-[280px] sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[650px] overflow-hidden p-0 m-0">
+      {/* Full Width Compact Hero Viewport: Responsive height (Mobile: 250px, Tablet: 340px, Desktop: 420px) */}
+      <div className="relative w-full max-w-none h-[250px] sm:h-[340px] lg:h-[420px] overflow-hidden p-0 m-0">
 
         {/* Full-Width Foreground Banner Images - object-fit: cover, object-position: center center */}
         {slides.map((slide, index) => {
@@ -166,22 +166,22 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
           );
         })}
 
-        {/* Minimal Soft Scrim - Keeps full image bright, vibrant and clearly visible */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/35 via-black/10 to-transparent pointer-events-none" />
+        {/* Minimal Soft Scrim - Keeps text overlay legible without hiding the banner details */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/40 via-black/15 to-transparent pointer-events-none" />
 
         {/* Text Overlay - Clean, elegant left-aligned title & Shop Now button */}
         <div className="absolute inset-0 z-20 max-w-7xl mx-auto h-full px-4 sm:px-8 lg:px-14 flex flex-col justify-center pointer-events-none">
           <div
             key={currentSlide}
-            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-2 sm:space-y-3.5 animate-fadeIn"
+            className="pointer-events-auto max-w-xs sm:max-w-md lg:max-w-lg space-y-1.5 sm:space-y-2.5 animate-fadeIn"
           >
-            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+            <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
               {activeSlide.headline}
             </h1>
-            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-white/95 font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] max-w-md">
+            <p className="text-[11px] sm:text-xs md:text-sm text-white/95 font-medium leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] max-w-md line-clamp-2 sm:line-clamp-none">
               {activeSlide.subheadline}
             </p>
-            <div className="pt-1 sm:pt-2">
+            <div className="pt-0.5 sm:pt-1">
               <button
                 type="button"
                 onClick={() => {
@@ -190,7 +190,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
                   }
                   onShopNow();
                 }}
-                className="px-5 sm:px-7 py-2 sm:py-2.5 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[11px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer rounded-none hover:scale-105 active:scale-95"
+                className="px-4 sm:px-6 py-1.5 sm:py-2 bg-[#f59e0b] hover:bg-[#fbbf24] active:bg-[#d97706] text-black font-extrabold text-[10px] sm:text-xs md:text-sm tracking-wider uppercase transition-all duration-150 shadow-lg cursor-pointer rounded-none hover:scale-105 active:scale-95"
               >
                 {activeSlide.buttonText}
               </button>
@@ -202,22 +202,22 @@ export const Hero: React.FC<HeroProps> = ({ onShopNow, onSelectCategory }) => {
         <button
           onClick={handlePrev}
           aria-label="Previous Banner Slide"
-          className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1.5 sm:p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1 sm:p-1.5 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
         >
-          <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 stroke-[2.5]" />
+          <ChevronLeft className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 stroke-[2.5]" />
         </button>
 
         {/* Right Arrow Navigation */}
         <button
           onClick={handleNext}
           aria-label="Next Banner Slide"
-          className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1.5 sm:p-2 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 text-white/80 hover:text-white p-1 sm:p-1.5 transition-all cursor-pointer hover:scale-110 focus:outline-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
         >
-          <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 stroke-[2.5]" />
+          <ChevronRight className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 stroke-[2.5]" />
         </button>
 
         {/* Bottom Slide Indicators */}
-        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
+        <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 sm:space-x-2">
           {slides.map((slide, idx) => (
             <button
               key={slide.id}
