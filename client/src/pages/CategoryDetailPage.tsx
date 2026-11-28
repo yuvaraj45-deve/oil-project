@@ -15,6 +15,7 @@ import {
   Filter,
   Heart,
   Tag,
+  X,
 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
@@ -215,6 +216,25 @@ const formatPackSizeBadge = (pack: string, lang: string): string => {
   return pack.replace(/\s*(Bottle|Glass Jar|Jar|Can|Tin|Pouch|Pack|Block)\b/gi, '').trim();
 };
 
+const formatPack = (pack: string, lang: string) => {
+  if (lang !== 'ta') return pack;
+  return pack
+    .replace('500 ml Bottle', '500 மி.லி பாட்டில்')
+    .replace('1 Litre Bottle', '1 லிட்டர் பாட்டில்')
+    .replace('2 Litre Bottle', '2 லிட்டர் பாட்டில்')
+    .replace('5 Litre Can', '5 லிட்டர் கேன்')
+    .replace('1 Litre Glass Jar', '1 லிட்டர் கண்ணாடி பாட்டில்')
+    .replace('2 Litre Can', '2 லிட்டர் கேன்')
+    .replace('5 Litre Tin', '5 லிட்டர் டின்')
+    .replace('15 Litre Tin', '15 லிட்டர் டின்')
+    .replace('1 Litre Pouch', '1 லிட்டர் பாக்கெட்')
+    .replace('250 ml Jar', '250 மி.லி ஜாடி')
+    .replace('500 ml Jar', '500 மி.லி ஜாடி')
+    .replace('1 Litre Jar', '1 லிட்டர் ஜாடி')
+    .replace('500g Block', '500 கிராம் கட்டி')
+    .replace('1 kg Block', '1 கிலோ கட்டி');
+};
+
 export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   categorySlug,
   onAddToCart,
@@ -228,6 +248,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const [selectedPackMap, setSelectedPackMap] = useState<Record<string, string>>({});
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>({});
   const [addedMap, setAddedMap] = useState<Record<string, boolean>>({});
+  const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
 
   React.useEffect(() => {
@@ -538,27 +559,99 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {matchingProducts.map((product) => {
+            const packOptions =
+              product.packSizes && product.packSizes.length > 0
+                ? product.packSizes
+                : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Bottle', '5 Litre Can'];
             const selectedPack =
-              selectedPackMap[product.id] || product.defaultPack || product.packSizes[0] || '1 Litre Bottle';
+              selectedPackMap[product.id] || product.defaultPack || packOptions[0] || '1 Litre Bottle';
             const quantity = quantityMap[product.id] || 1;
             const currentPrice = getPackPrice(product.price, selectedPack);
             const currentOriginalPrice = getPackPrice(product.originalPrice || product.price, selectedPack);
             const isAdded = addedMap[product.id];
+            const isBuying = buyingProductId === product.id;
 
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 hover:border-amber-400 shadow-soft hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 hover:border-amber-400 shadow-soft hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
               >
-                {/* Clickable Product Image with Pack Size Pills on Image */}
+                {/* 1. Buying / Liter Selection Overlay (Exact same design as Shop & Featured Products) */}
+                {isBuying && (
+                  <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
+                          {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்' : 'Choose Pack Size'}
+                        </span>
+                        <h4 className="font-serif font-bold text-forest-950 text-sm sm:text-base leading-tight">
+                          {language === 'ta' ? 'எத்தனை லிட்டர் வேண்டும்?' : 'How many Litres?'}
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBuyingProductId(null);
+                        }}
+                        className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                        title="Close"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Liter Options with Live Calculated Prices */}
+                    <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
+                      {packOptions.map((pack) => {
+                        const packPrice = getPackPrice(product.price, pack);
+                        const packFormatted = formatPack(pack, language);
+                        return (
+                          <button
+                            key={pack}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePackChange(product.id, pack);
+                              onAddToCart(product, pack, quantity);
+                              setBuyingProductId(null);
+                              setAddedMap((prev) => ({ ...prev, [product.id]: true }));
+                              setTimeout(() => {
+                                setAddedMap((prev) => ({ ...prev, [product.id]: false }));
+                              }, 1500);
+                            }}
+                            className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
+                          >
+                            <span className="font-bold">{packFormatted}</span>
+                            <span className="font-serif font-bold group-hover/opt:text-gold-300">
+                              ₹{packPrice}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-[10px] text-center text-stone-400">
+                      {language === 'ta' ? '₹499 மேல் இலவச டெலிவரி' : 'Free Express Delivery above ₹499'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Clickable Product Image */}
                 <div
                   onClick={() => onSelectProduct(product)}
                   className="aspect-square bg-stone-50 rounded-2xl overflow-hidden p-4 flex items-center justify-center cursor-pointer relative group/img mb-4"
                 >
+                  {/* User SS OIL Logo & Brand Badge */}
+                  <div className="absolute top-3.5 right-12 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+                    <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
+                    <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
+                  </div>
+
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain group-hover/img:scale-108 transition-transform duration-500 drop-shadow-md pb-8 sm:pb-9"
+                    className="w-full h-full object-contain group-hover/img:scale-108 transition-transform duration-500 drop-shadow-md"
                   />
 
                   {/* Favorite Heart Button */}
@@ -580,41 +673,10 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
 
                   {/* Hover View Details Badge */}
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-2xl flex items-center justify-center pointer-events-none">
-                    <span className="bg-white/95 text-stone-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md -translate-y-4">
+                    <span className="bg-white/95 text-stone-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
                       {language === 'ta' ? 'முழு விவரங்கள்' : 'View Details'}
                     </span>
                   </div>
-
-                  {/* Pack Size Pills Overlay directly on the Image */}
-                  {product.packSizes && product.packSizes.length > 0 && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-sm overflow-x-auto no-scrollbar"
-                    >
-                      {product.packSizes.map((pack) => {
-                        const isSelected = selectedPack === pack;
-                        const compactLabel = formatPackSizeBadge(pack, language);
-                        return (
-                          <button
-                            key={pack}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePackChange(product.id, pack);
-                            }}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
-                              isSelected
-                                ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
-                                : 'bg-stone-100/90 hover:bg-stone-200 text-stone-700 border-stone-200 hover:text-stone-900'
-                            }`}
-                            title={pack}
-                          >
-                            {compactLabel}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
                 {/* Product Title & Tagline */}
@@ -662,7 +724,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                           )}
                         </div>
                         <span className="text-[10px] text-stone-400 block">
-                          {quantity > 1 ? `₹${currentPrice} / pack` : 'Inclusive of all taxes'}
+                          {formatPack(selectedPack, language)}
                         </span>
                       </>
                     )}
@@ -690,14 +752,17 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* Action Button: Add to Cart */}
+                {/* Action Button: Add to Cart / Choose Liter */}
                 <div>
                   <button
-                    onClick={() => handleAddClick(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBuyingProductId(product.id);
+                    }}
                     className={`w-full py-2.5 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
                       isAdded
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-forest-950 hover:bg-forest-900 text-white'
+                        : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
                     }`}
                   >
                     {isAdded ? (
