@@ -436,3 +436,15 @@ export const DEFAULT_REELS_DATA: ReelStory[] = [
   },
 ];
 
+export interface ContactInquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  inquiryType: string;
+  message: string;
+  createdAt: string;
+  status: 'unread' | 'read' | 'contacted' | 'resolved';
+}
+
+

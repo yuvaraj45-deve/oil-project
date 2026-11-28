@@ -55,6 +55,8 @@ import {
   Droplets,
   Gift,
   Menu,
+  MessageSquare,
+  MessageCircle,
 } from 'lucide-react';
 import {
   PlacedOrder,
@@ -68,6 +70,7 @@ import {
   DEFAULT_REELS_DATA,
   StandingBottleItem,
   DEFAULT_STANDING_BOTTLES,
+  ContactInquiry,
 } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
 import { useStore, normalizeHomepage4 } from '../context/StoreContext';
@@ -171,6 +174,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     | 'products'
     | 'orders'
     | 'customers'
+    | 'inquiries'
     | 'users'
     | 'categories'
     | 'videos'
@@ -1289,6 +1293,78 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       ? 0
       : usersList.filter((u) => !seenCustomerIds.includes(u.id || u.email || u.phone)).length;
 
+  // Contact Inquiries Management
+  const [inquiries, setInquiries] = useState<ContactInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('ssoil_contact_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+  const [seenInquiryIds, setSeenInquiryIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ssoil_seen_inquiries') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const refreshInquiries = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/inquiries`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.inquiries)) {
+          setInquiries(data.inquiries);
+          localStorage.setItem('ssoil_contact_inquiries', JSON.stringify(data.inquiries));
+          return;
+        }
+      }
+    } catch {}
+    try {
+      const local = JSON.parse(localStorage.getItem('ssoil_contact_inquiries') || '[]');
+      setInquiries(local);
+    } catch {}
+  };
+
+  useEffect(() => {
+    refreshInquiries();
+    const handleUpdate = () => refreshInquiries();
+    window.addEventListener('ssoil_inquiries_updated', handleUpdate);
+    return () => window.removeEventListener('ssoil_inquiries_updated', handleUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'inquiries' && inquiries.length > 0) {
+      const allIds = inquiries.map((i) => i.id);
+      const hasUnseen = allIds.some((id) => !seenInquiryIds.includes(id));
+      if (hasUnseen) {
+        setSeenInquiryIds(allIds);
+        try {
+          localStorage.setItem('ssoil_seen_inquiries', JSON.stringify(allIds));
+        } catch {}
+      }
+    }
+  }, [activeTab, inquiries, seenInquiryIds]);
+
+  const unreadInquiriesCount =
+    activeTab === 'inquiries'
+      ? 0
+      : inquiries.filter((i) => !seenInquiryIds.includes(i.id)).length;
+
+  const handleDeleteInquiry = async (id: string) => {
+    if (!window.confirm('இந்த செய்தியை நீக்க விரும்புகிறீர்களா? / Are you sure you want to delete this message?')) return;
+    try {
+      await fetch(`${API_BASE_URL}/api/inquiries/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
+    const updated = inquiries.filter((i) => i.id !== id);
+    setInquiries(updated);
+    try {
+      localStorage.setItem('ssoil_contact_inquiries', JSON.stringify(updated));
+    } catch {}
+    showToast('Inquiry deleted successfully');
+  };
+
   const exportCSV = () => {
     const headers = ['Order Number', 'Customer Name', 'Phone', 'Total Amount', 'Status', 'Date'];
     const rows = orders.map((o) => [
@@ -1356,6 +1432,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             { id: 'videos', label: 'Homepage Video', icon: Video },
             { id: 'orders', label: 'Orders', icon: ShoppingCart, count: unreadOrdersCount },
             { id: 'customers', label: 'Customers', icon: Users, count: unreadCustomersCount },
+            { id: 'inquiries', label: 'Inquiries', icon: MessageSquare, count: unreadInquiriesCount },
             { id: 'settings', label: 'Settings', icon: Settings },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
           ].map((item) => {
@@ -1463,6 +1540,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {activeTab === 'categories' && 'Categories Management'}
                 {activeTab === 'videos' && 'Mara Chekku Heritage Video'}
                 {activeTab === 'customers' && 'User Login & Account Directory'}
+                {activeTab === 'inquiries' && 'Customer Inquiries & Messages'}
                 {activeTab === 'orders' && 'Orders Management'}
                 {activeTab === 'offers' && 'Offers & Coupons'}
                 {activeTab === 'analytics' && 'Analytics & Performance'}
@@ -2728,6 +2806,169 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             </div>
           )}
+
+          {/* ============================================================ */}
+          {/* CUSTOMER INQUIRIES & CONTACT MESSAGES TAB                    */}
+          {/* ============================================================ */}
+          {activeTab === 'inquiries' && (
+            <div className="bg-white rounded-3xl border border-stone-200 shadow-xs p-6 space-y-6">
+
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-stone-100 pb-5">
+                <div>
+                  <h3 className="font-serif font-black text-xl text-stone-900 flex items-center gap-2.5">
+                    <MessageSquare className="w-6 h-6 text-[#1e7e34]" />
+                    <span>வாடிக்கையாளர் செய்திகள் (Inquiries & Messages)</span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1">
+                    Contact page வழியாக வாடிக்கையாளர்கள் அனுப்பிய நேரடி செய்திகள் மற்றும் விசாரணைகள்.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs border border-emerald-200">
+                    மொத்தம்: {inquiries.length}
+                  </span>
+                  {unreadInquiriesCount > 0 && (
+                    <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
+                      புதியவை: {unreadInquiriesCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Inquiry List */}
+              {inquiries.length === 0 ? (
+                <div className="py-16 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center mx-auto">
+                    <MessageSquare className="w-7 h-7" />
+                  </div>
+                  <h4 className="font-serif font-bold text-base text-stone-800">
+                    செய்திகள் எதுவும் வரவில்லை / No inquiries received yet
+                  </h4>
+                  <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                    வாடிக்கையாளர்கள் Contact Page-ல் படிவத்தை பூர்த்தி செய்து அனுப்பும்போது அவர்களின் செய்திகள் இங்கே உடனே தோன்றும்.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {inquiries
+                    .filter((inq) => {
+                      if (!searchTerm) return true;
+                      const q = searchTerm.toLowerCase();
+                      return (
+                        (inq.name || '').toLowerCase().includes(q) ||
+                        (inq.phone || '').toLowerCase().includes(q) ||
+                        (inq.email || '').toLowerCase().includes(q) ||
+                        (inq.message || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((inq) => {
+                      const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+                      const formattedTime = inq.createdAt
+                        ? new Date(inq.createdAt).toLocaleString('en-IN', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })
+                        : 'Recently';
+
+                      return (
+                        <div
+                          key={inq.id}
+                          className="p-5 rounded-2xl border border-stone-200/90 hover:border-emerald-500/80 hover:shadow-md transition-all bg-[#FAF8F5] space-y-4"
+                        >
+                          {/* Top Row: Customer Info & Badges */}
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-[#1e7e34] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                {(inq.name || 'C').charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <h4 className="font-serif font-bold text-base text-stone-900 leading-tight">
+                                  {inq.name}
+                                </h4>
+                                <span className="text-[11px] text-stone-500 font-medium">
+                                  {formattedTime}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-stone-200 text-stone-800">
+                                {inq.inquiryType || 'General'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteInquiry(inq.id)}
+                                className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Delete inquiry"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Contact Details Bar */}
+                          <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-stone-700 bg-white p-3 rounded-xl border border-stone-200/70">
+                            {inq.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-3.5 h-3.5 text-[#1e7e34]" />
+                                <a href={`tel:${cleanPhone}`} className="hover:text-[#1e7e34] font-bold">
+                                  {inq.phone}
+                                </a>
+                              </div>
+                            )}
+
+                            {inq.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-3.5 h-3.5 text-blue-600" />
+                                <a href={`mailto:${inq.email}`} className="hover:text-blue-600">
+                                  {inq.email}
+                                </a>
+                              </div>
+                            )}
+
+                            <div className="ml-auto flex items-center gap-2">
+                              {cleanPhone && (
+                                <>
+                                  <a
+                                    href={`https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=வணக்கம்%20${encodeURIComponent(inq.name)},%20SS%20OIL-ல்%20இருந்து%20தொடர்புகொள்கிறோம்.`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-2xs"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>WhatsApp</span>
+                                  </a>
+
+                                  <a
+                                    href={`tel:${cleanPhone}`}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs transition-colors shadow-2xs"
+                                  >
+                                    <Phone className="w-3.5 h-3.5" />
+                                    <span>Call</span>
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Customer Message Box */}
+                          <div className="bg-white p-4 rounded-xl border border-stone-200/80 text-stone-800 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
+                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block mb-1">
+                              செய்தி / Message:
+                            </span>
+                            "{inq.message}"
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+
+            </div>
+          )}
+
           {/* ============================================================ */}
           {/* PRODUCTS MANAGEMENT                                          */}
           {/* ============================================================ */}

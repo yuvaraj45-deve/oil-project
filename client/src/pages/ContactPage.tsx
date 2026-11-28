@@ -4,6 +4,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { useStore } from '../context/StoreContext';
 import { useCMS } from '../context/CMSContext';
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000'
+    : '');
+
 export const ContactPage: React.FC = () => {
   const { language, t } = useLanguage();
   const { settings } = useStore();
@@ -22,7 +29,42 @@ export const ContactPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmittedName(formData.name);
+    const nameVal = formData.name.trim();
+    const phoneVal = formData.phone.trim();
+    const emailVal = formData.email.trim();
+    const messageVal = formData.message.trim();
+    const typeVal = formData.inquiryType || 'customer';
+
+    setSubmittedName(nameVal);
+
+    const newInquiry = {
+      id: `INQ-${Date.now()}`,
+      name: nameVal,
+      phone: phoneVal,
+      email: emailVal,
+      inquiryType: typeVal,
+      message: messageVal,
+      createdAt: new Date().toISOString(),
+      status: 'unread',
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('ssoil_contact_inquiries') || '[]');
+      const updated = [newInquiry, ...existing];
+      localStorage.setItem('ssoil_contact_inquiries', JSON.stringify(updated));
+      window.dispatchEvent(new Event('ssoil_inquiries_updated'));
+    } catch (err) {
+      console.error('Error saving inquiry locally:', err);
+    }
+
+    try {
+      fetch(`${API_BASE_URL}/api/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInquiry),
+      }).catch(() => {});
+    } catch {}
+
     setFormData({
       name: '',
       phone: '',

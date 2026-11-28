@@ -248,7 +248,6 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const [selectedPackMap, setSelectedPackMap] = useState<Record<string, string>>({});
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>({});
   const [addedMap, setAddedMap] = useState<Record<string, boolean>>({});
-  const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
 
   React.useEffect(() => {
@@ -573,74 +572,12 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
             const currentPrice = getPackPrice(product.price, selectedPack);
             const currentOriginalPrice = getPackPrice(product.originalPrice || product.price, selectedPack);
             const isAdded = addedMap[product.id];
-            const isBuying = buyingProductId === product.id;
 
             return (
               <div
                 key={product.id}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 hover:border-amber-400 shadow-soft hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
               >
-                {/* 1. Buying / Liter Selection Overlay (Exact same design as Shop & Featured Products) */}
-                {isBuying && (
-                  <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
-                    <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
-                      <div>
-                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
-                          {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்' : 'Choose Pack Size'}
-                        </span>
-                        <h4 className="font-serif font-bold text-forest-950 text-sm sm:text-base leading-tight">
-                          {language === 'ta' ? 'எத்தனை லிட்டர் வேண்டும்?' : 'How many Litres?'}
-                        </h4>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setBuyingProductId(null);
-                        }}
-                        className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
-                        title="Close"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {/* Liter Options with Live Calculated Prices */}
-                    <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
-                      {packOptions.map((pack) => {
-                        const packPrice = getPackPrice(product.price, pack);
-                        const packFormatted = formatPack(pack, language);
-                        return (
-                          <button
-                            key={pack}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePackChange(product.id, pack);
-                              onAddToCart(product, pack, quantity);
-                              setBuyingProductId(null);
-                              setAddedMap((prev) => ({ ...prev, [product.id]: true }));
-                              setTimeout(() => {
-                                setAddedMap((prev) => ({ ...prev, [product.id]: false }));
-                              }, 1500);
-                            }}
-                            className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
-                          >
-                            <span className="font-bold">{packFormatted}</span>
-                            <span className="font-serif font-bold group-hover/opt:text-gold-300">
-                              ₹{packPrice}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <p className="text-[10px] text-center text-stone-400">
-                      {language === 'ta' ? '₹499 மேல் இலவச டெலிவரி' : 'Free Express Delivery above ₹499'}
-                    </p>
-                  </div>
-                )}
-
                 {/* Clickable Product Image */}
                 <div
                   onClick={() => onSelectProduct(product)}
@@ -684,7 +621,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 </div>
 
                 {/* Product Title & Tagline */}
-                <div className="space-y-1 mb-4">
+                <div className="space-y-1 mb-3">
                   <h3
                     onClick={() => onSelectProduct(product)}
                     className="font-serif font-bold text-lg sm:text-xl text-stone-950 group-hover:text-[#b32d2e] transition-colors cursor-pointer line-clamp-1"
@@ -696,8 +633,37 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   </p>
                 </div>
 
-                {/* Live Calculated Price & Quantity Stepper */}
-                <div className="pt-3 border-t border-stone-100 flex items-center justify-between mb-4">
+                {/* Choose Pack Size Pills directly on Card (Matching user reference layout) */}
+                <div className="mb-4">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 block mb-1.5">
+                    {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்:' : 'CHOOSE PACK SIZE:'}
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {packOptions.map((pack) => {
+                      const isSelected = selectedPack === pack;
+                      return (
+                        <button
+                          key={pack}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePackChange(product.id, pack);
+                          }}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-stone-950 text-white shadow-xs ring-1 ring-stone-950'
+                              : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 hover:border-stone-300'
+                          }`}
+                        >
+                          {formatPack(pack, language)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Price Row & Quantity Stepper */}
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between mb-3">
                   <div>
                     {activeOffer && activeOffer.discountType === 'percentage' ? (
                       <>
@@ -711,8 +677,8 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                         </div>
                         <span className="text-[10px] text-emerald-700 font-bold block">
                           {language === 'ta'
-                            ? `₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity} குறைவு`
-                            : `Save ₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity}`}
+                            ? `₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity} குறைவு • வரிகள் உள்பட`
+                            : `Save ₹${(currentPrice * quantity) - Math.round(currentPrice * (1 - activeOffer.discountValue / 100)) * quantity} • Inclusive of all taxes`}
                         </span>
                       </>
                     ) : (
@@ -728,7 +694,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                           )}
                         </div>
                         <span className="text-[10px] text-stone-400 block">
-                          {formatPack(selectedPack, language)}
+                          {language === 'ta' ? 'அனைத்து வரிகளும் உள்பட' : 'Inclusive of all taxes'}
                         </span>
                       </>
                     )}
@@ -737,7 +703,11 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   {/* Quantity Stepper */}
                   <div className="flex items-center border border-stone-200 rounded-xl bg-stone-50 p-0.5">
                     <button
-                      onClick={() => handleQtyChange(product.id, -1)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQtyChange(product.id, -1);
+                      }}
                       className="w-7 h-7 rounded-lg hover:bg-white text-stone-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                       title="Decrease quantity"
                     >
@@ -747,7 +717,11 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                       {quantity}
                     </span>
                     <button
-                      onClick={() => handleQtyChange(product.id, 1)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQtyChange(product.id, 1);
+                      }}
                       className="w-7 h-7 rounded-lg hover:bg-white text-stone-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                       title="Increase quantity"
                     >
@@ -756,27 +730,28 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* Action Button: Add to Cart / Choose Liter */}
+                {/* Action Button: Direct Add to Cart */}
                 <div>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setBuyingProductId(product.id);
+                      handleAddClick(product);
                     }}
-                    className={`w-full py-2.5 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                       isAdded
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
+                        : 'bg-[#1b3d2f] hover:bg-[#142e23] text-white active:scale-98 shadow-md'
                     }`}
                   >
                     {isAdded ? (
                       <>
-                        <Check className="w-3.5 h-3.5" />
-                        <span>{language === 'ta' ? 'சேர்க்கப்பட்டது!' : 'Added!'}</span>
+                        <Check className="w-4 h-4" />
+                        <span>{language === 'ta' ? 'கார்ட்டில் சேர்க்கப்பட்டது!' : 'Added to Cart!'}</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="w-3.5 h-3.5 text-gold-400" />
+                        <ShoppingBag className="w-4 h-4 text-amber-300" />
                         <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
                       </>
                     )}
