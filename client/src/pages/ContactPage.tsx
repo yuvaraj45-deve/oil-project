@@ -11,6 +11,7 @@ export const ContactPage: React.FC = () => {
   const contactCms = siteContent?.contact?.status === 'PUBLISHED' ? siteContent.contact : null;
 
   const [submitted, setSubmitted] = useState(false);
+  const [submittedName, setSubmittedName] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -21,7 +22,26 @@ export const ContactPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmittedName(formData.name);
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      inquiryType: 'customer',
+      message: '',
+    });
     setSubmitted(true);
+  };
+
+  const handleResetForm = () => {
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      inquiryType: 'customer',
+      message: '',
+    });
+    setSubmitted(false);
   };
 
   const contactTitle =
@@ -126,12 +146,13 @@ export const ContactPage: React.FC = () => {
                 </h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
                   {language === 'ta'
-                    ? `நன்றி, ${formData.name}. எங்கள் ஆலை நிர்வாகி உங்கள் விவரங்களைப் பரிசீலித்து 24 மணி நேரத்திற்குள் தொடர்புகொள்வார்.`
-                    : `Thank you, ${formData.name}. Our master miller will review your inquiry and get in touch within 24 working hours.`}
+                    ? `நன்றி, ${submittedName || formData.name || 'அன்பரே'}. எங்கள் ஆலை நிர்வாகி உங்கள் விவரங்களைப் பரிசீலித்து 24 மணி நேரத்திற்குள் தொடர்புகொள்வார்.`
+                    : `Thank you, ${submittedName || formData.name || 'valued customer'}. Our master miller will review your inquiry and get in touch within 24 working hours.`}
                 </p>
                 <button
-                  onClick={() => setSubmitted(false)}
-                  className="px-6 py-2 rounded-xl bg-forest-900 text-cream-100 text-xs font-bold cursor-pointer"
+                  type="button"
+                  onClick={handleResetForm}
+                  className="px-6 py-2.5 rounded-xl bg-forest-900 hover:bg-forest-950 text-cream-100 text-xs font-bold cursor-pointer transition-transform active:scale-95 shadow-md"
                 >
                   {language === 'ta' ? 'மற்றொரு செய்தி அனுப்ப' : 'Send Another Message'}
                 </button>

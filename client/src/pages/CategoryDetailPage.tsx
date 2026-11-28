@@ -357,7 +357,11 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   };
 
   // Find all products matching this category slug with strict deduplication
-  const rawMatching = sourceProducts.filter((p) => isProductInCategory(p, categorySlug));
+  let rawMatching = sourceProducts.filter((p) => isProductInCategory(p, categorySlug));
+  // Guarantee: If rawMatching is empty, fall back to matching from baseline catalog PRODUCTS_DATA
+  if (rawMatching.length === 0) {
+    rawMatching = PRODUCTS_DATA.filter((p) => isProductInCategory(p, categorySlug));
+  }
   const seenMatchingKeys = new Set<string>();
   const matchingProducts = rawMatching.filter((p) => {
     const key = getProductCanonicalKey(p);

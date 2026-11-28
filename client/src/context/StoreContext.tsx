@@ -92,6 +92,25 @@ export const normalizeHomepage4 = (configuredIds: string[] | undefined, allProds
 
 const getNormalizedProductKey = (p: Product): string => {
   const name = (p.name || '').toLowerCase();
+  const cat = (p.category || '').toLowerCase().trim();
+  const pack = (p.defaultPack || '').toLowerCase();
+
+  // Combo detection FIRST so combos never collide with single pure oils
+  if (
+    cat === 'combo-offers' ||
+    cat === 'combo' ||
+    name.includes('combo') ||
+    name.includes('buy 2 get 1') ||
+    name.includes('b2g1') ||
+    name.includes('trio') ||
+    name.includes('value pack') ||
+    pack.includes('combo')
+  ) {
+    if (name.includes('buy 2 get 1') || name.includes('b2g1')) return 'b2g1-combo';
+    if (name.includes('trio')) return 'heritage-trio-combo';
+    return (p.slug || p.name || p.id).toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
   if (name.includes('groundnut') || name.includes('peanut')) return 'groundnut-oil';
   if (name.includes('sesame') || name.includes('gingelly')) return 'sesame-oil';
   if (name.includes('coconut')) return 'coconut-oil';
@@ -103,8 +122,6 @@ const getNormalizedProductKey = (p: Product): string => {
   if (name.includes('jaggery') || name.includes('karupatti')) return 'palm-jaggery-special';
   if (name.includes('everyday') || name.includes('gold everyday')) return 'everyday-cooking-oil';
   if (name.includes('gold winner')) return 'gold-winner-oil';
-  if (name.includes('buy 2 get 1') || name.includes('b2g1')) return 'b2g1-combo';
-  if (name.includes('trio')) return 'heritage-trio-combo';
 
   const normCategory = (p.category || '').toLowerCase().replace(/-oil$/, '').trim();
   const normName = name
@@ -142,6 +159,20 @@ const mergeProducts = (base: Product[], ...sources: (Product[] | undefined | nul
         ...p,
         tamilName: (p.tamilName && /[\u0B80-\u0BFF]/.test(p.tamilName)) ? p.tamilName : undefined,
       };
+
+      // Self-heal category if mismatched or generic
+      const lowerName = (sanitized.name || '').toLowerCase();
+      if (!sanitized.category || sanitized.category === 'cooking-oil' || sanitized.category === 'combo-offers') {
+        if (lowerName.includes('mustard')) sanitized.category = 'mustard-oil';
+        else if (lowerName.includes('sunflower')) sanitized.category = 'sunflower-oil';
+        else if (lowerName.includes('rice bran') || lowerName.includes('ricebran')) sanitized.category = 'ricebran-oil';
+        else if (lowerName.includes('ghee')) sanitized.category = 'a2-desi-ghee';
+        else if (lowerName.includes('jaggery') || lowerName.includes('karupatti')) sanitized.category = 'palm-jaggery-special';
+        else if (lowerName.includes('pooja') || lowerName.includes('deepam') || lowerName.includes('lamp')) sanitized.category = 'pooja-special';
+        else if ((lowerName.includes('sesame') || lowerName.includes('gingelly')) && !lowerName.includes('combo') && !lowerName.includes('value pack') && !lowerName.includes('b2g1')) sanitized.category = 'sesame-oil';
+        else if (lowerName.includes('groundnut') && !lowerName.includes('combo')) sanitized.category = 'groundnut-oil';
+        else if (lowerName.includes('coconut') && !lowerName.includes('combo')) sanitized.category = 'coconut-oil';
+      }
 
       // Self-heal: If a product's name or tagline has a raw internal technical key string
       if (sanitized.name && (sanitized.name.startsWith('prod.') || sanitized.name.includes('.name') || (sanitized.name.startsWith('prod-') && !sanitized.name.includes(' ')))) {
@@ -194,7 +225,11 @@ const mergeCategories = (base: Category[], ...sources: (Category[] | undefined |
       }
     });
   });
-  return Array.from(map.values());
+  return Array.from(map.values()).filter((c) => {
+    if (!c || !c.slug) return false;
+    const s = c.slug.toLowerCase().trim();
+    return s !== 'keladu' && !s.includes('test') && !s.includes('dummy');
+  });
 };
 
 interface StoreContextType {
