@@ -12,7 +12,6 @@ import {
   ArrowRight,
   ArrowLeft,
   ChevronRight,
-  ShoppingBag,
   Award,
   CheckCircle2,
 } from 'lucide-react';
@@ -207,17 +206,6 @@ export const FaqPage: React.FC<FaqPageProps> = ({ onNavigate, onShopOils }) => {
               </span>
             </nav>
           </div>
-
-          <button
-            onClick={() => {
-              if (onShopOils) onShopOils();
-              else onNavigate('/shop');
-            }}
-            className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#1e7e34] hover:bg-[#18682a] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs shrink-0"
-          >
-            <ShoppingBag className="w-3.5 h-3.5 text-gold-300" />
-            <span>{language === 'ta' ? 'அங்காடி செல்ல' : 'Shop All Oils'}</span>
-          </button>
         </div>
       </div>
 

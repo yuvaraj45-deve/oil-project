@@ -248,6 +248,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const [selectedPackMap, setSelectedPackMap] = useState<Record<string, string>>({});
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>({});
   const [addedMap, setAddedMap] = useState<Record<string, boolean>>({});
+  const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
 
   React.useEffect(() => {
@@ -583,6 +584,68 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   onClick={() => onSelectProduct(product)}
                   className="aspect-square bg-stone-50 rounded-2xl overflow-hidden p-4 flex items-center justify-center cursor-pointer relative group/img mb-4"
                 >
+                  {/* Liter Selection Overlay RIGHT ON TOP OF THE PRODUCT IMAGE */}
+                  {buyingProductId === product.id && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute inset-0 bg-white/98 z-30 p-3 sm:p-4 flex flex-col justify-between backdrop-blur-md rounded-2xl border-2 border-forest-900 shadow-2xl animate-fadeIn cursor-default"
+                    >
+                      <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                        <div>
+                          <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
+                            {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்' : 'Choose Pack Size'}
+                          </span>
+                          <h4 className="font-serif font-bold text-forest-950 text-xs sm:text-sm leading-tight">
+                            {language === 'ta' ? 'எத்தனை லிட்டர் வேண்டும்?' : 'How many Litres?'}
+                          </h4>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBuyingProductId(null);
+                          }}
+                          className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                          title="Close"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Liter Options with Live Calculated Prices */}
+                      <div className="space-y-1.5 my-auto py-1 overflow-y-auto max-h-[160px] no-scrollbar">
+                        {packOptions.map((pack) => {
+                          const packPrice = getPackPrice(product.price, pack);
+                          const isSelected = selectedPack === pack;
+                          return (
+                            <button
+                              key={pack}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePackChange(product.id, pack);
+                                onBuyNow(product, pack, quantity);
+                                setBuyingProductId(null);
+                              }}
+                              className={`w-full px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-forest-950 text-white border-forest-950 shadow-xs'
+                                  : 'bg-stone-50 hover:bg-forest-950 hover:text-white border-stone-200'
+                              }`}
+                            >
+                              <span className="font-bold text-[11px]">{formatPack(pack, language)}</span>
+                              <span className="font-serif font-black text-xs">₹{packPrice}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <p className="text-[9px] text-center text-stone-400">
+                        {language === 'ta' ? 'கிளிக் செய்ததும் நேரடி செக்அவுட்' : 'Instant Direct Checkout'}
+                      </p>
+                    </div>
+                  )}
+
                   {/* User SS OIL Logo & Brand Badge */}
                   <div className="absolute top-3.5 right-12 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
                     <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
@@ -730,31 +793,43 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* Action Button: Direct Add to Cart */}
-                <div>
+                {/* Action Buttons: Add to Cart & Buy Now */}
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddClick(product);
                     }}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
+                    className={`w-full py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
                       isAdded
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-[#1b3d2f] hover:bg-[#142e23] text-white active:scale-98 shadow-md'
+                        : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 active:scale-98'
                     }`}
                   >
                     {isAdded ? (
                       <>
-                        <Check className="w-4 h-4" />
-                        <span>{language === 'ta' ? 'கார்ட்டில் சேர்க்கப்பட்டது!' : 'Added to Cart!'}</span>
+                        <Check className="w-3.5 h-3.5" />
+                        <span className="truncate">{language === 'ta' ? 'சேர்க்கப்பட்டது!' : 'Added!'}</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="w-4 h-4 text-amber-300" />
-                        <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
+                        <ShoppingBag className="w-3.5 h-3.5 text-stone-600" />
+                        <span className="truncate">{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
                       </>
                     )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBuyingProductId(product.id);
+                    }}
+                    className="w-full py-2.5 px-2.5 rounded-xl bg-[#1b3d2f] hover:bg-[#142e23] text-gold-300 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-98"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-gold-400" />
+                    <span className="truncate">{language === 'ta' ? 'இப்போதே வாங்க' : 'Buy Now'}</span>
                   </button>
                 </div>
 
