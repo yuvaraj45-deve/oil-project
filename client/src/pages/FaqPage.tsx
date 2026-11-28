@@ -10,8 +10,6 @@ import {
   RotateCcw,
   MessageCircleQuestion,
   ArrowRight,
-  Phone,
-  MessageCircle,
   ArrowLeft,
   ChevronRight,
   ShoppingBag,
@@ -398,49 +396,6 @@ export const FaqPage: React.FC<FaqPageProps> = ({ onNavigate, onShopOils }) => {
               </div>
             );
           })}
-        </div>
-
-        {/* 5. Need Personal Assistance / WhatsApp Help Card */}
-        <div className="mt-12 bg-gradient-to-r from-emerald-950 via-forest-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-emerald-800 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-800/80 text-emerald-200 text-xs font-bold">
-              <Phone className="w-3.5 h-3.5 text-amber-400" />
-              <span>{language === 'ta' ? 'வாடிக்கையாளர் ஆதரவு' : 'Customer Mill Support'}</span>
-            </div>
-            <h4 className="text-xl sm:text-2xl font-serif font-black text-white">
-              {language === 'ta'
-                ? 'மேலும் சந்தேகங்கள் உள்ளதா? நேரடியாக பேசலாம்!'
-                : 'Still have questions? Chat with our Mill Experts!'}
-            </h4>
-            <p className="text-xs sm:text-sm text-emerald-200/90 max-w-xl">
-              {language === 'ta'
-                ? 'எங்கள் வாட்ஸ்அப் அல்லது தொலைபேசி மூலம் நேரடி உதவி பெறலாம். காலை 9 முதல் இரவு 8 வரை.'
-                : 'Connect with our Salem wood mill team on WhatsApp for instant guidance on oil varieties and customized corporate orders.'}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
-            <a
-              href="https://wa.me/919443224099?text=Hello%20SS%20OIL,%20I%20have%20a%20question%20about%20your%20Mara%20Chekku%20oils"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-100" />
-              <span>{language === 'ta' ? 'வாட்ஸ்அப் உதவி' : 'WhatsApp Support'}</span>
-            </a>
-
-            <button
-              onClick={() => {
-                if (onShopOils) onShopOils();
-                else onNavigate('/shop');
-              }}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gold-400 hover:bg-gold-300 text-forest-950 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{language === 'ta' ? 'அங்காடி செல்ல' : 'Explore Shop'}</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
