@@ -550,7 +550,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                 key={product.id}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 hover:border-amber-400 shadow-soft hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
               >
-                {/* Clickable Product Image */}
+                {/* Clickable Product Image with Pack Size Pills on Image */}
                 <div
                   onClick={() => onSelectProduct(product)}
                   className="aspect-square bg-stone-50 rounded-2xl overflow-hidden p-4 flex items-center justify-center cursor-pointer relative group/img mb-4"
@@ -558,7 +558,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain group-hover/img:scale-108 transition-transform duration-500 drop-shadow-md"
+                    className="w-full h-full object-contain group-hover/img:scale-108 transition-transform duration-500 drop-shadow-md pb-8 sm:pb-9"
                   />
 
                   {/* Favorite Heart Button */}
@@ -578,11 +578,43 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                     <Heart className={`w-4 h-4 ${favoritesList.includes(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                   </button>
 
-                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
-                    <span className="bg-white/95 text-stone-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                  {/* Hover View Details Badge */}
+                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-2xl flex items-center justify-center pointer-events-none">
+                    <span className="bg-white/95 text-stone-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-md -translate-y-4">
                       {language === 'ta' ? 'முழு விவரங்கள்' : 'View Details'}
                     </span>
                   </div>
+
+                  {/* Pack Size Pills Overlay directly on the Image */}
+                  {product.packSizes && product.packSizes.length > 0 && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-sm overflow-x-auto no-scrollbar"
+                    >
+                      {product.packSizes.map((pack) => {
+                        const isSelected = selectedPack === pack;
+                        const compactLabel = formatPackSizeBadge(pack, language);
+                        return (
+                          <button
+                            key={pack}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePackChange(product.id, pack);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
+                              isSelected
+                                ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
+                                : 'bg-stone-100/90 hover:bg-stone-200 text-stone-700 border-stone-200 hover:text-stone-900'
+                            }`}
+                            title={pack}
+                          >
+                            {compactLabel}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Product Title & Tagline */}
@@ -596,33 +628,6 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
                   <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
                     {getLocalizedProductTagline(product, language)}
                   </p>
-                </div>
-
-                {/* Pack Size Selector with Live Price Update */}
-                <div className="mb-4 space-y-1.5 min-h-[48px]">
-                  <label className="text-[11px] font-bold uppercase text-stone-500 block">
-                    {language === 'ta' ? 'அளவைத் தேர்ந்தெடுக்கவும்:' : 'Choose Pack Size:'}
-                  </label>
-                  <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5">
-                    {product.packSizes.map((pack) => {
-                      const isSelected = selectedPack === pack;
-                      const compactLabel = formatPackSizeBadge(pack, language);
-                      return (
-                        <button
-                          key={pack}
-                          onClick={() => handlePackChange(product.id, pack)}
-                          className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
-                            isSelected
-                              ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
-                              : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
-                          }`}
-                          title={pack}
-                        >
-                          {compactLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
 
                 {/* Live Calculated Price & Quantity Stepper */}
