@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ShoppingBag, Eye, Check, ShieldCheck, Droplets, ArrowRight, X, Heart, Award, Star } from 'lucide-react';
 import { Product } from '../types';
 import { PRODUCTS_DATA, CATEGORIES_DATA } from '../data/oilData';
-import { useLanguage, getLocalizedProductName, getLocalizedProductTagline, CATEGORY_DEFAULT_TAMIL_NAMES } from '../context/LanguageContext';
-import { useStore, normalizeHomepage4, getProductKey } from '../context/StoreContext';
-import { useCMS } from '../context/CMSContext';
+import { useLanguage, getLocalizedProductName, getLocalizedProductTagline } from '../context/LanguageContext';
+import { useStore, getProductKey } from '../context/StoreContext';
 import { useOffers } from '../context/OfferContext';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { resolveProductImage } from '../utils/productUtils';
@@ -30,26 +29,17 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
 }) => {
   const { language, t } = useLanguage();
   const { products, categories: storeCategories, settings } = useStore();
-  const categoriesList = storeCategories && storeCategories.length > 0 ? storeCategories : CATEGORIES_DATA;
   const { activeOffer } = useOffers();
   const [buyingProductId, setBuyingProductId] = useState<string | null>(null);
   const [selectedPacks, setSelectedPacks] = useState<Record<string, string>>({});
   const [addedItemEffect, setAddedItemEffect] = useState<string | null>(null);
   const [favoritesList, setFavoritesList] = useState<string[]>(getFavorites);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSelectLiterAndBuy = (product: Product, pack: string) => {
     onAddToCart(product, pack, 1);
     setBuyingProductId(null);
     setAddedItemEffect(product.id);
     setTimeout(() => setAddedItemEffect(null), 1500);
-  };
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = direction === 'left' ? -310 : 310;
-      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
   };
 
   useEffect(() => {
@@ -62,34 +52,61 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
 
   const sourceProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
 
-  // Curated Homepage Products logic:
-  // Directly resolves all user-selected products configured in settings.homepageProductIds
-  let displayedProducts: Product[];
-  const configuredIds = settings?.homepageProductIds;
+  // Detect Combo Offer products so they don't mix into single oils
+  const isComboProduct = (product: Product): boolean => {
+    const cat = (product.category || '').toLowerCase();
+    const badge = (product.badge || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return (
+      cat === 'combo-offers' ||
+      cat === 'combo' ||
+      badge.includes('combo') ||
+      badge.includes('buy 2 get 1') ||
+      badge.includes('b2g1') ||
+      name.includes('combo') ||
+      name.includes('buy 2 get 1') ||
+      name.includes('trio')
+    );
+  };
 
-  if (selectedCategory === 'all') {
-    if (configuredIds && configuredIds.length > 0) {
-      const selected = configuredIds
-        .map((id) =>
-          sourceProducts.find(
-            (p) =>
-              p.id === id ||
-              p.slug === id ||
-              (p.name && p.name.toLowerCase().trim() === id.toLowerCase().trim()) ||
-              getProductKey(p) === id
-          )
-        )
-        .filter((p): p is Product => Boolean(p));
+  const regularSourceProducts = useMemo(() => {
+    const nonCombos = sourceProducts.filter((p) => !isComboProduct(p));
+    const seen = new Set<string>();
+    return nonCombos.filter((p) => {
+      const name = (p.name || '').toLowerCase();
+      let key = '';
+      if (name.includes('groundnut') || name.includes('peanut')) key = 'groundnut-oil';
+      else if (name.includes('sesame') || name.includes('gingelly')) key = 'sesame-oil';
+      else if (name.includes('coconut')) key = 'coconut-oil';
+      else if (name.includes('sunflower')) key = 'sunflower-oil';
+      else if (name.includes('rice bran') || name.includes('ricebran')) key = 'ricebran-oil';
+      else if (name.includes('mustard')) key = 'mustard-oil';
+      else if (name.includes('pooja') || name.includes('lamp') || name.includes('deepam')) key = 'pooja-special';
+      else if (name.includes('ghee')) key = 'a2-desi-ghee';
+      else if (name.includes('jaggery') || name.includes('karupatti')) key = 'palm-jaggery-special';
+      else if (name.includes('cooking') || name.includes('everyday')) key = 'everyday-cooking-oil';
+      else key = p.id;
 
-      displayedProducts = selected.length > 0 ? selected : sourceProducts;
-    } else {
-      const featured = sourceProducts.filter((p) => p.featured);
-      displayedProducts = featured.length > 0 ? featured : sourceProducts;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [sourceProducts]);
+
+  // Exact 4 best-selling products matching ShopPage.tsx Section 5
+  const bestSellingProducts = useMemo(() => {
+    return regularSourceProducts
+      .filter((p) => (p.rating && p.rating >= 4.9) || p.badge === 'Bestseller' || p.featured)
+      .slice(0, 4);
+  }, [regularSourceProducts]);
+
+  const displayedProducts = useMemo(() => {
+    if (selectedCategory && selectedCategory !== 'all') {
+      const filtered = sourceProducts.filter((p) => p.category === selectedCategory);
+      return maxProducts ? filtered.slice(0, maxProducts) : filtered;
     }
-  } else {
-    const filtered = sourceProducts.filter((p) => p.category === selectedCategory);
-    displayedProducts = maxProducts ? filtered.slice(0, maxProducts) : filtered;
-  }
+    return bestSellingProducts;
+  }, [selectedCategory, sourceProducts, maxProducts, bestSellingProducts]);
 
   const formatPack = (pack?: string, lang?: string) => {
     if (!pack) return lang === 'ta' ? '1 லிட்டர் பாட்டில்' : '1 Litre Bottle';
@@ -109,21 +126,6 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       .replace('1 Litre Jar', '1 லிட்டர் ஜாடி')
       .replace('500g Block', '500 கிராம் கட்டி')
       .replace('1 kg Block', '1 கிலோ கட்டி');
-  };
-
-  const getBadgeName = (badge: string, lang: string) => {
-    if (lang !== 'ta') return badge;
-    const badgeMap: Record<string, string> = {
-      'Wood-Pressed': 'மரச்செக்கு',
-      '100% Pure': '100% தூய்மை',
-      'Popular': 'அதிக விருப்பம்',
-      'Light & Pure': 'லேசானது & தூயது',
-      'Heart Care': 'இதய நலம்',
-      'Temple Pooja': 'பூஜை சிறப்பு',
-      'Bilona Pure': 'பிலோனா தூய்மை',
-      'Native Pure': 'இயற்கை தூய்மை',
-    };
-    return badgeMap[badge] || badge;
   };
 
   const getPackPrice = (product: Product, pack?: string) => {
@@ -150,133 +152,70 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     return product.price;
   };
 
-  const { siteContent } = useCMS();
-  const homeCms = siteContent?.home?.status === 'PUBLISHED' ? siteContent.home : null;
-  const sectionTitle =
-    language === 'ta'
-      ? homeCms?.featuredTamilTitle || t('prod.title')
-      : homeCms?.featuredTitle || t('prod.title');
-  const sectionSubtitle = homeCms?.featuredSubtitle || t('prod.subtitle');
-
   return (
-    <section id="products" className="py-14 sm:py-20 bg-[#f7f6f2] border-b border-cream-200">
+    <section id="products" className="py-14 sm:py-20 bg-[#FAF8F5] border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Horizontal Navigation Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-black text-forest-950 tracking-tight">
-              {sectionTitle}
-            </h2>
-            <p className="mt-2 text-stone-600 text-sm sm:text-base">
-              {sectionSubtitle}
-            </p>
+        {/* Header - Matching ShopPage.tsx Best Selling Products Section 5 */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 pb-4 border-b border-stone-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-400 text-forest-950 flex items-center justify-center font-black shadow-xs shrink-0">
+              <Award className="w-5 h-5 text-forest-950" />
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-forest-950">
+                {language === 'ta' ? '⭐ அதிகம் விற்பனையாகும் மரச்செக்கு எண்ணெய்கள்' : '⭐ Best Selling Products'}
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
+                {language === 'ta'
+                  ? 'வாடிக்கையாளர்களின் விருப்பமான பாரம்பரிய மரச்செக்கு இயற்கை எண்ணெய்கள்.'
+                  : 'Customer favorites & most-loved traditional Mara Chekku cold-pressed oils.'}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 self-end shrink-0">
-            <button
-              type="button"
-              onClick={() => scroll('left')}
-              className="w-10 h-10 rounded-full bg-white hover:bg-forest-950 text-forest-950 hover:text-white border border-stone-200 shadow-xs flex items-center justify-center transition-all cursor-pointer"
-              title="Previous"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll('right')}
-              className="w-10 h-10 rounded-full bg-white hover:bg-forest-950 text-forest-950 hover:text-white border border-stone-200 shadow-xs flex items-center justify-center transition-all cursor-pointer"
-              title="Next"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
-        {/* Category Pills at Top of Featured Products */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6">
-          <button
-            type="button"
-            onClick={() => onSelectCategory('all')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              selectedCategory === 'all'
-                ? 'bg-forest-950 text-white shadow-md'
-                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-            }`}
-          >
-            {language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'All Products'}
-          </button>
-          {categoriesList.map((cat) => {
-            const isSelected = selectedCategory === cat.slug;
-            const displayName = language === 'ta'
-              ? (cat.tamilTitle || CATEGORY_DEFAULT_TAMIL_NAMES[cat.slug] || cat.title)
-              : cat.title;
-
-            return (
+          <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+            <span className="px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-900 text-xs font-black border border-amber-200 shadow-2xs">
+              {language === 'ta' ? '1,000+ குடும்பங்களின் தேர்வு' : 'Top Rated by 1,000+ Families'}
+            </span>
+            {onViewAllProducts && (
               <button
-                key={cat.id || cat.slug}
                 type="button"
-                onClick={() => onSelectCategory(cat.slug)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  isSelected
-                    ? 'bg-forest-950 text-white shadow-md'
-                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-                }`}
+                onClick={onViewAllProducts}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-all shadow-xs cursor-pointer"
               >
-                {displayName}
+                <span>{language === 'ta' ? 'அனைத்து எண்ணெய்கள்' : 'Shop All Oils'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
-            );
-          })}
+            )}
+          </div>
         </div>
 
-        {/* Horizontal Products Slider: 5th product sits right next to 4th, never wraps below */}
-        <div className="relative group/slider">
-          {/* Floating Left Arrow on desktop */}
-          <button
-            type="button"
-            onClick={() => scroll('left')}
-            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 text-forest-950 border border-stone-200 shadow-xl items-center justify-center hover:bg-forest-950 hover:text-white transition-all cursor-pointer"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          {/* Floating Right Arrow on desktop */}
-          <button
-            type="button"
-            onClick={() => scroll('right')}
-            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 text-forest-950 border border-stone-200 shadow-xl items-center justify-center hover:bg-forest-950 hover:text-white transition-all cursor-pointer"
-            aria-label="Next"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Continuous Horizontal Row Container */}
-          <div
-            ref={scrollContainerRef}
-            className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 scroll-smooth no-scrollbar"
-          >
+        {/* Best Selling Products 4-Column Grid - 1:1 Matching ShopPage.tsx Section 5 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {displayedProducts.map((product) => {
-            const packOptions = product.packSizes && product.packSizes.length > 0
-              ? product.packSizes
-              : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Can', '5 Litre Can'];
-            const currentPack = selectedPacks[product.id] || product.defaultPack || packOptions[0] || '1 Litre Bottle';
+            const packOptions =
+              product.packSizes && product.packSizes.length > 0
+                ? product.packSizes
+                : ['1 Litre Bottle', '500 ml Bottle', '2 Litre Bottle', '5 Litre Can'];
+            const currentPack =
+              selectedPacks[`bestseller-${product.id}`] ||
+              product.defaultPack ||
+              packOptions[0] ||
+              '1 Litre Bottle';
             const currentPackPrice = getPackPrice(product, currentPack);
-            const currentOfferPrice = activeOffer && activeOffer.discountType === 'percentage'
-              ? Math.round(currentPackPrice * (1 - activeOffer.discountValue / 100))
-              : currentPackPrice;
-            const currentSavings = currentPackPrice - currentOfferPrice;
             const isJustAdded = addedItemEffect === product.id;
-            const isBuying = buyingProductId === product.id;
-
+            const isBuying = buyingProductId === `bestseller-${product.id}` || buyingProductId === product.id;
+            const resolvedImage = resolveProductImage(product);
             const productName = getLocalizedProductName(product, language);
             const productTagline = getLocalizedProductTagline(product, language);
 
             return (
               <div
-                key={product.id}
-                className="w-[280px] sm:w-[290px] shrink-0 relative group rounded-3xl bg-white border border-cream-300/80 hover:border-gold-400 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                key={`bestseller-${product.id}`}
+                className="relative group rounded-3xl bg-white border border-stone-200/90 hover:border-gold-400 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
-                {/* 1. Buying Overlay: Shows ONLY when user clicks Add to Cart (எத்தனை லிட்டர் வேணும்?) */}
+                {/* Liter Selection Overlay */}
                 {isBuying && (
                   <div className="absolute inset-0 bg-white/98 z-30 p-4 sm:p-5 flex flex-col justify-between backdrop-blur-md rounded-3xl border-2 border-forest-900 shadow-2xl animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-cream-200 pb-2.5">
@@ -301,7 +240,6 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                       </button>
                     </div>
 
-                    {/* Liter Options with Live Calculated Prices */}
                     <div className="space-y-1.5 my-auto py-2 overflow-y-auto max-h-[190px]">
                       {packOptions.map((pack) => {
                         const packPrice = getPackPrice(product, pack);
@@ -317,9 +255,12 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                             className="w-full p-2.5 rounded-xl border border-stone-200 hover:border-forest-900 hover:bg-forest-950 hover:text-white transition-all flex items-center justify-between text-xs font-semibold group/opt cursor-pointer bg-[#faf8f5]"
                           >
                             <span className="font-bold">{packFormatted}</span>
-                            <span className="font-serif font-bold group-hover/opt:text-gold-300">
-                              ₹{packPrice}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold font-serif text-sm">₹{packPrice}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 group-hover/opt:bg-gold-400 group-hover/opt:text-forest-950 font-bold transition-colors">
+                                {language === 'ta' ? 'தேர்ந்தெடு' : 'Select'}
+                              </span>
+                            </div>
                           </button>
                         );
                       })}
@@ -330,33 +271,26 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     </p>
                   </div>
                 )}
-                {/* Product Image & Badges */}
-                <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
-                  {/* User SS OIL Logo & Brand Watermark Badge */}
-                  <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
+
+                {/* Product Image Container */}
+                <div
+                  onClick={() => onQuickView(product)}
+                  className="relative h-56 sm:h-60 overflow-hidden bg-[#FAF8F5] p-4 flex items-center justify-center cursor-pointer"
+                >
+                  {/* User SS OIL Logo & Brand Badge */}
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-amber-300/80 shadow-2xs pointer-events-none select-none">
                     <img src="/admin_assets/ss_gold_drop_logo.png" alt="SS Oil" className="w-3.5 h-3.5 object-contain" />
                     <span className="text-[10px] font-bold font-serif text-forest-950 tracking-wider">SS OIL</span>
                   </div>
 
                   <img
-                    src={resolveProductImage(product)}
+                    src={resolvedImage}
                     alt={productName}
-                    onError={(e) => {
-                      e.currentTarget.src = '/products/sesame_oil.jpg?v=ssoil';
-                    }}
-                    className="w-full h-full object-contain p-2 rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-sm"
                   />
-
-                  {/* Quick View Button Hover Overlay */}
-                  <div className="absolute inset-0 bg-forest-950/20 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => onQuickView(product)}
-                      className="px-3.5 py-1.5 rounded-xl bg-white text-forest-900 font-semibold text-xs shadow-md hover:bg-cream-100 flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-forest-700" />
-                      <span>{t('prod.details')}</span>
-                    </button>
-                  </div>
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-400 text-forest-950 shadow-2xs">
+                    ⭐ BESTSELLER
+                  </span>
 
                   {/* Favorite Heart Button */}
                   <button
@@ -377,93 +311,54 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
 
                 {/* Card Details */}
                 <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
-                  <div>
-                    {/* Clean Purity Badge */}
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-bold text-forest-900 bg-forest-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-forest-900/10">
-                        <Droplets className="w-2.5 h-2.5 text-gold-600" />
-                        {t('prod.pure')}
-                      </span>
-                      <span className="text-[10px] text-stone-500 font-medium">
-                        {t('prod.mill')}
-                      </span>
+                  <div onClick={() => onQuickView(product)} className="cursor-pointer space-y-1.5">
+                    <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                      <span className="text-stone-800">{product.rating || 4.9}</span>
+                      <span className="text-stone-400 text-[10px]">({product.reviewsCount || 150}+)</span>
                     </div>
-
-                    {/* Product Name */}
-                    <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
+                    <h4 className="font-serif font-bold text-base sm:text-lg text-forest-950 group-hover:text-amber-800 transition-colors line-clamp-1">
                       {productName}
-                    </h3>
-                    <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
+                    </h4>
+                    <p className="text-xs text-stone-500 line-clamp-1">
                       {productTagline}
                     </p>
+                    <span className="text-[10px] text-stone-400 font-medium block">
+                      {formatPack(currentPack, language)}
+                    </span>
                   </div>
 
-                  {/* Pricing and Action Buttons */}
-                  <div className="pt-2.5 border-t border-cream-200">
-                    <div className="flex items-baseline justify-between mb-2.5">
-                      <div>
-                        {activeOffer && activeOffer.discountType === 'percentage' ? (
-                          <>
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-lg font-bold font-serif text-forest-950">
-                                ₹{currentOfferPrice}
-                              </span>
-                              <span className="text-[11px] text-stone-400 line-through">
-                                ₹{currentPackPrice}
-                              </span>
-                              <span className="text-[10px] font-bold text-white bg-emerald-700 px-1.5 py-0.5 rounded shadow-2xs">
-                                {activeOffer.discountValue}% OFF
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-emerald-700 font-bold block mt-0.5">
-                              {language === 'ta'
-                                ? `₹${currentSavings} குறைவு`
-                                : `Save ₹${currentSavings}`}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-lg font-bold font-serif text-forest-950">
-                                ₹{currentPackPrice}
-                              </span>
-                              <span className="text-[11px] text-stone-400 line-through">
-                                ₹{Math.round(currentPackPrice * 1.15)}
-                              </span>
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded">
-                                {product.discountPercent || 15}% Off
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-stone-400 block -mt-0.5">
-                              {formatPack(currentPack, language)}
-                            </span>
-                          </>
-                        )}
-                      </div>
+                  <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-lg font-serif font-black text-forest-950">
+                        ₹{currentPackPrice}
+                      </span>
+                      <span className="text-[10px] text-stone-400 block -mt-0.5">
+                        {language === 'ta' ? 'அனைத்து வரிகளும் உள்பட' : 'Inclusive of all taxes'}
+                      </span>
                     </div>
 
-                    {/* Add to Cart CTA (Clicking opens: "How many liters do you need?" / "எத்தனை லிட்டர் வேணும்?") */}
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setBuyingProductId(product.id);
+                        setBuyingProductId(`bestseller-${product.id}`);
                       }}
-                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
                         isJustAdded
-                          ? 'bg-emerald-700 text-white'
-                          : 'bg-forest-900 hover:bg-forest-800 text-cream-100 shadow-xs hover:shadow-md'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-forest-950 hover:bg-forest-900 text-white active:scale-95'
                       }`}
                     >
                       {isJustAdded ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-white" />
+                          <Check className="w-3.5 h-3.5" />
                           <span>{t('prod.added')}</span>
                         </>
                       ) : (
                         <>
                           <ShoppingBag className="w-3.5 h-3.5 text-gold-400" />
-                          <span>{t('prod.addToCart')}</span>
+                          <span>{language === 'ta' ? 'கார்ட்டில் சேர்' : 'Add to Cart'}</span>
                         </>
                       )}
                     </button>
@@ -472,58 +367,37 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               </div>
             );
           })}
+        </div>
 
-          {/* 5th Card: View All Products (Clean, Minimal & Neat) */}
-          {onViewAllProducts && (
-            <div
-              onClick={onViewAllProducts}
-              className="w-[250px] sm:w-[270px] shrink-0 group rounded-3xl bg-white border border-cream-300/80 hover:border-forest-900 shadow-soft hover:shadow-card hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
-            >
-              {/* Upper Visual Area (Matching exact image container of product cards with rich photo) */}
-              <div className="relative h-56 sm:h-60 overflow-hidden bg-[#faf8f5] p-3 flex items-center justify-center">
-                <img
-                  src="/banners/ssoil_bottling_hero_banner.jpg"
-                  alt="Explore All Pure Oils"
-                  onError={(e) => {
-                    e.currentTarget.src = '/products/ss_oil_can.jpg';
-                  }}
-                  className="w-full h-full object-cover object-center rounded-2xl group-hover:scale-108 transition-transform duration-500"
-                />
-
-                {/* Subtle soft dark vignette overlay with centered Gold Arrow Circle */}
-                <div className="absolute inset-3 rounded-2xl bg-gradient-to-t from-forest-950/75 via-forest-950/30 to-forest-950/15 flex items-center justify-center transition-all duration-300 group-hover:from-forest-950/85">
-                  <div className="w-14 h-14 rounded-full bg-gold-500 text-forest-950 flex items-center justify-center shadow-xl group-hover:scale-115 group-hover:bg-gold-400 transition-all duration-300">
-                    <ArrowRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Lower Details: Clean, spacious, not crowded */}
-              <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div>
-                  <span className="text-[10px] font-bold text-amber-700 tracking-wider uppercase block mb-1">
-                    {language === 'ta' ? 'முழுமையான பட்டியல்' : 'FULL CATALOG'}
-                  </span>
-                  <h3 className="font-serif text-base sm:text-lg font-bold text-forest-950 group-hover:text-forest-700 transition-colors line-clamp-1">
-                    {t('viewAll.title')}
-                  </h3>
-                  <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">
-                    {language === 'ta' ? 'அனைத்து மரச்செக்கு எண்ணெய்கள்' : 'Cold-pressed oils & pure ghee'}
-                  </p>
-                </div>
-
-                {/* Bottom Action Button (matching Add to Cart style) */}
-                <div className="pt-2.5 border-t border-cream-200">
-                  <div className="w-full py-2.5 px-3 rounded-xl bg-forest-900 group-hover:bg-forest-800 text-gold-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors">
-                    <span>{t('viewAll.button')}</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
+        {/* View All Mara Chekku Oils Footer Banner */}
+        {onViewAllProducts && (
+          <div className="mt-8 pt-6 border-t border-stone-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-amber-50 via-cream-100 to-amber-50/50 rounded-2xl p-4 sm:p-5 border border-amber-200/60">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <span className="text-2xl">🌿</span>
+              <div>
+                <h4 className="font-serif font-bold text-sm sm:text-base text-forest-950">
+                  {language === 'ta'
+                    ? 'மேலும் 12+ தூய மரச்செக்கு எண்ணெய் வகைகளை ஆராயுங்கள்'
+                    : 'Explore all 12+ Traditional Mara Chekku Oil Varieties'}
+                </h4>
+                <p className="text-xs text-stone-500">
+                  {language === 'ta'
+                    ? 'சேலம் ஆலை நேரடித் தயாரிப்பு • 100% தூய்மை உத்தரவாதம் • இலவச ஹோம் டெலிவரி'
+                    : 'Salem Mill Direct • Zero Chemicals • Lab Batch Certified • Free Express Delivery'}
+                </p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+
+            <button
+              type="button"
+              onClick={onViewAllProducts}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-all shadow-md cursor-pointer shrink-0"
+            >
+              <span>{language === 'ta' ? 'அனைத்து எண்ணெய்களையும் பார்க்க' : 'View Full Catalog'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>
